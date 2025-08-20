@@ -75,6 +75,7 @@ async function cleanupDatabase() {
     await prisma.lesson.deleteMany().catch(e => console.log('Pas de leçons à supprimer, on continue.'));
     await prisma.announcement.deleteMany().catch(e => console.log('Pas d\'annonces à supprimer, on continue.'));
     await prisma.event.deleteMany().catch(e => console.log('Pas d\'événements à supprimer, on continue.'));
+    await prisma.optionalSubjectGroup.deleteMany().catch(e => console.log('Pas de groupes de matières optionnelles à supprimer, on continue.'));
     await prisma.student.deleteMany().catch(e => console.log('Pas d\'étudiants à supprimer, on continue.'));
     await prisma.parent.deleteMany().catch(e => console.log('Pas de parents à supprimer, on continue.'));
     await prisma.teacher.deleteMany().catch(e => console.log('Pas d\'enseignants à supprimer, on continue.'));
@@ -227,7 +228,8 @@ async function main() {
       where: {
           grade: {
               level: {
-                  gte: 2
+                  gte: 2,
+                  lte: 4 // Only levels 2, 3, 4
               }
           }
       }

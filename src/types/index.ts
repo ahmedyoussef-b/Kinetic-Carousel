@@ -26,9 +26,9 @@ import type {
     ChatroomSession as PrismaChatroomSession,
     ScheduleDraft as PrismaScheduleDraft,
     School as PrismaSchool,
+    OptionalSubjectGroup as PrismaOptionalSubjectGroup,
     Role,
     UserSex,
-    OptionalSubject as PrismaOptionalSubject,
 } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 import type { FieldErrors, SubmitHandler, UseFormHandleSubmit, UseFormRegister, UseFormSetValue } from "react-hook-form";
@@ -47,8 +47,9 @@ export type EntityType = 'grade' | 'subject' | 'class' | 'teacher' | 'student' |
 export type User = PrismaUser;
 export type Admin = PrismaAdmin;
 export type Teacher = PrismaTeacher;
-export type Student = PrismaStudent & { optionalSubjects?: PrismaOptionalSubject[] };
-export type OptionalSubject = PrismaOptionalSubject;
+export type Student = PrismaStudent & { optionalSubjects?: PrismaSubject[] };
+export type OptionalSubject = PrismaSubject;
+export type OptionalSubjectGroup = PrismaOptionalSubjectGroup;
 export type Attendance = PrismaAttendance;
 export type Class = PrismaClass;
 export type Subject = PrismaSubject & { isOptional?: boolean };
@@ -124,6 +125,7 @@ export type StudentWithDetails = PrismaStudent & {
   parent: PrismaParent | null;
   grade: PrismaGrade | null;
   optionalSubjects?: OptionalSubject[];
+  optionalGroup?: OptionalSubjectGroup | null;
 };
 
 export type StudentWithClassAndUser = PrismaStudent & {
