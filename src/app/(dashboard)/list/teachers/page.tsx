@@ -6,9 +6,10 @@ import { redirect } from "next/navigation";
 import { Prisma, Role } from "@prisma/client";
 import { TeacherWithDetails, Class } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import TableSearch from "@/components/TableSearch";
 import Link from "next/link";
-import { PlusCircle, Filter, ArrowUpDown } from "lucide-react";
+import { PlusCircle, Filter, ArrowUpDown, ArrowLeft, BookOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TeacherCard from "@/components/cards/TeacherCard";
 import FormContainer from "@/components/FormContainer";
@@ -16,7 +17,17 @@ import Pagination from "@/components/Pagination";
 
 const ITEM_PER_PAGE = 12;
 
-const TeachersPage = async ({ searchParams }: { searchParams: { q?: string, p?: string, gradeId?: string } }) => {
+// --- SPECIFIC TYPE FOR THE NEW VIEW ---
+interface ClassTeacherInfo {
+    teacherId: string;
+    teacherName: string;
+    teacherSurname: string;
+    subjectId: number;
+    subjectName: string;
+    weeklyHours: number;
+}
+
+const TeachersPage = async ({ searchParams }: { searchParams: { q?: string, p?: string, gradeId?: string, classId?: string } }) => {
     const session = await getServerSession();
     
     if (!session?.user) {
@@ -26,7 +37,112 @@ const TeachersPage = async ({ searchParams }: { searchParams: { q?: string, p?: 
     const q = searchParams?.q || "";
     const p = parseInt(searchParams?.p || "1") || 1;
     const gradeId = searchParams?.gradeId;
+    const classId = searchParams?.classId;
 
+    // --- NEW LOGIC: DETAILED VIEW FOR A SINGLE CLASS ---
+    if (classId) {
+        const classData = await prisma.class.findUnique({
+            where: { id: parseInt(classId) },
+            include: {
+                grade: true,
+                lessons: {
+                    include: {
+                        teacher: true,
+                        subject: true,
+                    },
+                    orderBy: {
+                        subject: { name: 'asc' }
+                    }
+                }
+            }
+        });
+
+        if (!classData) {
+            return <div className="p-8 text-center">Classe non trouvée.</div>;
+        }
+
+        const teacherInfoMap = new Map<string, ClassTeacherInfo>();
+
+        for (const lesson of classData.lessons) {
+            if (lesson.teacher && lesson.subject) {
+                const key = `${lesson.teacherId}-${lesson.subjectId}`;
+                const durationMinutes = (lesson.endTime.getTime() - lesson.startTime.getTime()) / (1000 * 60);
+                const durationHours = durationMinutes / 60;
+
+                if (teacherInfoMap.has(key)) {
+                    teacherInfoMap.get(key)!.weeklyHours += durationHours;
+                } else {
+                    teacherInfoMap.set(key, {
+                        teacherId: lesson.teacherId,
+                        teacherName: lesson.teacher.name,
+                        teacherSurname: lesson.teacher.surname,
+                        subjectId: lesson.subjectId,
+                        subjectName: lesson.subject.name,
+                        weeklyHours: durationHours,
+                    });
+                }
+            }
+        }
+        
+        const classTeachers = Array.from(teacherInfoMap.values());
+
+        return (
+            <div className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-6">
+                     <Button variant="outline" size="sm" asChild>
+                      <Link href={`/list/classes/${classId}`}>
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Retour à la Classe
+                      </Link>
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-semibold text-foreground text-right">{classData.name}</h1>
+                        <p className="text-muted-foreground text-right">Liste des enseignants assignés</p>
+                    </div>
+                </div>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                           <Users/>
+                           Équipe Pédagogique
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                         <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Enseignant</TableHead>
+                                    <TableHead>Matière</TableHead>
+                                    <TableHead className="text-right">Heures/Semaine</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {classTeachers.length > 0 ? classTeachers.map(info => (
+                                    <TableRow key={`${info.teacherId}-${info.subjectId}`}>
+                                        <TableCell className="font-medium">
+                                            <Link href={`/list/teachers/${info.teacherId}`} className="hover:underline">
+                                                {info.teacherName} {info.teacherSurname}
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell>{info.subjectName}</TableCell>
+                                        <TableCell className="text-right">{info.weeklyHours.toFixed(1)}h</TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center h-24 text-muted-foreground">
+                                            Aucun enseignant assigné à cette classe dans l'emploi du temps actuel.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                 </Card>
+            </div>
+        );
+    }
+    
+    // --- ORIGINAL VIEW: GRID OF ALL TEACHERS ---
     const query: Prisma.TeacherWhereInput = {};
     const conditions: Prisma.TeacherWhereInput[] = [];
 
