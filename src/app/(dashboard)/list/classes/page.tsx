@@ -57,15 +57,9 @@ export default async function ServerClassesPage({
       include: {
         _count: { select: { students: true } },
         grade: true,
-        supervisor: {
-          select: {
-            name: true,
-            surname: true,
-          }
-        }
       },
       orderBy: { name: 'asc' },
-    });
+    }).then(classes => classes.map(c => ({ ...c, supervisor: null })));
 
     const initialGradeIdParam = typeof searchParams?.viewGradeId === 'string' ? searchParams.viewGradeId : null;
 
