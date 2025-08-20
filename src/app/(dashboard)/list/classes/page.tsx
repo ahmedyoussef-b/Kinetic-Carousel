@@ -14,6 +14,7 @@ export type GradeWithClassCount = Grade & {
 export type ClassWithDetails = Omit<Class, 'supervisorId'> & {
   _count: { students: number };
   grade: Grade;
+  supervisor: { name: string | null; surname: string | null } | null;
 };
 
 // --- SERVER COMPONENT (Default Export) ---
@@ -39,7 +40,6 @@ export default async function ServerClassesPage({
     let teacherName: string | undefined = undefined;
 
     if (teacherId && typeof teacherId === 'string') {
-        // Correctly initialize `whereClause.lessons` before using it
         whereClause.lessons = {
             some: {
                 teacherId: teacherId,
@@ -57,6 +57,12 @@ export default async function ServerClassesPage({
       include: {
         _count: { select: { students: true } },
         grade: true,
+        supervisor: {
+          select: {
+            name: true,
+            surname: true,
+          }
+        }
       },
       orderBy: { name: 'asc' },
     });
