@@ -134,11 +134,15 @@ async function main() {
   const createdGrades = [];
   for (let level = 1; level <= 4; level++) {
     console.log(`🏫 Création du niveau ${level}...`);
-    const grade = await prisma.grade.create({ data: { level } });
+    const grade = await prisma.grade.upsert({
+      where: { level },
+      update: {},
+      create: { level },
+    });
     createdGrades.push(grade);
 
     for (let classNum = 1; classNum <= 10; classNum++) {
-      const className = `${level}ème Année - Section ${String.fromCharCode(64 + classNum)}`;
+      const className = `${level}ème ${String.fromCharCode(64 + classNum)}`;
       const newClass = await prisma.class.create({
         data: {
           name: className,
@@ -318,3 +322,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+    
