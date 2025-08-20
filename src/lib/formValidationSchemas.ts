@@ -30,8 +30,9 @@ export const subjectSchema = z.object({
   id: z.coerce.number().optional(),
   name: z.string().min(1, { message: "Le nom de la matière est requis !" }),
   weeklyHours: z.coerce.number({invalid_type_error: "Veuillez entrer un nombre"}).min(1, { message: "Les heures hebdomadaires sont requises !" }),
-  coefficient: z.coerce.number({invalid_type_error: "Veuillez entrer un nombre"}).min(1, { message: "Le coefficient est requis !" }).optional(),
+  coefficient: z.coerce.number({invalid_type_error: "Veuillez entrer un nombre"}).min(1, { message: "Le coefficient est requis !" }),
   teachers: z.array(z.string()).optional(),
+  isOptional: z.boolean().optional(),
 });
 
 export const classSchema = z.object({

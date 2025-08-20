@@ -150,7 +150,7 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
       await updateSubject({
         id: editingSubject.id,
         ...editValues,
-        name: ''
+        name: editingSubject.name, // Pass name to satisfy schema, but it won't be changed
       }).unwrap();
 
       toast({ title: 'Matière mise à jour', description: `Les valeurs par défaut pour "${editingSubject.name}" ont été modifiées.` });
@@ -165,9 +165,6 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
   };
 
   const handleHoursChange = (classId: number, subjectId: number, hours: number) => {
-    // This now needs to call an API to persist the change.
-    // For now, we'll keep the local dispatch as a placeholder for UI reactivity.
-    // In a full implementation, you'd use a useUpdateLessonRequirementMutation hook.
     dispatch(setRequirement({
       classId, subjectId, hours,
       scheduleDraftId: null
@@ -188,7 +185,6 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
         const sourceRequirementHours = getRequirement(sourceClassId, subject.id);
         
         targetClasses.forEach(targetClass => {
-            // Again, this should be an API call in a fully persistent model.
             dispatch(setRequirement({
               classId: targetClass.id,
               subjectId: subject.id,

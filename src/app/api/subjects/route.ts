@@ -37,12 +37,11 @@ export async function POST(request: Request) {
         const validatedData = subjectSchema.parse(body);
         console.log('✅ POST /api/subjects: Validation successful:', validatedData);
 
-        const { teachers: teacherIds, id, coefficient, ...subjectDataWithoutId } = validatedData; // Destructure id and coefficient
+        const { teachers: teacherIds, ...subjectData } = validatedData;
 
         const newSubject = await prisma.subject.create({
             data: {
-                ...subjectDataWithoutId, // Spread data without id and coefficient
-                coefficient: coefficient ?? 0, // Provide a default value if coefficient is undefined
+                ...subjectData,
                 teachers: teacherIds && teacherIds.length > 0 ? {
                     connect: teacherIds.map((id: string) => ({ id })),
                 } : undefined,
