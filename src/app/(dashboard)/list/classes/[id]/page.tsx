@@ -58,8 +58,14 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
       where: { id: id },
       include: classWithDetailsArgs.include,
     }),
-    prisma.student.findMany({ select: { id: true, name: true, surname: true } }),
-    prisma.teacher.findMany({ select: { id: true, name: true, surname: true } })
+    prisma.student.findMany({ 
+        select: { id: true, name: true, surname: true },
+        orderBy: [{ surname: 'asc' }, { name: 'asc' }]
+    }),
+    prisma.teacher.findMany({ 
+        select: { id: true, name: true, surname: true },
+        orderBy: [{ surname: 'asc' }, { name: 'asc' }]
+    })
   ]);
 
 
