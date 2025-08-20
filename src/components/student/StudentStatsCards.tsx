@@ -1,7 +1,6 @@
 // src/components/student/StudentStatsCards.tsx
 import type { StudentWithDetails } from "@/types/index";
-import Image from "next/image";
-import * as paths from "@/lib/image-paths";
+import { BookCopy, BookOpen, GraduationCap } from "lucide-react";
 
 interface StudentStatsCardsProps {
   student: StudentWithDetails;
@@ -11,7 +10,7 @@ export default function StudentStatsCards({ student }: StudentStatsCardsProps) {
   return (
     <div className="flex-1 flex gap-4 justify-between flex-wrap">
       <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
-        <Image src={paths.singleBranchIcon} alt="niveau" width={24} height={24} className="w-6 h-6" />
+        <GraduationCap className="w-6 h-6 text-primary" />
         <div>
           <h1 className="text-xl font-semibold">
             {student.grade?.level || 'N/A'}e
@@ -20,7 +19,7 @@ export default function StudentStatsCards({ student }: StudentStatsCardsProps) {
         </div>
       </div>
       <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
-        <Image src={paths.singleLessonIcon} alt="cours" width={24} height={24} className="w-6 h-6" />
+        <BookCopy className="w-6 h-6 text-primary" />
         <div>
           <h1 className="text-xl font-semibold">
             {student.class?._count.lessons || 'N/A'}
@@ -29,7 +28,7 @@ export default function StudentStatsCards({ student }: StudentStatsCardsProps) {
         </div>
       </div>
       <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
-        <Image src={paths.singleClassIcon} alt="classe" width={24} height={24} className="w-6 h-6" />
+        <BookOpen className="w-6 h-6 text-primary" />
         <div>
           <h1 className="text-xl font-semibold">{student.class?.name || 'N/A'}</h1>
           <span className="text-sm text-gray-400">Classe</span>

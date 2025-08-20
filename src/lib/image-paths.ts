@@ -18,5 +18,4 @@ export const mailIcon = '/mail.png';
 export const phoneIcon = '/phone.png';
 export const singleBranchIcon = '/singleBranch.png';
 export const singleClassIcon = '/singleClass.png';
-export const singleLessonIcon = '/singleLesson.png';
 export const singleAttendanceIcon = '/singleAttendance.png';
