@@ -15,6 +15,7 @@ import { announcementEndpoints } from './endpoints/announcementEndpoints';
 import { resultEndpoints } from './endpoints/resultEndpoints';
 import { attendanceEndpoints } from './endpoints/attendanceEndpoints';
 import { authApi } from '../authApi'; 
+import { Student } from '@/types';
 
 export const entityApi = createApi({
   reducerPath: 'entityApi',
@@ -51,6 +52,14 @@ export const entityApi = createApi({
           // Errors are handled by the component that calls the mutation.
         }
       },
+    }),
+    updateStudentOptionalSubject: builder.mutation<Student, { studentId: string; optionalSubjectId: number }>({
+      query: ({ studentId, optionalSubjectId }) => ({
+        url: `/api/students/${studentId}/optional-subject`,
+        method: 'PUT',
+        body: { optionalSubjectId },
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }],
     }),
   }),
 });
@@ -113,4 +122,5 @@ export const {
   useUpdateAttendanceMutation,
   useDeleteAttendanceMutation,
   useUpdateProfileMutation,
+  useUpdateStudentOptionalSubjectMutation,
 } = entityApi;

@@ -13,6 +13,7 @@ import TimetableDisplay from "@/components/schedule/TimetableDisplay";
 import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import type { StudentWithDetails, WizardData, Lesson, ClassWithGrade, TeacherWithDetails, Subject, Classroom } from "@/types/index";
+import OptionalSubjectCard from "@/components/student/OptionalSubjectCard";
 
 const SingleStudentPage = async ({
   params,
@@ -35,6 +36,7 @@ const SingleStudentPage = async ({
         class: { include: { _count: { select: { lessons: true } }, grade: true } },
         parent: true,
         grade: true,
+        optionalSubjects: true, // Eager load the selected optional subjects
       },
   });
 
@@ -69,6 +71,11 @@ const SingleStudentPage = async ({
   const wizardData = await fetchAllDataForWizard();
   // --- End Timetable Data Fetch ---
 
+  // Fetch optional subjects available for the student's grade
+  const availableOptionalSubjects = student.gradeId ? await prisma.optionalSubject.findMany({
+    where: { gradeId: student.gradeId }
+  }) : [];
+
 
   return (
     <div className="flex-1 p-4 flex flex-col gap-4">
@@ -81,6 +88,13 @@ const SingleStudentPage = async ({
             </div>
             <div className="w-full xl:w-1/3 flex flex-col gap-4">
                 <StudentShortcuts student={student} />
+                {student.grade && student.grade.level >= 2 && (
+                    <OptionalSubjectCard 
+                        studentId={student.id}
+                        selectedSubjects={student.optionalSubjects || []}
+                        availableSubjects={availableOptionalSubjects}
+                    />
+                )}
                 <Suspense fallback={<Skeleton className="h-[320px] w-full" />}>
                     <StudentWeeklyAttendanceChart studentId={student.id} />
                 </Suspense>
