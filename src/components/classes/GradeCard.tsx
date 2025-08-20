@@ -51,7 +51,7 @@ const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect }) => {
             {userRole === AppRole.ADMIN && (
                 <div 
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => e.stopPropagation()} // Prevent card click when deleting
+                    onClick={(e) => e.stopPropagation()} // Prevent card click when interacting with buttons
                 >
                     <FormContainer table="grade" type="delete" id={grade.id} />
                 </div>
