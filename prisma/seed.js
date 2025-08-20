@@ -21,21 +21,21 @@ const arabicLastNames = [
 ];
 
 const subjectsData = [
-    { name: 'Mathématiques', weeklyHours: 5, coefficient: 4 },
-    { name: 'Physique', weeklyHours: 4, coefficient: 3 },
-    { name: 'Sciences', weeklyHours: 3, coefficient: 2 },
-    { name: 'Français', weeklyHours: 4, coefficient: 3 },
-    { name: 'Arabe', weeklyHours: 4, coefficient: 4 },
-    { name: 'Anglais', weeklyHours: 3, coefficient: 2 },
-    { name: 'Histoire', weeklyHours: 2, coefficient: 1 },
-    { name: 'Géographie', weeklyHours: 2, coefficient: 1 },
-    { name: 'Éducation Civile', weeklyHours: 1, coefficient: 1 },
-    { name: 'Éducation Religieuse', weeklyHours: 1, coefficient: 1 },
-    { name: 'Informatique', weeklyHours: 2, coefficient: 1 },
-    { name: 'Technique', weeklyHours: 2, coefficient: 1 },
-    { name: 'Musique', weeklyHours: 1, coefficient: 1 },
-    { name: 'Art', weeklyHours: 1, coefficient: 1 },
-    { name: 'Éducation Sportive', weeklyHours: 2, coefficient: 1 },
+    { name: 'Mathématiques', weeklyHours: 5, coefficient: 4, isOptional: false },
+    { name: 'Physique', weeklyHours: 4, coefficient: 3, isOptional: false },
+    { name: 'Sciences', weeklyHours: 3, coefficient: 2, isOptional: false },
+    { name: 'Français', weeklyHours: 4, coefficient: 3, isOptional: false },
+    { name: 'Arabe', weeklyHours: 4, coefficient: 4, isOptional: false },
+    { name: 'Anglais', weeklyHours: 3, coefficient: 2, isOptional: false },
+    { name: 'Histoire', weeklyHours: 2, coefficient: 1, isOptional: false },
+    { name: 'Géographie', weeklyHours: 2, coefficient: 1, isOptional: false },
+    { name: 'Éducation Civile', weeklyHours: 1, coefficient: 1, isOptional: false },
+    { name: 'Éducation Religieuse', weeklyHours: 1, coefficient: 1, isOptional: false },
+    { name: 'Informatique', weeklyHours: 2, coefficient: 1, isOptional: false },
+    { name: 'Technique', weeklyHours: 2, coefficient: 1, isOptional: false },
+    { name: 'Musique', weeklyHours: 1, coefficient: 1, isOptional: false },
+    { name: 'Art', weeklyHours: 1, coefficient: 1, isOptional: false },
+    { name: 'Éducation Sportive', weeklyHours: 2, coefficient: 1, isOptional: false },
 ];
 
 const optionalSubjectsData = [
