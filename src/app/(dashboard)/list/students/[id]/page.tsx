@@ -83,18 +83,20 @@ const SingleStudentPage = async ({
             <div className="w-full xl:w-2/3">
                 <div className="flex flex-col lg:flex-row gap-4">
                     <StudentProfileCard student={student} userRole={userRole} />
-                    <StudentStatsCards student={student} />
+                    <div className="flex-1 flex flex-col gap-4">
+                        <StudentStatsCards student={student} />
+                         {student.grade && (
+                            <OptionalSubjectCard
+                                studentId={student.id}
+                                selectedSubjects={student.optionalSubjects || []}
+                                availableSubjects={availableOptionalSubjects}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="w-full xl:w-1/3 flex flex-col gap-4">
                 <StudentShortcuts student={student} />
-                {student.grade && (
-                    <OptionalSubjectCard 
-                        studentId={student.id}
-                        selectedSubjects={student.optionalSubjects || []}
-                        availableSubjects={availableOptionalSubjects}
-                    />
-                )}
                 <Suspense fallback={<Skeleton className="h-[320px] w-full" />}>
                     <StudentWeeklyAttendanceChart studentId={student.id} />
                 </Suspense>
@@ -109,9 +111,9 @@ const SingleStudentPage = async ({
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <TimetableDisplay 
-                    wizardData={wizardData} 
-                    viewMode={"class"} 
+                <TimetableDisplay
+                    wizardData={wizardData}
+                    viewMode={"class"}
                     selectedViewId={student.classId?.toString() || ""}
                 />
             </CardContent>

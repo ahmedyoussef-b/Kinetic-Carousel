@@ -1,6 +1,6 @@
 // src/components/student/StudentStatsCards.tsx
 import type { StudentWithDetails } from "@/types/index";
-import { BookCopy, BookOpen, GraduationCap } from "lucide-react";
+import { BookCopy, GraduationCap, CalendarCheck } from "lucide-react";
 
 interface StudentStatsCardsProps {
   student: StudentWithDetails;
@@ -8,8 +8,8 @@ interface StudentStatsCardsProps {
 
 export default function StudentStatsCards({ student }: StudentStatsCardsProps) {
   return (
-    <div className="flex-1 flex gap-4 justify-between flex-wrap">
-      <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
+    <div className="flex-1 flex flex-col gap-4">
+      <div className="bg-card p-4 rounded-lg flex gap-4 w-full shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
         <GraduationCap className="w-6 h-6 text-primary" />
         <div>
           <h1 className="text-xl font-semibold">
@@ -18,7 +18,7 @@ export default function StudentStatsCards({ student }: StudentStatsCardsProps) {
           <span className="text-sm text-gray-400">Niveau</span>
         </div>
       </div>
-      <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
+      <div className="bg-card p-4 rounded-lg flex gap-4 w-full shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
         <BookCopy className="w-6 h-6 text-primary" />
         <div>
           <h1 className="text-xl font-semibold">
@@ -27,8 +27,8 @@ export default function StudentStatsCards({ student }: StudentStatsCardsProps) {
           <span className="text-sm text-gray-400">Cours</span>
         </div>
       </div>
-      <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
-        <BookOpen className="w-6 h-6 text-primary" />
+      <div className="bg-card p-4 rounded-lg flex gap-4 w-full shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
+        <CalendarCheck className="w-6 h-6 text-primary" />
         <div>
           <h1 className="text-xl font-semibold">{student.class?.name || 'N/A'}</h1>
           <span className="text-sm text-gray-400">Classe</span>
