@@ -52,26 +52,6 @@ const FormFields = ({
           error={errors?.capacity}
           disabled={isLoading}
         />
-        <div className="flex flex-col gap-2 w-full">
-          <Label>Niveau</Label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full disabled:opacity-50"
-            {...register("gradeLevel")}
-            disabled={isLoading}
-          >
-            <option value="">Sélectionner un niveau</option>
-            {grades.map((grade) => (
-              <option value={grade.level} key={grade.id}>
-                {grade.level}
-              </option>
-            ))}
-          </select>
-          {errors.gradeLevel?.message && (
-            <p className="text-xs text-red-400">
-              {errors.gradeLevel.message?.toString()}
-            </p>
-          )}
-        </div>
       </div>
       
       <MultiSelectField
