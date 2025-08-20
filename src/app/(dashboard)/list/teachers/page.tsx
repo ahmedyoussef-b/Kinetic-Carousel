@@ -16,7 +16,7 @@ import Pagination from "@/components/Pagination";
 
 const ITEM_PER_PAGE = 12;
 
-const TeachersPage = async ({ searchParams }: { searchParams: { q?: string, p?: string } }) => {
+const TeachersPage = async ({ searchParams }: { searchParams: { q?: string, p?: string, gradeId?: string } }) => {
     const session = await getServerSession();
     
     if (!session?.user) {
@@ -25,18 +25,40 @@ const TeachersPage = async ({ searchParams }: { searchParams: { q?: string, p?: 
 
     const q = searchParams?.q || "";
     const p = parseInt(searchParams?.p || "1") || 1;
+    const gradeId = searchParams?.gradeId;
 
-    const query: Prisma.TeacherWhereInput = {
-        OR: [
-            { name: { contains: q, mode: 'insensitive' } },
-            { surname: { contains: q, mode: 'insensitive' } },
-            { user: { email: { contains: q, mode: 'insensitive' } } },
-            { phone: { contains: q, mode: 'insensitive' } },
-            { address: { contains: q, mode: 'insensitive' } },
-            { user: { username: { contains: q, mode: 'insensitive' } } },
-            { subjects: { some: { name: { contains: q, mode: 'insensitive' } } } },
-        ],
-    };
+    const query: Prisma.TeacherWhereInput = {};
+    const conditions: Prisma.TeacherWhereInput[] = [];
+
+    if (q) {
+        conditions.push({
+            OR: [
+                { name: { contains: q, mode: 'insensitive' } },
+                { surname: { contains: q, mode: 'insensitive' } },
+                { user: { email: { contains: q, mode: 'insensitive' } } },
+                { phone: { contains: q, mode: 'insensitive' } },
+                { address: { contains: q, mode: 'insensitive' } },
+                { user: { username: { contains: q, mode: 'insensitive' } } },
+                { subjects: { some: { name: { contains: q, mode: 'insensitive' } } } },
+            ],
+        });
+    }
+
+    if (gradeId) {
+        conditions.push({
+            lessons: {
+                some: {
+                    class: {
+                        gradeId: parseInt(gradeId)
+                    }
+                }
+            }
+        });
+    }
+
+    if (conditions.length > 0) {
+        query.AND = conditions;
+    }
 
     const [teachersFromDb, count] = await Promise.all([
         prisma.teacher.findMany({
