@@ -4,7 +4,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { BookOpen, Hourglass, Trash2, Star, Plus, Copy, AlertTriangle, Edit } from 'lucide-react';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ import { selectTeacherAssignments } from '@/lib/redux/features/teacherAssignment
 import { useToast } from '@/hooks/use-toast';
 import { Subject } from '@/types';
 import { selectAllMatieres } from '@/lib/redux/features/subjects/subjectsSlice';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 interface SubjectsFormProps {}
@@ -57,7 +58,8 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
   const [newSubject, setNewSubject] = useState({
     name: '',
     weeklyHours: 2,
-    coefficient: 1
+    coefficient: 1,
+    isOptional: false,
   });
   
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -94,7 +96,7 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
         description: `La matière "${newSubject.name}" a été ajoutée.`
       });
 
-      setNewSubject({ name: '', weeklyHours: 2, coefficient: 1 });
+      setNewSubject({ name: '', weeklyHours: 2, coefficient: 1, isOptional: false });
     } catch (error: any) {
         toast({
             variant: "destructive",
@@ -225,7 +227,7 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
           </div>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div className="md:col-span-1">
                 <Label>Nom de la matière</Label>
                 <Input 
@@ -270,6 +272,19 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
                   className="mt-1" 
                   disabled={isLoading}
                 />
+              </div>
+               <div className="flex items-center space-x-2 pb-1">
+                <Checkbox
+                  id="isOptional"
+                  checked={newSubject.isOptional}
+                  onCheckedChange={(checked) =>
+                    setNewSubject({ ...newSubject, isOptional: checked as boolean })
+                  }
+                  disabled={isLoading}
+                />
+                <Label htmlFor="isOptional" className="font-medium">
+                  Matière Optionnelle
+                </Label>
               </div>
             </div>
             
