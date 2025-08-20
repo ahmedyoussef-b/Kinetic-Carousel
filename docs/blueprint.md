@@ -1,19 +1,14 @@
-# **App Name**: Kinetic Carousel
+# **App Name**: SimplePage
 
 ## Core Features:
 
-- Image Carousel: Display a rotating slider of images.
-- Animated Transitions: Implement smooth transitions between slides.
-- Navigation Indicators: Include navigation dots to show current slide.
-- Touch Support: Support swipe gestures for mobile devices.
-- Dynamic data intake: Dynamically read in the image source data.
+- Content Display: Display a title and a paragraph on the page.
+- Responsive Layout: Implement responsive design using Tailwind CSS for different screen sizes.
 
 ## Style Guidelines:
 
-- Primary color: A deep Indigo (#4B0082) to evoke sophistication and modernity.
-- Background color: Very light gray (#F0F0F0), near-white, to allow the carousel images to take center stage.
-- Accent color: A vibrant Magenta (#FF00FF) to draw attention to interactive elements such as navigation dots.
-- Body and headline font: 'Inter', a sans-serif font, for clear readability and modern aesthetics.
-- Use subtle, smooth transitions and animations to enhance the visual experience without being distracting.
-- Ensure the carousel is responsive and adapts well to different screen sizes.
-- Minimalist icons for navigation.
+- Primary color: Soft sky blue (#87CEEB) for a calm and simple aesthetic.
+- Background color: Very light blue (#E6F7FF), almost white.
+- Accent color: A slightly darker shade of blue (#5DADE2) to highlight important elements.
+- Font: 'Inter', a grotesque-style sans-serif font suitable for headlines or body text.
+- Use a simple, centered layout for the content to maintain focus.
