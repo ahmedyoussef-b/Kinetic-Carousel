@@ -68,6 +68,9 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
 
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [editValues, setEditValues] = useState({ weeklyHours: 2, coefficient: 1 });
+  
+  const mainSubjects = subjects.filter(s => !s.isOptional);
+  const optionalSubjects = subjects.filter(s => s.isOptional);
 
   const handleAddSubject = async () => {
     if (!newSubject.name || !newSubject.weeklyHours || !newSubject.coefficient) return;
@@ -294,12 +297,45 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
             </Button>
           </div>
           
-          {subjects.length > 0 && (
+          {mainSubjects.length > 0 && (
             <>
               <hr className="my-6" />
               <h4 className="text-md font-semibold text-muted-foreground mb-4">Matières existantes</h4>
               <div className="space-y-2">
-                {subjects.map(subject => (
+                {mainSubjects.map(subject => (
+                  <div key={subject.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                    <span className="font-medium">{subject.name}</span>
+                    <div className="flex items-center">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenEditModal(subject)}
+                            title="Modifier"
+                        >
+                            <Edit size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => promptDeleteSubject(subject)}
+                          className="text-destructive hover:text-destructive/90"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {optionalSubjects.length > 0 && (
+            <>
+              <hr className="my-6" />
+              <h4 className="text-md font-semibold text-muted-foreground mb-4">Matières Optionnelles</h4>
+              <div className="space-y-2">
+                {optionalSubjects.map(subject => (
                   <div key={subject.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
                     <span className="font-medium">{subject.name}</span>
                     <div className="flex items-center">
