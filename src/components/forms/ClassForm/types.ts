@@ -9,7 +9,6 @@ export interface ClassFormProps {
   relatedData?: { 
     grades?: { id: number; level: number }[];
     students?: { id: string; name: string; surname: string }[];
-    teachers?: { id: string; name: string; surname: string, subjects: { name: string }[] }[];
   };
 }
 
@@ -25,5 +24,4 @@ export interface ClassFormReturn {
   updateErrorData: any;
   setValue: UseFormSetValue<ClassSchema>;
   selectedStudents: string[];
-  selectedTeachers: string[];
 }

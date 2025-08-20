@@ -10,7 +10,6 @@ const updateClassSchema = z.object({
   capacity: z.coerce.number().int().positive().optional(),
   gradeLevel: z.coerce.number().int().positive().optional(),
   studentIds: z.array(z.string()).optional(),
-  teacherIds: z.array(z.string()).optional(),
 });
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -25,7 +24,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   try {
     const body = await request.json();
     console.log(`📝 PUT /api/classes/${id}: Request body:`, body);
-    const { gradeLevel, studentIds, teacherIds, ...classData } = updateClassSchema.parse(body);
+    const { gradeLevel, studentIds, ...classData } = updateClassSchema.parse(body);
     console.log(`✅ PUT /api/classes/${id}: Validation successful:`, { gradeLevel, ...classData });
     
     const updatedClass = await prisma.$transaction(async (tx) => {
@@ -47,16 +46,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
                 set: studentIds.map(sid => ({ id: sid }))
             };
         }
-
-        // Handle teacher assignments (This is more complex as teachers are linked via subjects/lessons)
-        // For now, we will assume this part is handled via the teacher assignment logic elsewhere
-        // or that it's a direct relation for being a "main" teacher (if such a concept existed).
-        // The current schema links teachers to classes via Lessons. Direct assignment is not standard.
-        // We will log this action but not perform a DB update for teachers directly on the class.
-        if (teacherIds) {
-            console.log(`Teacher IDs [${teacherIds.join(', ')}] were passed but direct assignment to Class is not supported via this endpoint. Assign teachers via lessons or teacher-subject assignments.`);
-        }
-
 
         return tx.class.update({
             where: { id },

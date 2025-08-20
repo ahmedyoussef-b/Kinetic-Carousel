@@ -53,7 +53,7 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
   const session = await getServerSession();
   const userRole = session?.user?.role as AppRole | undefined;
 
-  const [classData, allStudents, allTeachers] = await Promise.all([
+  const [classData, allStudents] = await Promise.all([
     prisma.class.findUnique({
       where: { id: id },
       include: classWithDetailsArgs.include,
@@ -62,24 +62,8 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
         select: { id: true, name: true, surname: true },
         orderBy: [{ surname: 'asc' }, { name: 'asc' }]
     }),
-    prisma.teacher.findMany({ 
-        select: { id: true, name: true, surname: true, subjects: { select: { name: true } } },
-        orderBy: [{ surname: 'asc' }, { name: 'asc' }]
-    })
   ]);
   
-  // Custom sort in TypeScript to order by subject first
-  allTeachers.sort((a, b) => {
-    const subjectA = a.subjects[0]?.name || 'zzz'; // Place teachers with no subject at the end
-    const subjectB = b.subjects[0]?.name || 'zzz';
-    if (subjectA < subjectB) return -1;
-    if (subjectA > subjectB) return 1;
-    if (a.surname < b.surname) return -1;
-    if (a.surname > b.surname) return 1;
-    return a.name < b.name ? -1 : 1;
-  });
-
-
   if (!classData) {
     notFound();
   }
@@ -108,7 +92,7 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
               table="class" 
               type="update" 
               data={classData} 
-              relatedData={{ students: allStudents, teachers: allTeachers }}
+              relatedData={{ students: allStudents }}
             />
         )}
       </div>

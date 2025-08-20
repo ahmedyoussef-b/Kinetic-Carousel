@@ -24,7 +24,6 @@ const ClassForm = ({
     updateErrorData,
     setValue,
     selectedStudents,
-    selectedTeachers,
   } = useClassForm({ type, data, setOpen, relatedData });
 
   return (
@@ -39,10 +38,8 @@ const ClassForm = ({
         isLoading={isLoading}
         grades={relatedData?.grades || []}
         students={relatedData?.students || []}
-        teachers={relatedData?.teachers || []}
         setValue={setValue}
         selectedStudents={selectedStudents}
-        selectedTeachers={selectedTeachers}
       />
       
       {(createIsError || updateIsError) && (

@@ -25,18 +25,14 @@ const useClassForm = ({
       name: data.name,
       abbreviation: data.abbreviation || '',
       capacity: data.capacity || 0,
-      gradeLevel: data.gradeLevel || data.grade?.level || 0,
       studentIds: data.students?.map((s: { id: string }) => s.id) || [],
-      teacherIds: data.lessons?.map((l: { teacher: { id: string } }) => l.teacher?.id).filter((v: any, i: any, a: any) => a.indexOf(v) === i) || [],
     } : { 
       capacity: 25,
       studentIds: [],
-      teacherIds: [],
     },
   });
 
   const selectedStudents = watch("studentIds") || [];
-  const selectedTeachers = watch("teacherIds") || [];
 
   const router = useRouter();
   const [createClass, { 
@@ -98,7 +94,6 @@ const useClassForm = ({
     updateErrorData,
     setValue,
     selectedStudents,
-    selectedTeachers,
   };
 };
 
