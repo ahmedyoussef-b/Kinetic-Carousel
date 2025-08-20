@@ -43,7 +43,7 @@ export function generateSchedule(wizardData: WizardData): { schedule: Lesson[], 
     
     subjects.forEach(subjectInfo => {
       // Exclude optional subjects from this main loop
-      if (subjectInfo.name.toLowerCase().includes('allemand') || subjectInfo.name.toLowerCase().includes('italien') || subjectInfo.name.toLowerCase().includes('espagnol')) {
+      if (subjectInfo.isOptional) {
           return;
       }
       
@@ -81,10 +81,10 @@ export function generateSchedule(wizardData: WizardData): { schedule: Lesson[], 
 
   // --- 2. Place Optional Subject Lessons ---
   console.log("--- 🗓️ Planification des matières optionnelles ---");
-  const optionalSubjects = wizardData.subjects.filter(s => s.name.toLowerCase().includes('allemand') || s.name.toLowerCase().includes('italien') || s.name.toLowerCase().includes('espagnol'));
+  const optionalSubjects = wizardData.subjects.filter(s => s.isOptional);
   
   for (const optionalSubject of optionalSubjects) {
-      const studentsForSubject = students.filter(st => st.optionalSubjects?.some(os => os.name === optionalSubject.name));
+      const studentsForSubject = students.filter(st => st.optionalSubjects?.some(os => os.id === optionalSubject.id));
       if (studentsForSubject.length === 0) continue;
 
       const assignment = teacherAssignments.find(a => a.subjectId === optionalSubject.id);
@@ -95,7 +95,7 @@ export function generateSchedule(wizardData: WizardData): { schedule: Lesson[], 
       }
       
       const numGroups = Math.ceil(studentsForSubject.length / 30);
-      const hoursPerWeek = 2; // Assuming 2 hours per week for optional subjects
+      const hoursPerWeek = optionalSubject.weeklyHours || 2; 
 
       for (let groupIndex = 0; groupIndex < numGroups; groupIndex++) {
           const groupName = `${optionalSubject.name} - Gr${groupIndex + 1}`;
@@ -257,6 +257,7 @@ function placeOptionalLesson(
                 const studentClassId = student?.classId;
                 if (!studentClassId) return false;
                 
+                // We only need to check their main class schedule, as optional subjects for other groups are handled separately
                 const studentLessons = schedule.filter(l => l.classId === studentClassId);
                 return isClassBusy(studentLessons, studentClassId, dayEnum, lessonStartMinutes, lessonEndMinutes);
             });
