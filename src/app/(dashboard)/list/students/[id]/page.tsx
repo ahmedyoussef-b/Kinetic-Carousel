@@ -85,13 +85,6 @@ const SingleStudentPage = async ({
                     <StudentProfileCard student={student} userRole={userRole} />
                     <div className="flex-1 flex flex-col gap-4">
                         <StudentStatsCards student={student} />
-                         {student.grade && (
-                            <OptionalSubjectCard
-                                studentId={student.id}
-                                selectedSubjects={student.optionalSubjects || []}
-                                availableSubjects={availableOptionalSubjects}
-                            />
-                        )}
                     </div>
                 </div>
             </div>
@@ -100,6 +93,13 @@ const SingleStudentPage = async ({
                 <Suspense fallback={<Skeleton className="h-[320px] w-full" />}>
                     <StudentWeeklyAttendanceChart studentId={student.id} />
                 </Suspense>
+                 {student.grade && (
+                    <OptionalSubjectCard
+                        studentId={student.id}
+                        selectedSubjects={student.optionalSubjects || []}
+                        availableSubjects={availableOptionalSubjects}
+                    />
+                )}
             </div>
         </div>
 
