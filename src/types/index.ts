@@ -34,7 +34,9 @@ import type { Dispatch, SetStateAction } from "react";
 import type { FieldErrors, SubmitHandler, UseFormHandleSubmit, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { SerializedError } from "@reduxjs/toolkit";
-import type { TeacherSchema, ParentSchema, StudentSchema } from './schemas';
+import type { TeacherSchema, ParentSchema, StudentSchema, SubjectSchema } from './schemas';
+import { UseMutation } from "@reduxjs/toolkit/dist/query/react/buildHooks";
+import { MutationDefinition } from "@reduxjs/toolkit/query";
 
 
 export { Role, UserSex, Day, TimePreference } from '@prisma/client';
@@ -272,6 +274,30 @@ export interface TeacherFormReturn {
   imgPreview: string | null | undefined;
   createErrorData: FetchBaseQueryError | SerializedError | undefined;
   updateErrorData: FetchBaseQueryError | SerializedError | undefined;
+}
+
+export interface SubjectFormProps {
+  type: "create" | "update";
+  data?: Subject & { teachers?: Pick<Teacher, 'id'>[] };
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  relatedData?: { 
+    teachers?: Teacher[];
+  };
+}
+
+export interface UseSubjectFormProps extends SubjectFormProps {
+    createSubject: UseMutation<MutationDefinition<any, any, any, any>>;
+    updateSubject: UseMutation<MutationDefinition<any, any, any, any>>;
+}
+
+
+export interface SubjectFormReturn {
+  register: UseFormRegister<SubjectSchema>;
+  handleSubmit: UseFormHandleSubmit<SubjectSchema>;
+  errors: FieldErrors<SubjectSchema>;
+  setValue: UseFormSetValue<SubjectSchema>;
+  selectedTeachers: string[];
+  onSubmit: SubmitHandler<SubjectSchema>;
 }
 
 

@@ -145,6 +145,7 @@ model Subject {
   name         String    @unique
   weeklyHours  Int?
   coefficient  Int?
+  isOptional   Boolean   @default(false)
   teachers     Teacher[] @relation("TeacherSubjects")
   lessons      Lesson[]
   requiresRoom Boolean   @default(false)

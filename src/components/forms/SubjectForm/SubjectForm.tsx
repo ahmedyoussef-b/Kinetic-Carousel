@@ -4,7 +4,7 @@
 import React from 'react';
 import FormFields from "./FormFields";
 import useSubjectForm from "./useSubjectForm";
-import type { SubjectFormProps } from "./types";
+import type { SubjectFormProps } from "@/types";
 import { Button } from '@/components/ui/button';
 import { useCreateSubjectMutation, useUpdateSubjectMutation } from "@/lib/redux/api/entityApi";
 

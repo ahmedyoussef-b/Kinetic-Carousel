@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import { SubjectSchema, subjectSchema } from "@/lib/formValidationSchemas";
-import type { UseSubjectFormProps, SubjectFormReturn } from "./types";
+import type { UseSubjectFormProps, SubjectFormReturn } from "@/types";
 
 const useSubjectForm = ({
   type,
