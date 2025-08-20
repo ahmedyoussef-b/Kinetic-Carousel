@@ -51,7 +51,6 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
   const [selectedGradeId, setSelectedGradeId] = useState<number | null>(initialGradeIdParam ? Number(initialGradeIdParam) : null);
 
   const selectedGrade = selectedGradeId ? grades.find(g => g.id === selectedGradeId) : null;
-  const classesInGrade = selectedGradeId ? classes.filter(c => c.gradeId === selectedGradeId) : [];
   
   const handleGradeSelect = (gradeId: number) => {
     setSelectedGradeId(gradeId);
@@ -60,35 +59,6 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
   const handleBackToGrades = () => {
     setSelectedGradeId(null);
   };
-
-  if (isTeacherFilteredView) {
-    return (
-       <div className="p-4 md:p-6 animate-in fade-in-0 duration-500">
-        <div className="flex items-center justify-between mb-6">
-           <Button variant="outline" size="sm" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
-          <h1 className="text-2xl font-semibold text-foreground">
-            {`Classes de ${teacherName}`} 
-          </h1>
-          <div></div>
-        </div>
-
-        {classes.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-muted-foreground">Aucune classe assignée à cet enseignant.</p> 
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {classes.map((classItem) => (
-              <ClassCard key={classItem.id} classItem={classItem}  />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
   
   // MAIN VIEW
   return (
