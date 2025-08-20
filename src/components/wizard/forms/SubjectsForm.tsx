@@ -300,7 +300,7 @@ const SubjectsForm: React.FC<SubjectsFormProps> = () => {
           {mainSubjects.length > 0 && (
             <>
               <hr className="my-6" />
-              <h4 className="text-md font-semibold text-muted-foreground mb-4">Matières existantes</h4>
+              <h4 className="text-md font-semibold text-muted-foreground mb-4">Matières Principales</h4>
               <div className="space-y-2">
                 {mainSubjects.map(subject => (
                   <div key={subject.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
