@@ -23,7 +23,7 @@ const DynamicAvatar = ({
 }) => {
   
   const finalSeed = seed || 'default-avatar-seed';
-  const finalImageUrl = imageUrl || `https://api.dicebear.com/8.x/avataaars/svg?seed=${finalSeed}`;
+  const finalImageUrl = imageUrl || `https://api.dicebear.com/8.x/bottts/svg?seed=${finalSeed}`;
   const hint = imageUrl ? {} : { 'data-ai-hint': 'avatar portrait' };
 
   return (

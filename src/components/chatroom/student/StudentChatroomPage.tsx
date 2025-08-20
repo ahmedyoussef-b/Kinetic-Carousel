@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { useLogoutMutation } from '@/lib/redux/api/authApi';
 import { removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice';
-import { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } from '@/lib/redux/slices/authSlice';
+import { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } from '@/lib/redux/features/auth/authSlice';
 import { Role, type SafeUser } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -77,7 +77,7 @@ export default function StudentChatroomPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
-      <StudentHeader user={user} onLogout={handleLogout} isLoggingOut={isLoggingOut} />
+      <StudentHeader user={user as SafeUser} onLogout={handleLogout} isLoggingOut={isLoggingOut} />
       
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         <WelcomeMessage name={user.name} />

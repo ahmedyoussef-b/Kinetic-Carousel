@@ -29,7 +29,7 @@ export function ChatMessageItem({ message, isCurrentUser }: ChatMessageItemProps
     <div className={`flex gap-3 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
       {!isCurrentUser && (
         <img
-          src={message.userAvatar || `https://api.dicebear.com/8.x/avataaars/svg?seed=${message.userName}`}
+          src={message.userAvatar || `https://api.dicebear.com/8.x/bottts/svg?seed=${message.userName}`}
           alt={message.userName}
           className="w-8 h-8 rounded-full flex-shrink-0"
         />
@@ -66,7 +66,7 @@ export function ChatMessageItem({ message, isCurrentUser }: ChatMessageItemProps
 
       {isCurrentUser && (
         <img
-          src={message.userAvatar || `https://api.dicebear.com/8.x/avataaars/svg?seed=${message.userName}`}
+          src={message.userAvatar || `https://api.dicebear.com/8.x/bottts/svg?seed=${message.userName}`}
           alt={message.userName}
           className="w-8 h-8 rounded-full flex-shrink-0"
         />

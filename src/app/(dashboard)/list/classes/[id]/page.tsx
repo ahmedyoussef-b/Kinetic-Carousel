@@ -120,7 +120,7 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
                         {classData.students.map(student => (
                             <Link key={student.id} href={`/list/students/${student.id}`} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted transition-colors">
                                <Avatar className="h-9 w-9">
-                                    <AvatarImage src={student.user?.img || student.img || `https://api.dicebear.com/8.x/avataaars/svg?seed=${student.id}`} alt={`${student.name} ${student.surname}`} />
+                                    <AvatarImage src={student.user?.img || student.img || `https://api.dicebear.com/8.x/bottts/svg?seed=${student.id}`} alt={`${student.name} ${student.surname}`} />
                                     <AvatarFallback>{student.name[0]}{student.surname[0]}</AvatarFallback>
                                 </Avatar>
                                 <div>
