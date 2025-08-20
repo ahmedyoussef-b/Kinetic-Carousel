@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 
 // --- TYPE DEFINITIONS ---
 export type GradeWithCounts = Grade & {
-  _count: { 
+  _count: {
     classes: number;
     students: number;
   };
@@ -77,9 +77,9 @@ export default async function ServerClassesPage({
 
     const initialGradeIdParam = typeof searchParams?.viewGradeId === 'string' ? searchParams.viewGradeId : null;
 
-    return <ClassesView 
-        grades={gradesData} 
-        classes={classesData} 
+    return <ClassesView
+        grades={gradesData}
+        classes={classesData}
         userRole={userRole}
         initialGradeIdParam={initialGradeIdParam}
         isTeacherFilteredView={isTeacherFilteredView}
