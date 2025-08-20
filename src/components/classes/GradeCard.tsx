@@ -6,17 +6,22 @@ import FormContainer from '@/components/FormContainer';
 import { Role as AppRole, type Grade } from "@/types/index";
 import { Layers3, ArrowRight } from 'lucide-react';
 import { GradeWithCounts } from '@/app/(dashboard)/list/classes/page';
+import { cn } from '@/lib/utils';
 
 interface GradeCardProps {
     grade: GradeWithCounts;
     userRole?: AppRole;
     onSelect: () => void;
+    isSelected: boolean;
 }
 
-const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect }) => {
+const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect, isSelected }) => {
     return (
         <Card 
-            className="hover:shadow-xl transition-all duration-300 bg-card hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
+            className={cn(
+                "hover:shadow-xl transition-all duration-300 bg-card hover:-translate-y-1 group flex flex-col justify-between cursor-pointer",
+                isSelected && "shadow-xl border-primary"
+            )}
             onClick={onSelect}
         >
             <div className="flex flex-col flex-grow p-4">
@@ -30,15 +35,18 @@ const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect }) => {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="flex-grow flex items-center justify-center py-6">
-                    <div className="text-center">
+                <CardContent className="flex-grow flex items-center justify-center py-6 transition-all duration-500">
+                    <div className={cn("text-center transition-all duration-500", isSelected ? 'scale-125' : 'scale-100')}>
                         <p className="text-5xl font-extrabold text-foreground">{grade._count.classes}</p>
                         <p className="text-muted-foreground mt-1">
                             {`Classe${grade._count.classes > 1 ? 's' : ''} configurée${grade._count.classes > 1 ? 's' : ''}`}
                         </p>
                     </div>
                 </CardContent>
-                <CardFooter className="p-0">
+                <CardFooter className={cn(
+                    "p-0 transition-opacity duration-300",
+                    isSelected ? "opacity-0" : "opacity-100"
+                )}>
                     <div className="w-full text-sm text-primary group-hover:underline flex items-center justify-center">
                         Voir les Détails <ArrowRight className="ml-2 h-4 w-4" />
                     </div>
@@ -46,7 +54,10 @@ const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect }) => {
             </div>
             {userRole === AppRole.ADMIN && (
                 <div 
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className={cn(
+                        "absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity",
+                        isSelected && "opacity-0"
+                    )}
                     onClick={(e) => e.stopPropagation()} // Prevent card click when interacting with buttons
                 >
                     <FormContainer table="grade" type="delete" id={grade.id} />
