@@ -5,21 +5,47 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import FormContainer from "@/components/FormContainer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Layers3 } from "lucide-react";
+import { ArrowLeft, Layers3, Users, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GradeCard from "@/components/classes/GradeCard";
 import ClassCard from "@/components/classes/ClassCard";
-import type { GradeWithClassCount, ClassWithDetails } from '@/app/(dashboard)/list/classes/page';
+import type { GradeWithCounts, ClassWithDetails } from '@/app/(dashboard)/list/classes/page';
 import { Role as AppRole } from '@/types';
+import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ClassesViewProps {
-    grades: GradeWithClassCount[];
+    grades: GradeWithCounts[];
     classes: ClassWithDetails[];
     userRole?: AppRole;
     initialGradeIdParam: string | null;
     isTeacherFilteredView: boolean;
     teacherName?: string;
 }
+
+const DetailCard = ({ title, count, icon: Icon, href }: { title: string, count: number, icon: React.ElementType, href: string }) => (
+    <Link href={href} className="block group">
+        <Card className="h-full shadow-lg hover:shadow-xl hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+            <CardHeader>
+                 <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                        {title}
+                    </CardTitle>
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+               <p className="text-4xl font-bold text-foreground">{count}</p>
+               <p className="text-sm text-muted-foreground mt-1">
+                 {count > 1 ? 'éléments' : 'élément'}
+               </p>
+            </CardContent>
+        </Card>
+    </Link>
+);
+
 
 const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, initialGradeIdParam, isTeacherFilteredView, teacherName }) => {
   const router = useRouter();
@@ -30,15 +56,10 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
   
   const handleGradeSelect = (gradeId: number) => {
     setSelectedGradeId(gradeId);
-    // The timeout allows the animation to play before the component re-renders with the new view.
-    setTimeout(() => {
-        router.push(`/list/classes?viewGradeId=${gradeId}`);
-    }, 500); // 500ms should be enough for the animation to be noticeable
   };
   
   const handleBackToGrades = () => {
     setSelectedGradeId(null);
-    router.push('/list/classes');
   };
 
   if (isTeacherFilteredView) {
@@ -79,30 +100,47 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
             Retour aux Niveaux 
           </Button>
           <h1 className="text-2xl font-semibold text-foreground">
-            {`Classes du Niveau ${selectedGrade.level}`} 
+            {`Détails du Niveau ${selectedGrade.level}`} 
           </h1>
-          {userRole === AppRole.ADMIN && (
-            <FormContainer
-              table="class"
-              type="create"
-              relatedData={{ grades: grades }}
-              data={{ gradeId: selectedGrade.id, gradeLevel: selectedGrade.level }}
-            />
-          )}
+          <div></div>
         </div>
 
-        {classesInGrade.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-muted-foreground">Aucune classe trouvée dans ce niveau.</p> 
-            {userRole === AppRole.ADMIN && <p className="text-sm mt-2 text-muted-foreground">Vous pouvez en ajouter une avec le bouton ci-dessus.</p>} 
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {classesInGrade.map((classItem) => (
-              <ClassCard key={classItem.id} classItem={classItem}  />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <DetailCard 
+                title="Classes" 
+                count={selectedGrade._count.classes} 
+                icon={Layers3}
+                href={`/list/classes?viewGradeId=${selectedGrade.id}`}
+            />
+            <DetailCard 
+                title="Professeurs" 
+                count={selectedGrade.teachers?.length || 0}
+                icon={Users}
+                href={`/list/teachers?gradeId=${selectedGrade.id}`}
+            />
+            <DetailCard 
+                title="Élèves" 
+                count={selectedGrade._count.students}
+                icon={GraduationCap}
+                href={`/list/students?gradeId=${selectedGrade.id}`}
+            />
+        </div>
+        
+         <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Classes du Niveau {selectedGrade.level}</h2>
+            {classesInGrade.length === 0 ? (
+            <div className="text-center py-10">
+                <p className="text-muted-foreground">Aucune classe trouvée dans ce niveau.</p> 
+                {userRole === AppRole.ADMIN && <p className="text-sm mt-2 text-muted-foreground">Vous pouvez en ajouter une depuis la page de gestion des classes.</p>} 
+            </div>
+            ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {classesInGrade.map((classItem) => (
+                <ClassCard key={classItem.id} classItem={classItem}  />
+                ))}
+            </div>
+            )}
+        </div>
       </div>
     );
   }

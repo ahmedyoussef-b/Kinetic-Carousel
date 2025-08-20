@@ -1,14 +1,17 @@
 // src/app/(dashboard)/list/classes/page.tsx
-
 import prisma from "@/lib/prisma";
 import { getServerSession } from "@/lib/auth-utils";
-import { type Class, type Grade, type Role as AppRole } from "@/types/index";
+import { type Class, type Grade, type Role as AppRole, type Teacher, type Student } from "@/types/index";
 import ClassesView from "@/components/classes/ClassesView";
 import { Prisma } from "@prisma/client";
 
 // --- TYPE DEFINITIONS ---
-export type GradeWithClassCount = Grade & {
-  _count: { classes: number };
+export type GradeWithCounts = Grade & {
+  _count: { 
+    classes: number;
+    students: number;
+  };
+  teachers?: { teacherId: string }[]; // Array of teacher IDs
 };
 
 export type ClassWithDetails = Omit<Class, 'supervisorId'> & {
@@ -18,7 +21,6 @@ export type ClassWithDetails = Omit<Class, 'supervisorId'> & {
 };
 
 // --- SERVER COMPONENT (Default Export) ---
-// This component fetches data on the server and passes it to the client component.
 export default async function ServerClassesPage({
   searchParams,
 }: {
@@ -27,12 +29,24 @@ export default async function ServerClassesPage({
     const session = await getServerSession();
     const userRole = session?.user?.role as AppRole | undefined;
 
-    const gradesData: GradeWithClassCount[] = await prisma.grade.findMany({
+    // Fetch grades with class and student counts
+    const gradesData: GradeWithCounts[] = await prisma.grade.findMany({
         include: {
-        _count: { select: { classes: true } },
+        _count: { select: { classes: true, students: true } },
         },
         orderBy: { level: 'asc' },
     });
+
+    // Fetch unique teacher IDs for each grade
+    for (const grade of gradesData) {
+      const teachersInGrade = await prisma.lesson.findMany({
+        where: { class: { gradeId: grade.id } },
+        distinct: ['teacherId'],
+        select: { teacherId: true }
+      });
+      grade.teachers = teachersInGrade.filter(t => t.teacherId !== null) as { teacherId: string }[];
+    }
+
 
     const whereClause: Prisma.ClassWhereInput = {};
     const teacherId = searchParams?.teacherId;

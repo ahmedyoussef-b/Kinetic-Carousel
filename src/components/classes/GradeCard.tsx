@@ -1,20 +1,16 @@
 // src/components/classes/GradeCard.tsx
-'use client'; // Convert to client component to handle onClick
+'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import FormContainer from '@/components/FormContainer';
 import { Role as AppRole, type Grade } from "@/types/index";
 import { Layers3, ArrowRight } from 'lucide-react';
-
-type GradeWithClassCount = Grade & {
-  _count: { classes: number };
-};
+import { GradeWithCounts } from '@/app/(dashboard)/list/classes/page';
 
 interface GradeCardProps {
-    grade: GradeWithClassCount;
+    grade: GradeWithCounts;
     userRole?: AppRole;
-    onSelect: () => void; // New prop for handling click
+    onSelect: () => void;
 }
 
 const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect }) => {
@@ -44,7 +40,7 @@ const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect }) => {
                 </CardContent>
                 <CardFooter className="p-0">
                     <div className="w-full text-sm text-primary group-hover:underline flex items-center justify-center">
-                        Voir les Classes <ArrowRight className="ml-2 h-4 w-4" />
+                        Voir les Détails <ArrowRight className="ml-2 h-4 w-4" />
                     </div>
                 </CardFooter>
             </div>
