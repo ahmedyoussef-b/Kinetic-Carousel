@@ -25,7 +25,7 @@ interface ClassesViewProps {
 const DetailCard = ({ title, count, icon: Icon, href }: { title: string, count: number, icon: React.ElementType, href: string }) => (
     <Link href={href} className="block group">
         <Card className="h-full shadow-lg hover:shadow-xl hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
-            <CardHeader>
+            <CardHeader className="p-4">
                  <div className="flex items-center justify-between">
                     <CardTitle className="text-xl group-hover:text-primary transition-colors flex items-center gap-2">
                         {title}
@@ -36,11 +36,6 @@ const DetailCard = ({ title, count, icon: Icon, href }: { title: string, count: 
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
-               <p className="text-sm text-muted-foreground mt-1">
-                 {count > 1 ? 'éléments' : 'élément'} à gérer
-               </p>
-            </CardContent>
         </Card>
     </Link>
 );
@@ -59,6 +54,8 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
   const handleBackToGrades = () => {
     setSelectedGradeId(null);
   };
+  
+  const visibleGrades = selectedGradeId ? grades.filter(g => g.id === selectedGradeId) : grades;
   
   // MAIN VIEW
   return (
@@ -91,12 +88,11 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
           "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-all duration-500",
           selectedGradeId ? 'grid-rows-1' : ''
         )}>
-          {grades.map((grade) => ( 
+          {visibleGrades.map((grade) => ( 
             <div
               key={grade.id}
               className={cn(
                 "transition-all duration-500 ease-in-out",
-                selectedGradeId && selectedGradeId !== grade.id ? "opacity-0 scale-90 h-0" : "opacity-100 scale-100 h-auto",
                 selectedGradeId === grade.id ? "col-span-full" : ""
               )}
             >
@@ -118,7 +114,7 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
         
         {/* DETAIL CARDS (Conditional Rendering) */}
         {selectedGrade && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in-50 duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in-50 duration-500 mt-12">
                 <DetailCard 
                     title="Classes" 
                     count={selectedGrade._count.classes} 
