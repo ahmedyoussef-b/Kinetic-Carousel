@@ -85,7 +85,7 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
          )}
       </div>
       
-      <div className="space-y-6">
+      <div>
         {/* GRADES GRID */}
         <div className={cn(
           "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-all duration-500",
@@ -118,7 +118,7 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
         
         {/* DETAIL CARDS (Conditional Rendering) */}
         {selectedGrade && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in-50 duration-500 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in-50 duration-500 mt-12">
                 <DetailCard 
                     title="Classes" 
                     count={selectedGrade._count.classes} 
