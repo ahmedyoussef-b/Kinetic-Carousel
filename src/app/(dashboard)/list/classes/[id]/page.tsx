@@ -63,10 +63,21 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
         orderBy: [{ surname: 'asc' }, { name: 'asc' }]
     }),
     prisma.teacher.findMany({ 
-        select: { id: true, name: true, surname: true, subjects: { select: { name: true }, take: 1 } },
+        select: { id: true, name: true, surname: true, subjects: { select: { name: true } } },
         orderBy: [{ surname: 'asc' }, { name: 'asc' }]
     })
   ]);
+  
+  // Custom sort in TypeScript to order by subject first
+  allTeachers.sort((a, b) => {
+    const subjectA = a.subjects[0]?.name || 'zzz'; // Place teachers with no subject at the end
+    const subjectB = b.subjects[0]?.name || 'zzz';
+    if (subjectA < subjectB) return -1;
+    if (subjectA > subjectB) return 1;
+    if (a.surname < b.surname) return -1;
+    if (a.surname > b.surname) return 1;
+    return a.name < b.name ? -1 : 1;
+  });
 
 
   if (!classData) {
