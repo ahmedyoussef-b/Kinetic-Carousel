@@ -144,36 +144,23 @@ const TeachersPage = async ({ searchParams }: { searchParams: { q?: string, p?: 
     
     // --- ORIGINAL VIEW: GRID OF ALL TEACHERS ---
     const query: Prisma.TeacherWhereInput = {};
-    const conditions: Prisma.TeacherWhereInput[] = [];
-
     if (q) {
-        conditions.push({
-            OR: [
-                { name: { contains: q, mode: 'insensitive' } },
-                { surname: { contains: q, mode: 'insensitive' } },
-                { user: { email: { contains: q, mode: 'insensitive' } } },
-                { phone: { contains: q, mode: 'insensitive' } },
-                { address: { contains: q, mode: 'insensitive' } },
-                { user: { username: { contains: q, mode: 'insensitive' } } },
-                { subjects: { some: { name: { contains: q, mode: 'insensitive' } } } },
-            ],
-        });
+        query.OR = [
+            { name: { contains: q, mode: 'insensitive' } },
+            { surname: { contains: q, mode: 'insensitive' } },
+            { user: { email: { contains: q, mode: 'insensitive' } } },
+            { subjects: { some: { name: { contains: q, mode: 'insensitive' } } } },
+        ];
     }
 
     if (gradeId) {
-        conditions.push({
-            lessons: {
-                some: {
-                    class: {
-                        gradeId: parseInt(gradeId)
-                    }
+        query.lessons = {
+            some: {
+                class: {
+                    gradeId: parseInt(gradeId)
                 }
             }
-        });
-    }
-
-    if (conditions.length > 0) {
-        query.AND = conditions;
+        };
     }
 
     const [teachersFromDb, count] = await Promise.all([
