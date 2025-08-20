@@ -38,9 +38,6 @@ const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect, isSele
                 <CardContent className="flex-grow flex items-center justify-center py-6 transition-all duration-500">
                     <div className={cn("text-center transition-all duration-500", isSelected ? 'scale-125' : 'scale-100')}>
                         <p className="text-5xl font-extrabold text-foreground">{grade._count.classes}</p>
-                        <p className="text-muted-foreground mt-1">
-                            {`Classe${grade._count.classes > 1 ? 's' : ''} configurée${grade._count.classes > 1 ? 's' : ''}`}
-                        </p>
                     </div>
                 </CardContent>
                 <CardFooter className={cn(
