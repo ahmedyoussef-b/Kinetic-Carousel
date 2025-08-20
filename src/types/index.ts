@@ -49,7 +49,7 @@ export type Student = PrismaStudent & { optionalSubjects?: PrismaOptionalSubject
 export type OptionalSubject = PrismaOptionalSubject;
 export type Attendance = PrismaAttendance;
 export type Class = PrismaClass;
-export type Subject = PrismaSubject;
+export type Subject = PrismaSubject & { isOptional?: boolean };
 export type Classroom = PrismaClassroom;
 export type Grade = PrismaGrade;
 // --- MODIFIED LESSON TYPE FOR REDUX SERIALIZATION ---
