@@ -88,7 +88,7 @@ const SingleStudentPage = async ({
             </div>
             <div className="w-full xl:w-1/3 flex flex-col gap-4">
                 <StudentShortcuts student={student} />
-                {student.grade && student.grade.level >= 2 && (
+                {student.grade && (
                     <OptionalSubjectCard 
                         studentId={student.id}
                         selectedSubjects={student.optionalSubjects || []}
