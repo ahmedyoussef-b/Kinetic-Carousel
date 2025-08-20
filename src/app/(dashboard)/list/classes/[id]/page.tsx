@@ -53,12 +53,14 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
   const session = await getServerSession();
   const userRole = session?.user?.role as AppRole | undefined;
 
-  const classData = await prisma.class.findUnique({
-      where: {
-        id: id,
-      },
+  const [classData, allStudents, allTeachers] = await Promise.all([
+    prisma.class.findUnique({
+      where: { id: id },
       include: classWithDetailsArgs.include,
-    });
+    }),
+    prisma.student.findMany({ select: { id: true, name: true, surname: true } }),
+    prisma.teacher.findMany({ select: { id: true, name: true, surname: true } })
+  ]);
 
 
   if (!classData) {
@@ -85,7 +87,12 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
           Classe: {classData.name}
         </h1>
         {userRole === AppRole.ADMIN && (
-            <FormContainer table="class" type="update" data={classData} />
+            <FormContainer 
+              table="class" 
+              type="update" 
+              data={classData} 
+              relatedData={{ students: allStudents, teachers: allTeachers }}
+            />
         )}
       </div>
 

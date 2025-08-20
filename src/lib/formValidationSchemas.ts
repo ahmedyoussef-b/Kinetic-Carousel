@@ -40,6 +40,8 @@ export const classSchema = z.object({
   abbreviation: z.string().min(1, { message: "L'abréviation de la classe est requise !" }),
   capacity: z.coerce.number().min(1, { message: "La capacité est requise !" }),
   gradeLevel: z.coerce.number().min(1, { message: "Le niveau est requis !" }),
+  studentIds: z.array(z.string()).optional(),
+  teacherIds: z.array(z.string()).optional(),
 });
 
 export const teacherSchema = z.object({
