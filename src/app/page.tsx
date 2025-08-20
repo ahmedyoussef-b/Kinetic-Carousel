@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
  
 export default async function RootPage() {
-  // Always redirect to the main welcome/login page.
-  // The middleware will handle auth-based routing from there.
+  // Redirige toujours vers la page d'accueil principale.
+  // Le middleware s'occupera du routage basé sur l'authentification à partir de là.
   return redirect('/accueil');
 }

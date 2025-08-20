@@ -64,6 +64,27 @@
 }
 
 @layer components {
+    .futuristic-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            145deg,
+            rgb(0, 0, 0),
+            rgba(35, 35, 35, 0.9),
+            rgb(50, 50, 50)
+        );
+        filter: url(#advanced-texture);
+        z-index: 0;
+    }
+    .texture-filter {
+        position: absolute;
+        width: 0;
+        height: 0;
+    }
+
     /* Auth Form styles from Uiverse.io by Praashoo7 */
     .form {
         display: flex;
@@ -149,9 +170,9 @@
     text-decoration: none;
     color: #fff;
     background: linear-gradient(45deg, #0ce39a, #69007f, #fc0987);
-    padding: 10px 20px;
+    padding: 14px 25px;
     border-radius: 10px;
-    font-size: 1.1em;
+    font-size: 1.25em;
     cursor: pointer;
     border: none;
     outline: none;
@@ -323,6 +344,7 @@
         transform: rotateX(70deg) rotateZ(630deg);
       }
     }
+
     .entity-card {
         width: 100%;
         height: 254px;

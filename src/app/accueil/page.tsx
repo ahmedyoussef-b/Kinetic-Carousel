@@ -23,11 +23,11 @@ export default function AccueilZenPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // If user is logged in, redirect them to their dashboard after a short delay
+    // Si l'utilisateur est connecté, le rediriger vers son tableau de bord après un court délai
     if (currentUser?.role) {
       setTimeout(() => {
         router.push(`/${currentUser.role.toLowerCase()}`);
-      }, 500); // 0.5 second delay
+      }, 500); // Délai de 0.5 seconde
     }
   }, [currentUser, router]);
 
