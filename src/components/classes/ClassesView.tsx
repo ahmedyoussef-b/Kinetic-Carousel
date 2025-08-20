@@ -126,22 +126,6 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
                 href={`/list/students?gradeId=${selectedGrade.id}`}
             />
         </div>
-        
-         <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Classes du Niveau {selectedGrade.level}</h2>
-            {classesInGrade.length === 0 ? (
-            <div className="text-center py-10">
-                <p className="text-muted-foreground">Aucune classe trouvée dans ce niveau.</p> 
-                {userRole === AppRole.ADMIN && <p className="text-sm mt-2 text-muted-foreground">Vous pouvez en ajouter une depuis la page de gestion des classes.</p>} 
-            </div>
-            ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {classesInGrade.map((classItem) => (
-                <ClassCard key={classItem.id} classItem={classItem}  />
-                ))}
-            </div>
-            )}
-        </div>
       </div>
     );
   }
