@@ -65,8 +65,11 @@ const StudentListPage = async ({
       };
   }
 
+  const gradePromise = gradeIdParam 
+    ? prisma.grade.findUnique({ where: { id: Number(gradeIdParam) }, select: { level: true } }) 
+    : Promise.resolve(null);
 
-  const [data, count, grade]: [StudentWithClassAndUser[], number, { level: number } | null] = await prisma.$transaction([
+  const [data, count, grade] = await Promise.all([
     prisma.student.findMany({
       where,
       include: {
@@ -78,7 +81,7 @@ const StudentListPage = async ({
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.student.count({ where }),
-    gradeIdParam ? prisma.grade.findUnique({ where: { id: Number(gradeIdParam) }, select: { level: true } }) : Promise.resolve(null)
+    gradePromise
   ]);
   
   const headerTitle = gradeIdParam && grade
