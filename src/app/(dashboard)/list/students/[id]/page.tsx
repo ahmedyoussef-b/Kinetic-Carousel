@@ -72,8 +72,17 @@ const SingleStudentPage = async ({
   // --- End Timetable Data Fetch ---
 
   // Fetch optional subjects available for the student's grade
-  const availableOptionalSubjects = student.gradeId ? await prisma.optionalSubject.findMany({
-    where: { gradeId: student.gradeId }
+  const availableOptionalSubjects = student.gradeId ? await prisma.subject.findMany({
+    where: { 
+        isOptional: true,
+        // Assuming optional subjects become available from the second grade (level 2)
+        // You can adjust this logic as needed.
+        grade: {
+            level: {
+                gte: 2
+            }
+        }
+    }
   }) : [];
 
 
@@ -83,7 +92,7 @@ const SingleStudentPage = async ({
             <div className="w-full xl:w-2/3">
                 <div className="flex flex-col lg:flex-row gap-4">
                     <StudentProfileCard student={student} userRole={userRole} />
-                    <div className="flex-1 flex flex-col gap-4">
+                     <div className="flex-1 flex flex-col gap-4">
                         <StudentStatsCards student={student} />
                     </div>
                 </div>
@@ -93,7 +102,7 @@ const SingleStudentPage = async ({
                 <Suspense fallback={<Skeleton className="h-[320px] w-full" />}>
                     <StudentWeeklyAttendanceChart studentId={student.id} />
                 </Suspense>
-                 {student.grade && (
+                 {student.grade && student.grade.level >= 2 && (
                     <OptionalSubjectCard
                         studentId={student.id}
                         selectedSubjects={student.optionalSubjects || []}

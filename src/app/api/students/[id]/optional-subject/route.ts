@@ -51,12 +51,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         return NextResponse.json({ message: 'Étudiant non trouvé' }, { status: 404 });
     }
 
-    const subjectToAssign = await prisma.optionalSubject.findUnique({
+    const subjectToAssign = await prisma.subject.findUnique({
         where: { id: optionalSubjectId }
     });
 
-    if (!subjectToAssign || subjectToAssign.gradeId !== studentToUpdate.gradeId) {
-        return NextResponse.json({ message: 'Matière optionnelle invalide ou non disponible pour ce niveau.' }, { status: 400 });
+    if (!subjectToAssign || !subjectToAssign.isOptional) {
+        return NextResponse.json({ message: 'Matière optionnelle invalide.' }, { status: 400 });
     }
     
     // Using `set` will disconnect all other optional subjects and connect only the new one.
