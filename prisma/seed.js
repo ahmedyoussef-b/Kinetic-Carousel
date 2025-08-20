@@ -48,8 +48,12 @@ const optionalSubjectsData = [
 // --- HELPER FUNCTIONS ---
 
 function getRandomElement(arr) {
+  if (!arr || arr.length === 0) {
+    return null;
+  }
   return arr[Math.floor(Math.random() * arr.length)];
 }
+
 
 function generateName(gender) {
   const firstName = gender === 'male' ? getRandomElement(arabicFirstNamesMale) : getRandomElement(arabicFirstNamesFemale);
@@ -231,14 +235,16 @@ async function main() {
 
   for (const student of studentsFrom2ndYear) {
       const chosenSubject = getRandomElement(createdOptionalSubjects);
-      await prisma.student.update({
-          where: { id: student.id },
-          data: {
-              optionalSubjects: {
-                  connect: { id: chosenSubject.id }
-              }
-          }
-      });
+      if (chosenSubject) {
+        await prisma.student.update({
+            where: { id: student.id },
+            data: {
+                optionalSubjects: {
+                    connect: { id: chosenSubject.id }
+                }
+            }
+        });
+      }
   }
   console.log(`✅ Matières optionnelles assignées à ${studentsFrom2ndYear.length} élèves à partir de la 2ème année.`);
 
