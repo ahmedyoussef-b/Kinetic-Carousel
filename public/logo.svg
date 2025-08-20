@@ -1,6 +1,1 @@
-<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <g>
-    <path d="M50 10 L10 30 L10 70 L50 90 L90 70 L90 30 Z" fill="#D0C9E2" stroke="#8A7CA8" stroke-width="2"/>
-    <text x="50" y="55" font-family="Belleza, sans-serif" font-size="30" fill="#333" text-anchor="middle" dominant-baseline="middle">5</text>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check text-primary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
