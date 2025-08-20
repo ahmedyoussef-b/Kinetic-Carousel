@@ -62,9 +62,9 @@ const ClassesView: React.FC<ClassesViewProps> = ({ grades, classes, userRole, in
   
   // MAIN VIEW
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-8">
+    <div className="p-4 md:p-6 lg:p-8">
       {/* HEADER */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <Layers3 className="h-7 w-7 text-primary" />
