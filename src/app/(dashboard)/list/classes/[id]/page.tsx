@@ -34,7 +34,7 @@ const classWithDetailsArgs = Prisma.validator<Prisma.ClassFindUniqueArgs>()({
       }
     },
     _count: {
-      select: { students: true, lessons: true },
+      select: { students: true },
     },
   },
 });
@@ -64,6 +64,9 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
   if (!classData) {
     notFound();
   }
+
+  // Calculate the number of distinct lessons per week for this class
+  const weeklyLessonsCount = classData.lessons.length;
 
   // --- Fetch data for Timetable ---
   const wizardData = await fetchAllDataForWizard();
@@ -103,7 +106,7 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
                      </div>
                      <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Cours/Semaine</span>
-                        <span className="font-semibold">{classData._count.lessons}</span>
+                        <span className="font-semibold">{weeklyLessonsCount}</span>
                      </div>
                 </CardContent>
             </Card>
