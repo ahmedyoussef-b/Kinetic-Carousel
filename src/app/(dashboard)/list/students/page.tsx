@@ -9,9 +9,11 @@ import Image from "next/image";
 import { getServerSession } from "@/lib/auth-utils";
 import { Prisma } from "@prisma/client";
 import StudentCard from '@/components/cards/StudentCard';
-import { Filter, ArrowUpDown } from 'lucide-react';
+import { Filter, ArrowUpDown, ArrowLeft } from 'lucide-react';
 import * as paths from "@/lib/image-paths";
 import type { StudentWithClassAndUser } from '@/types';
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 
 const StudentListPage = async ({
@@ -27,52 +29,44 @@ const StudentListPage = async ({
   const p = pageParam ? parseInt(Array.isArray(pageParam) ? pageParam[0] : pageParam) : 1;
   
   const where: Prisma.StudentWhereInput = {};
-  const conditions: Prisma.StudentWhereInput[] = [];
 
   const teacherIdParam = searchParams?.teacherId;
   if (teacherIdParam) {
     const teacherId = Array.isArray(teacherIdParam) ? teacherIdParam[0] : teacherIdParam;
-    // Only apply this filter if the user is a teacher or admin for security
-    if (userRole === AppRole.TEACHER || userRole === AppRole.ADMIN) { 
-      conditions.push({ class: { lessons: { some: { teacherId: teacherId } } } });
+    if (userRole === AppRole.TEACHER || userRole === AppRole.ADMIN) {
+        where.class = { lessons: { some: { teacherId: teacherId } } };
     }
   }
 
   const classIdParam = searchParams?.classId;
   if (classIdParam) {
-    conditions.push({ classId: parseInt(Array.isArray(classIdParam) ? classIdParam[0] : classIdParam) });
+    where.classId = parseInt(Array.isArray(classIdParam) ? classIdParam[0] : classIdParam);
+  }
+  
+  const gradeIdParam = searchParams?.gradeId;
+  if (gradeIdParam && typeof gradeIdParam === 'string' && !isNaN(Number(gradeIdParam))) {
+      where.gradeId = Number(gradeIdParam);
   }
   
   const searchString = searchParams?.search;
   if (searchString && typeof searchString === 'string' && searchString.trim() !== '') {
-    conditions.push({
-      OR: [
-          { name: { contains: searchString, mode: "insensitive" } },
-          { surname: { contains: searchString, mode: "insensitive" } },
-          { user: { email: { contains: searchString, mode: "insensitive" }}},
-          { user: { username: { contains: searchString, mode: "insensitive" }}},
-          { class: { name: { contains: searchString, mode: "insensitive" }}}
-      ]
-    });
+    where.OR = [
+        { name: { contains: searchString, mode: "insensitive" } },
+        { surname: { contains: searchString, mode: "insensitive" } },
+        { user: { email: { contains: searchString, mode: "insensitive" }}},
+        { user: { username: { contains: searchString, mode: "insensitive" }}},
+        { class: { name: { contains: searchString, mode: "insensitive" }}}
+    ];
   }
   
-  // If the user is a teacher and no specific teacher is being searched for,
-  // filter to only show students in their classes.
   if (userRole === AppRole.TEACHER && currentUserId && !teacherIdParam) {
-    conditions.push({
-      class: {
+      where.class = {
         lessons: { some: { teacherId: currentUserId } }
-      }
-    });
-  }
-  
-  // Combine all conditions with AND
-  if(conditions.length > 0) {
-    where.AND = conditions;
+      };
   }
 
 
-  const [data, count]: [StudentWithClassAndUser[], number] = await prisma.$transaction([
+  const [data, count, grade]: [StudentWithClassAndUser[], number, { level: number } | null] = await prisma.$transaction([
     prisma.student.findMany({
       where,
       include: {
@@ -84,14 +78,30 @@ const StudentListPage = async ({
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.student.count({ where }),
+    gradeIdParam ? prisma.grade.findUnique({ where: { id: Number(gradeIdParam) }, select: { level: true } }) : Promise.resolve(null)
   ]);
   
+  const headerTitle = gradeIdParam && grade
+    ? `Élèves du Niveau ${grade.level}`
+    : "Tous les Étudiants";
+
   return (
     <div className="bg-background p-4 md:p-6 rounded-lg flex-1 m-4 mt-0">
       <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-        <h1 className="text-xl md:text-2xl font-semibold text-foreground mb-4 md:mb-0">
-          Tous les Étudiants
-        </h1>
+        <div className="flex items-center gap-4 mb-4 md:mb-0">
+            {gradeIdParam && (
+                 <Button variant="outline" size="sm" asChild>
+                    <Link href="/list/classes">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Retour aux Niveaux
+                    </Link>
+                </Button>
+            )}
+            <h1 className="text-xl md:text-2xl font-semibold text-foreground">
+              {headerTitle}
+            </h1>
+        </div>
+
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-2 self-end sm:self-auto">
