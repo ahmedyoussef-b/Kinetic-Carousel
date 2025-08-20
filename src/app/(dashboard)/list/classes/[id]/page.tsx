@@ -63,7 +63,7 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
         orderBy: [{ surname: 'asc' }, { name: 'asc' }]
     }),
     prisma.teacher.findMany({ 
-        select: { id: true, name: true, surname: true },
+        select: { id: true, name: true, surname: true, subjects: { select: { name: true }, take: 1 } },
         orderBy: [{ surname: 'asc' }, { name: 'asc' }]
     })
   ]);
@@ -74,7 +74,7 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
   }
 
   // Calculate the number of distinct lessons per week for this class
-  const weeklyLessonsCount = classData.lessons.length;
+  const weeklyLessonsCount = [...new Set(classData.lessons.map(l => l.name))].length;
 
   // --- Fetch data for Timetable ---
   const wizardData = await fetchAllDataForWizard();

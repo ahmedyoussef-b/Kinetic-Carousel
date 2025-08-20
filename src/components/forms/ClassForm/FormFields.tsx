@@ -10,7 +10,7 @@ interface FormFieldsProps {
   isLoading: boolean;
   grades: { id: number; level: number }[];
   students: { id: string; name: string; surname: string }[];
-  teachers: { id: string; name: string; surname: string }[];
+  teachers: { id: string; name: string; surname: string, subjects: { name: string }[] }[];
   setValue: UseFormSetValue<ClassSchema>;
   selectedStudents: string[];
   selectedTeachers: string[];
@@ -29,7 +29,10 @@ const FormFields = ({
 }: FormFieldsProps) => {
 
   const studentOptions = students.map(s => ({ value: s.id, label: `${s.name} ${s.surname}` }));
-  const teacherOptions = teachers.map(t => ({ value: t.id, label: `${t.name} ${t.surname}` }));
+  const teacherOptions = teachers.map(t => {
+      const subject = t.subjects[0]?.name || 'N/A';
+      return { value: t.id, label: `${t.name} ${t.surname} (${subject})` };
+  });
 
   return (
     <>
