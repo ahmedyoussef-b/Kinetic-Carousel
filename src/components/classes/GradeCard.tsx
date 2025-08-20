@@ -36,17 +36,15 @@ const GradeCard: React.FC<GradeCardProps> = ({ grade, userRole, onSelect, isSele
                     </div>
                 </CardHeader>
                 <CardContent className="flex-grow flex items-center justify-center py-6 transition-all duration-500">
-                    <div className={cn("text-center transition-all duration-500", isSelected ? 'scale-125' : 'scale-100')}>
+                     <div className={cn("text-center transition-all duration-500", isSelected ? 'scale-125' : 'scale-100')}>
                         <p className="text-5xl font-extrabold text-foreground">{grade._count.classes}</p>
                     </div>
                 </CardContent>
                 <CardFooter className={cn(
-                    "p-0 transition-opacity duration-300",
+                    "p-0 h-5", // Added height to prevent layout shift
                     isSelected ? "opacity-0" : "opacity-100"
                 )}>
-                    <div className="w-full text-sm text-primary group-hover:underline flex items-center justify-center">
-                        Voir les Détails <ArrowRight className="ml-2 h-4 w-4" />
-                    </div>
+                    {/* The "Voir les détails" link has been removed */}
                 </CardFooter>
             </div>
             {userRole === AppRole.ADMIN && (
