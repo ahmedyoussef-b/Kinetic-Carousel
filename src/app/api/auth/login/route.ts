@@ -82,13 +82,13 @@ export async function POST(req: NextRequest) {
         
         const response = NextResponse.json(safeUser, { status: 200 });
 
-        console.log("🍪 [API/login] Création du cookie de session.");
+        console.log("🍪 [API/login] Création du cookie de session avec sameSite=none et secure=true.");
         response.cookies.set({
             name: SESSION_COOKIE_NAME,
             value: finalToken,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            secure: true, // Requis pour sameSite=none
+            sameSite: 'none', // Permet l'envoi de cookies cross-site (iframe)
             maxAge: 60 * 60 * 24, // 1 jour
             path: '/',
         });
