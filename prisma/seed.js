@@ -7,19 +7,6 @@ const prisma = new PrismaClient();
 
 // --- DATA SETS ---
 
-const arabicFirstNamesMale = [
-  'Mohammed', 'Ahmed', 'Ali', 'Omar', 'Youssef', 'Khaled', 'Tariq', 'Hassan', 'Ibrahim', 'Karim',
-  'Mustafa', 'Said', 'Jamal', 'Rashid', 'Sami', 'Nabil', 'Fahd', 'Walid', 'Zayd', 'Adil'
-];
-const arabicFirstNamesFemale = [
-  'Fatma', 'Aisha', 'Zainab', 'Mariam', 'Nour', 'Layla', 'Salma', 'Hana', 'Yasmin', 'Amira',
-  'Farah', 'Dina', 'Samira', 'Rania', 'Lina', 'Mona', 'Hind', 'Joud', 'Basma', 'Dalal'
-];
-const arabicLastNames = [
-  'Haddad', 'Nasser', 'Malik', 'Khan', 'Jaber', 'Abboud', 'Darwish', 'Ghanem', 'Mansour', 'Koury',
-  'Thabet', 'Zaki', 'Saleh', 'Farah', 'Bazzi', 'Chahine', 'Karam', 'Maalouf', 'Saba', 'Saliba'
-];
-
 const subjectsData = [
     { name: 'Mathématiques', weeklyHours: 5, coefficient: 4, isOptional: false },
     { name: 'Physique', weeklyHours: 4, coefficient: 3, isOptional: false },
@@ -46,20 +33,6 @@ const optionalSubjectsData = [
 
 
 // --- HELPER FUNCTIONS ---
-
-function getRandomElement(arr) {
-  if (!arr || arr.length === 0) {
-    return null;
-  }
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-
-function generateName(gender) {
-  const firstName = gender === 'male' ? getRandomElement(arabicFirstNamesMale) : getRandomElement(arabicFirstNamesFemale);
-  const lastName = getRandomElement(arabicLastNames);
-  return { firstName, lastName };
-}
 
 async function cleanupDatabase() {
     console.log('🧹 Nettoyage de la base de données...');
@@ -133,8 +106,13 @@ async function main() {
     subjectsData.map(subject => prisma.subject.create({ data: subject }))
   );
   console.log(`✅ ${createdSubjects.length} matières créées.`);
+
+  const createdOptionalSubjects = await Promise.all(
+      optionalSubjectsData.map(subject => prisma.subject.create({ data: subject }))
+  );
+  console.log(`✅ ${createdOptionalSubjects.length} matières optionnelles créées.`);
   
-  // --- Create Grades, Classes, Students, and Parents ---
+  // --- Create Grades and Classes (without students) ---
   const createdClasses = [];
   const createdGrades = [];
   for (let level = 1; level <= 4; level++) {
@@ -146,7 +124,7 @@ async function main() {
     });
     createdGrades.push(grade);
 
-    for (let classNum = 1; classNum <= 1; classNum++) { // REDUCED TO 1 CLASS
+    for (let classNum = 1; classNum <= 2; classNum++) { 
       const className = `${level}ème ${String.fromCharCode(64 + classNum)}`;
       const newClass = await prisma.class.create({
         data: {
@@ -158,136 +136,9 @@ async function main() {
       });
       createdClasses.push(newClass);
       console.log(`  - Classe créée : ${className}`);
-
-      for (let studentNum = 1; studentNum <= 10; studentNum++) { // REDUCED TO 10 STUDENTS
-        const gender = Math.random() > 0.5 ? 'male' : 'female';
-        
-        // Create Parent First
-        const parentName = generateName(gender === 'male' ? 'female' : 'male');
-        const parentUser = await prisma.user.create({
-          data: {
-            email: `parent_${level}_${classNum}_${studentNum}@example.com`,
-            username: `parent_${level}_${classNum}_${studentNum}`,
-            password: hashedPassword,
-            name: `${parentName.firstName} ${parentName.lastName}`,
-            role: 'PARENT',
-            active: true,
-            firstName: parentName.firstName,
-            lastName: parentName.lastName,
-          }
-        });
-        const parent = await prisma.parent.create({
-          data: {
-            userId: parentUser.id,
-            name: parentName.firstName,
-            surname: parentName.lastName,
-          }
-        });
-
-        // Create Student
-        const { firstName, lastName } = generateName(gender);
-        const studentUser = await prisma.user.create({
-          data: {
-            email: `student_${level}_${classNum}_${studentNum}@example.com`,
-            username: `student_${level}_${classNum}_${studentNum}`,
-            password: hashedPassword,
-            name: `${firstName} ${lastName}`,
-            role: 'STUDENT',
-            active: true,
-            firstName: firstName,
-            lastName: lastName,
-          }
-        });
-        await prisma.student.create({
-          data: {
-            userId: studentUser.id,
-            name: firstName,
-            surname: lastName,
-            sex: gender === 'male' ? 'MALE' : 'FEMALE',
-            classId: newClass.id,
-            gradeId: grade.id,
-            parentId: parent.id,
-            address: 'N/A', // Added a placeholder for address
-            bloodType: 'Unknown', // Added a placeholder for bloodType
-            birthday: new Date(), // Added a placeholder for the birthday field
-          }
-        });
-      }
     }
-     console.log(`✅ Niveau ${level} et sa classe de 10 élèves créés.`);
+     console.log(`✅ Niveau ${level} et ses classes créés.`);
   }
-  
-  // --- Create Optional Subjects & Assign them to students from 2nd year onwards ---
-  console.log('📚 Création des matières optionnelles et assignation aux élèves...');
-  const createdOptionalSubjects = await Promise.all(
-      optionalSubjectsData.map(subject => prisma.subject.create({ data: subject }))
-  );
-  console.log(`✅ ${createdOptionalSubjects.length} matières optionnelles créées.`);
-  
-  const studentsFrom2ndYear = await prisma.student.findMany({
-      where: {
-          grade: {
-              level: {
-                  gte: 2,
-                  lte: 4 // Only levels 2, 3, 4
-              }
-          }
-      }
-  });
-
-  for (const student of studentsFrom2ndYear) {
-      const chosenSubject = getRandomElement(createdOptionalSubjects);
-      if (chosenSubject) {
-        await prisma.student.update({
-            where: { id: student.id },
-            data: {
-                optionalSubjects: {
-                    connect: { id: chosenSubject.id }
-                }
-            }
-        });
-      }
-  }
-  console.log(`✅ Matières optionnelles assignées à ${studentsFrom2ndYear.length} élèves à partir de la 2ème année.`);
-
-
-  // --- Create Teachers ---
-  console.log('🧑‍🏫 Création des professeurs...');
-  const createdTeachers = [];
-  const allSubjects = [...createdSubjects, ...createdOptionalSubjects];
-
-  // Ensure at least 2 teachers per subject
-  for (const subject of allSubjects) {
-      for (let i = 0; i < 2; i++) {
-          const { firstName, lastName } = generateName('male');
-          const user = await prisma.user.create({
-              data: {
-                  email: `teacher_${subject.name.replace(/\s+/g, '_')}_${i + 1}@example.com`,
-                  username: `teacher_${subject.name.replace(/\s+/g, '_')}_${i + 1}`,
-                  password: hashedPassword,
-                  name: `${firstName} ${lastName}`,
-                  role: 'TEACHER',
-                  active: true,
-                  firstName: firstName,
-                  lastName: lastName,
-              }
-          });
-          
-          const teacher = await prisma.teacher.create({
-              data: {
-                  userId: user.id,
-                  name: firstName,
-                  surname: lastName,
-                  subjects: {
-                      connect: { id: subject.id }
-                  }
-              }
-          });
-          createdTeachers.push(teacher);
-      }
-  }
-  console.log(`✅ ${createdTeachers.length} professeurs créés et assignés.`);
-
 
   // --- Create classrooms ---
   console.log('🚪 Création des salles...');
@@ -319,7 +170,7 @@ async function main() {
   }
   console.log(`✅ ${totalRooms} salles et laboratoires créés.`);
 
-  console.log('🎉 Peuplement de la base de données terminé avec succès !');
+  console.log('🎉 Peuplement de la base de données terminé avec succès ! (Données minimales)');
 }
 
 main()
