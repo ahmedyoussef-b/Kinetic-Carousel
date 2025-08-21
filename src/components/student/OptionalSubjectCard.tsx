@@ -1,16 +1,17 @@
 // src/components/student/OptionalSubjectCard.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { OptionalSubject } from '@/types';
+import type { Subject as OptionalSubject } from '@/types';
 import { useUpdateStudentOptionalSubjectMutation } from '@/lib/redux/api/entityApi';
 import { Loader2 } from 'lucide-react';
 import { BookMarked } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface OptionalSubjectCardProps {
     studentId: string;
@@ -24,8 +25,13 @@ const OptionalSubjectCard: React.FC<OptionalSubjectCardProps> = ({
     availableSubjects
 }) => {
     const { toast } = useToast();
+    const router = useRouter();
     const [selectedOption, setSelectedOption] = useState<string>(selectedSubjects[0]?.id.toString() || '');
     const [updateSubject, { isLoading }] = useUpdateStudentOptionalSubjectMutation();
+
+    useEffect(() => {
+        setSelectedOption(selectedSubjects[0]?.id.toString() || '');
+    }, [selectedSubjects]);
 
     const handleSave = async () => {
         if (!selectedOption) {
@@ -37,8 +43,9 @@ const OptionalSubjectCard: React.FC<OptionalSubjectCardProps> = ({
             await updateSubject({ studentId, optionalSubjectId: parseInt(selectedOption) }).unwrap();
             toast({
                 title: 'Choix sauvegardé',
-                description: `Votre choix pour la matière optionnelle a été enregistré avec succès.`,
+                description: `Votre choix pour la matière optionnelle a été enregistré.`,
             });
+            router.refresh();
         } catch (error: any) {
             toast({
                 variant: 'destructive',

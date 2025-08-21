@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth-utils';
 import { Role } from '@/types';
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 
 const updateOptionalSubjectSchema = z.object({
   optionalSubjectId: z.number().int().positive(),
@@ -72,6 +73,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         optionalSubjects: true, // Return the updated list
       }
     });
+
+    // Revalidate the student's profile page to show the new choice immediately
+    revalidatePath(`/list/students/${studentId}`);
 
     return NextResponse.json(updatedStudent, { status: 200 });
   } catch (error) {

@@ -75,13 +75,6 @@ const SingleStudentPage = async ({
   const availableOptionalSubjects = student.gradeId ? await prisma.subject.findMany({
     where: { 
         isOptional: true,
-        // Assuming optional subjects become available from the second grade (level 2)
-        // You can adjust this logic as needed.
-        grade: {
-            level: {
-                gte: 2
-            }
-        }
     }
   }) : [];
 
@@ -102,7 +95,7 @@ const SingleStudentPage = async ({
                 <Suspense fallback={<Skeleton className="h-[320px] w-full" />}>
                     <StudentWeeklyAttendanceChart studentId={student.id} />
                 </Suspense>
-                 {student.grade && student.grade.level >= 2 && (
+                 {student.grade && (userRole === Role.STUDENT || userRole === Role.ADMIN) && (
                     <OptionalSubjectCard
                         studentId={student.id}
                         selectedSubjects={student.optionalSubjects || []}
