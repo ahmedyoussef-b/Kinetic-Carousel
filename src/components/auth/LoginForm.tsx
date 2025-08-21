@@ -18,6 +18,7 @@ import SocialSignInButtons from './SocialSignInButtons';
 
 
 export default function LoginForm() {
+  console.log("🎨 [LoginForm] Le composant est en cours de rendu.");
   const router = useRouter();
   const { toast } = useToast();
   const [login, { isLoading, isSuccess, isError, data: loginSuccessData, error: loginErrorData }] = useLoginMutation();
@@ -32,6 +33,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (isSuccess && loginSuccessData) {
+        console.log("✅ [LoginForm] Connexion réussie. Redirection...");
         toast({
           title: "Connexion réussie!",
           description: "Vous allez être redirigé vers votre tableau de bord."
@@ -41,6 +43,7 @@ export default function LoginForm() {
     }
     if (isError) {
       const apiError = loginErrorData as any;
+      console.error("❌ [LoginForm] Échec de la connexion :", apiError?.data?.message);
       toast({
         variant: "destructive",
         title: "Échec de la connexion",
@@ -50,6 +53,7 @@ export default function LoginForm() {
   }, [isSuccess, isError, loginSuccessData, loginErrorData, router, toast]);
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
+    console.log("➡️ [LoginForm] Le formulaire est soumis avec les données:", data.email);
     await login(data);
   };
 

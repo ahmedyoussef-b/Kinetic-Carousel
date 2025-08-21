@@ -15,6 +15,7 @@ import { Role } from '@/types';
 type RegisterFormValues = RegisterSchema;
 
 export default function RegisterForm() {
+  console.log("🎨 [RegisterForm] Le composant est en cours de rendu.");
   const router = useRouter();
   const { toast } = useToast();
   const [registerUser, { isLoading }] = useRegisterMutation();
@@ -33,14 +34,17 @@ export default function RegisterForm() {
   const role = watch('role');
 
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+    console.log("➡️ [RegisterForm] Le formulaire est soumis avec les données:", { email: data.email, role: data.role });
     try {
       await registerUser(data).unwrap();
+      console.log("✅ [RegisterForm] Inscription réussie. Redirection...");
       toast({
         title: 'Compte créé !',
         description: "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.",
       });
       router.push('/login');
     } catch (error: any) {
+      console.error("❌ [RegisterForm] Échec de l'inscription :", error.data?.message);
       toast({
         variant: 'destructive',
         title: 'Erreur lors de l\'inscription',

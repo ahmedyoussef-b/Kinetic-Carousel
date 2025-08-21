@@ -66,17 +66,19 @@ export const authApi = createApi({
         body: credentials,
       }),
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        console.log("▶️ [authApi] onQueryStarted for login mutation.");
+        console.log("▶️ [authApi] onQueryStarted pour la mutation de connexion.");
         try {
             const { data } = await queryFulfilled;
-            console.log("✅ [authApi] Login queryFulfilled. Data:", data);
+            console.log("✅ [authApi] La promesse de la requête de connexion est résolue. Données:", data);
             if ('user' in data) { // Check if it's AuthResponse
                 dispatch(setUser(data.user));
                  // Invalidate the session tag to force a re-fetch of the session state
                 dispatch(authApi.util.invalidateTags(['Session']));
+            } else {
+                console.log("🔐 [authApi] Réponse 2FA reçue, en attente de la vérification.");
             }
         } catch (error) {
-            console.error("❌ [authApi] Login queryFulfilled failed.", error);
+            console.error("❌ [authApi] La promesse de la requête de connexion a échoué.", error);
         }
       },
     }),
@@ -137,19 +139,19 @@ export const authApi = createApi({
       query: () => 'session',
       providesTags: (result) => (result ? [{ type: 'Session', id: 'CURRENT' }] : []),
        async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        console.log("▶️ [authApi] onQueryStarted for getSession query.");
+        console.log("▶️ [authApi] onQueryStarted pour la requête getSession.");
         try {
           const { data } = await queryFulfilled;
-          console.log("✅ [authApi] getSession queryFulfilled. Data:", data);
+          console.log("✅ [authApi] La promesse de la requête getSession est résolue. Données:", data);
           if (data?.user) {
             dispatch(setUser(data.user));
           } else {
              // We no longer automatically log out here to prevent race conditions.
              // The UI will simply show a logged-out state if user is null.
-             console.log("ℹ️ [authApi] getSession found no active user.");
+             console.log("ℹ️ [authApi] getSession n'a trouvé aucun utilisateur actif.");
           }
         } catch (error) {
-          console.error("❌ [authApi] getSession queryFulfilled failed.", error);
+          console.error("❌ [authApi] La promesse de la requête getSession a échoué.", error);
           // We also don't logout on error to avoid race conditions.
         }
       },
@@ -160,13 +162,16 @@ export const authApi = createApi({
         method: 'POST',
       }),
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        console.log("▶️ [authApi] onQueryStarted pour la mutation de déconnexion.");
         try {
             await queryFulfilled;
+            console.log("✅ [authApi] Déconnexion réussie. Dispatch de l'action de déconnexion.");
             dispatch(logoutAction());
             // Clear the cache to ensure a clean state on next login
             dispatch(authApi.util.resetApiState());
         } catch {
              // Even if logout fails on the server, force it on the client
+             console.log("⚠️ [authApi] Échec de la déconnexion côté serveur. Forçage de la déconnexion côté client.");
              dispatch(logoutAction());
              dispatch(authApi.util.resetApiState());
         }

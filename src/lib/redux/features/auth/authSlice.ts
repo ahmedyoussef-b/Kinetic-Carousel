@@ -36,9 +36,11 @@ const authSlice = createSlice({
       state.error = null;
     },
     setAuthLoading: (state, action: PayloadAction<boolean>) => {
+      console.log('🎬 [AuthSlice] Action setAuthLoading:', action.payload);
       state.isLoading = action.payload;
     },
     setAuthError: (state, action: PayloadAction<string>) => {
+        console.log('🎬 [AuthSlice] Action setAuthError:', action.payload);
         state.error = action.payload;
         state.isLoading = false;
     }

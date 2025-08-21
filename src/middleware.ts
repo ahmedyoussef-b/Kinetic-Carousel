@@ -32,7 +32,7 @@ function decodeJwt(token: string): JwtPayload | null {
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  console.log(`🚦 [Middleware] Processing request for: ${pathname}`);
+  console.log(`🚦 [Middleware] Traitement de la requête pour : ${pathname}`);
 
   const sessionToken = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   let userRole: Role | undefined;
@@ -43,7 +43,7 @@ export function middleware(req: NextRequest) {
       userRole = decodedToken.role;
     }
   }
-  console.log(`[Middleware] Session role found: ${userRole}`);
+  console.log(`[Middleware] Rôle de session trouvé : ${userRole}`);
   
   const loginUrl = new URL('/login', req.url);
 
@@ -54,7 +54,7 @@ export function middleware(req: NextRequest) {
     const dashboardUrl = new URL(`/${userRole.toLowerCase()}`, req.url);
     // If they are on a public/auth page, redirect them to their dashboard
     if (['/login', '/register', '/accueil'].includes(pathname)) {
-        console.log(`[Middleware] User is logged in. Redirecting from ${pathname} to their dashboard.`);
+        console.log(`[Middleware] L'utilisateur est connecté. Redirection de ${pathname} vers son tableau de bord.`);
         return NextResponse.redirect(dashboardUrl);
     }
       
@@ -64,7 +64,7 @@ export function middleware(req: NextRequest) {
     )?.[1];
 
     if (allowedRoles && !allowedRoles.includes(userRole)) {
-      console.log(`[Middleware] Role '${userRole}' not allowed for ${pathname}. Redirecting to their dashboard.`);
+      console.log(`[Middleware] Le rôle '${userRole}' n'est pas autorisé pour ${pathname}. Redirection vers son tableau de bord.`);
       return NextResponse.redirect(dashboardUrl);
     }
   } 
@@ -75,12 +75,12 @@ export function middleware(req: NextRequest) {
 
     // If trying to access a protected route without being logged in, redirect to login
     if (isProtectedRoute && !isPublicRoute) {
-        console.log(`[Middleware] Unauthorized access to ${pathname}, redirecting to login.`);
+        console.log(`[Middleware] Accès non autorisé à ${pathname}, redirection vers la connexion.`);
         return NextResponse.redirect(loginUrl);
     }
   }
 
-  console.log(`[Middleware] Allowing request to ${pathname}.`);
+  console.log(`[Middleware] Autorisation de la requête vers ${pathname}.`);
   return NextResponse.next();
 }
 

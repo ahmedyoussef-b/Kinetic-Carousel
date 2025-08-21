@@ -9,15 +9,18 @@ import type { SafeUser } from '@/types';
 const HASH_ROUNDS = 10;
 
 export async function POST(req: NextRequest) {
+  console.log("--- 🚀 API: Tentative d'Inscription ---");
   try {
     const body = await req.json();
     const validation = registerSchema.safeParse(body);
 
     if (!validation.success) {
+      console.log("🚫 [API/register] Données d'inscription invalides.", validation.error.errors);
       return NextResponse.json({ message: "Données d'inscription invalides.", errors: validation.error.errors }, { status: 400 });
     }
 
     const { email, password, role, name } = validation.data;
+    console.log(`👤 [API/register] Tentative d'inscription pour: ${email}`);
     
     // Default name if not provided
     const finalName = name || (role === Role.TEACHER ? 'Nouvel Enseignant' : 'Nouveau Parent');
@@ -26,12 +29,15 @@ export async function POST(req: NextRequest) {
 
     const existingUser = await prisma.user.findFirst({ where: { email } });
     if (existingUser) {
+      console.log("🚫 [API/register] Un utilisateur avec cet email existe déjà.");
       return NextResponse.json({ message: "Un utilisateur avec cet email existe déjà." }, { status: 409 });
     }
     
     const hashedPassword = await bcrypt.hash(password, HASH_ROUNDS);
+    console.log("🔑 [API/register] Mot de passe haché.");
 
     const newUser = await prisma.$transaction(async (tx) => {
+        console.log("📦 [API/register] Démarrage de la transaction pour créer l'utilisateur et le profil.");
         const user = await tx.user.create({
             data: {
                 email,
@@ -54,6 +60,7 @@ export async function POST(req: NextRequest) {
                     surname: lastName,
                 }
             });
+             console.log("🧑‍🏫 [API/register] Profil enseignant créé.");
         } else if (role === Role.PARENT) {
             await tx.parent.create({
                 data: {
@@ -62,6 +69,7 @@ export async function POST(req: NextRequest) {
                     surname: lastName,
                 }
             });
+            console.log("👨‍👩‍👧 [API/register] Profil parent créé.");
         }
         
         return user;
@@ -70,10 +78,11 @@ export async function POST(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...safeUser } = newUser;
 
+    console.log("✅ [API/register] Inscription réussie.");
     return NextResponse.json({ user: safeUser as SafeUser }, { status: 201 });
 
   } catch (error) {
-    console.error("Erreur lors de l'inscription:", error);
+    console.error("❌ [API/register] Erreur lors de l'inscription:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return NextResponse.json({ message: "Un utilisateur avec cet email ou nom d'utilisateur existe déjà." }, { status: 409 });
     }

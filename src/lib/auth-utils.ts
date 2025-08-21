@@ -8,7 +8,7 @@ import prisma from './prisma';
 import { SESSION_COOKIE_NAME } from './constants';
 
 export async function getServerSession() {
-  console.log('--- 🍪 [Serveur] getServerSession ---');
+  console.log('--- 🍪 [Serveur] Tentative de récupération de la session ---');
   const cookieStore = cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
