@@ -80,15 +80,15 @@ export async function POST(req: NextRequest) {
             expiresIn: JWT_ACCESS_TOKEN_EXPIRATION_TIME,
         });
         
-        const response = NextResponse.json(safeUser, { status: 200 });
-
+        const response = NextResponse.json({ user: safeUser }, { status: 200 });
+        
         console.log("🍪 [API/login] Création du cookie de session avec sameSite=none et secure=true.");
         response.cookies.set({
             name: SESSION_COOKIE_NAME,
             value: finalToken,
             httpOnly: true,
-            secure: true, // Requis pour sameSite=none
-            sameSite: 'none', // Permet l'envoi de cookies cross-site (iframe)
+            secure: true, 
+            sameSite: 'none', 
             maxAge: 60 * 60 * 24, // 1 jour
             path: '/',
         });
