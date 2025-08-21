@@ -31,7 +31,12 @@ const SingleTeacherPage = async ({
      redirect(`/${userRole?.toLowerCase() || 'login'}`);
   }
   
-  const wizardDataFromDb = await fetchAllDataForWizard();
+  // Fetch wizard data for context, and specifically fetch lessons for this teacher
+  const [wizardDataFromDb, teacherLessons] = await Promise.all([
+    fetchAllDataForWizard(),
+    prisma.lesson.findMany({ where: { teacherId: id } })
+  ]);
+  
   const teacher = wizardDataFromDb.teachers.find(t => t.id === id);
 
   if (!teacher) {
@@ -41,7 +46,8 @@ const SingleTeacherPage = async ({
   // Construct the specific wizardData for this teacher's schedule display
   const teacherWizardData: WizardData = {
       ...wizardDataFromDb,
-      schedule: wizardDataFromDb.schedule.filter(l => l.teacherId === id),
+      // Ensure the schedule in the wizard data contains the lessons for this teacher
+      schedule: teacherLessons,
   };
 
   return (
