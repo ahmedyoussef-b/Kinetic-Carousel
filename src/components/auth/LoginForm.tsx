@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useLoginMutation } from '@/lib/redux/api/authApi';
+import { useLoginMutation, type LoginResponse } from '@/lib/redux/api/authApi';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, LogIn } from 'lucide-react';
@@ -31,17 +31,26 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  useEffect(() => {
+ useEffect(() => {
     if (isSuccess && loginSuccessData) {
-        console.log("✅ [LoginForm] Connexion réussie. Données reçues:", loginSuccessData);
+      console.log("✅ [LoginForm] Connexion réussie. Données reçues:", loginSuccessData);
+      
+      // Handle the two possible response types from the API
+      if ('user' in loginSuccessData) {
+        // Direct login success
         toast({
           title: "Connexion réussie!",
           description: "Vous allez être redirigé vers votre tableau de bord."
         });
-        if ('user' in loginSuccessData) {
-            // Redirect directly to the user's role page
-            window.location.href = `/${loginSuccessData.user.role.toLowerCase()}`;
-        }
+        window.location.href = `/${loginSuccessData.user.role.toLowerCase()}`;
+      } else if ('tempToken' in loginSuccessData) {
+        // 2FA required, redirect to verification page
+        toast({
+          title: "Vérification requise",
+          description: "Un code a été envoyé à votre adresse e-mail."
+        });
+        router.push(`/verify-2fa?token=${loginSuccessData.tempToken}`);
+      }
     }
     if (isError) {
       console.error("❌ [LoginForm] Échec de la connexion :", loginErrorData);
