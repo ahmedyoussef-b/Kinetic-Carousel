@@ -100,7 +100,7 @@ async function main() {
   console.log('👤 Création des administrateurs...');
   const admin1 = await prisma.user.create({
     data: {
-      email: 'amin@example.com',
+      email: 'admin@example.com',
       username: 'admin',
       password: hashedPassword,
       name: 'Admin Principal',
@@ -114,7 +114,7 @@ async function main() {
 
   const admin2 = await prisma.user.create({
     data: {
-      email: 'amin2@example.com',
+      email: 'admin2@example.com',
       username: 'admin2',
       password: hashedPassword,
       name: 'Admin Secondaire',
@@ -146,7 +146,7 @@ async function main() {
     });
     createdGrades.push(grade);
 
-    for (let classNum = 1; classNum <= 10; classNum++) {
+    for (let classNum = 1; classNum <= 1; classNum++) { // REDUCED TO 1 CLASS
       const className = `${level}ème ${String.fromCharCode(64 + classNum)}`;
       const newClass = await prisma.class.create({
         data: {
@@ -159,7 +159,7 @@ async function main() {
       createdClasses.push(newClass);
       console.log(`  - Classe créée : ${className}`);
 
-      for (let studentNum = 1; studentNum <= 30; studentNum++) {
+      for (let studentNum = 1; studentNum <= 10; studentNum++) { // REDUCED TO 10 STUDENTS
         const gender = Math.random() > 0.5 ? 'male' : 'female';
         
         // Create Parent First
@@ -214,7 +214,7 @@ async function main() {
         });
       }
     }
-     console.log(`✅ Niveau ${level} et ses 10 classes de 30 élèves créés.`);
+     console.log(`✅ Niveau ${level} et sa classe de 10 élèves créés.`);
   }
   
   // --- Create Optional Subjects & Assign them to students from 2nd year onwards ---
@@ -252,41 +252,41 @@ async function main() {
 
 
   // --- Create Teachers ---
-  console.log('🧑‍🏫 Création des 90 professeurs...');
+  console.log('🧑‍🏫 Création des professeurs...');
   const createdTeachers = [];
   const allSubjects = [...createdSubjects, ...createdOptionalSubjects];
 
-  for (let i = 0; i < 90; i++) {
-    const { firstName, lastName } = generateName('male');
-    const user = await prisma.user.create({
-      data: {
-        email: `teacher${i + 1}@example.com`,
-        username: `teacher${i + 1}`,
-        password: hashedPassword,
-        name: `${firstName} ${lastName}`,
-        role: 'TEACHER',
-        active: true,
-        firstName: firstName,
-        lastName: lastName,
+  // Ensure at least 2 teachers per subject
+  for (const subject of allSubjects) {
+      for (let i = 0; i < 2; i++) {
+          const { firstName, lastName } = generateName('male');
+          const user = await prisma.user.create({
+              data: {
+                  email: `teacher_${subject.name.replace(/\s+/g, '_')}_${i + 1}@example.com`,
+                  username: `teacher_${subject.name.replace(/\s+/g, '_')}_${i + 1}`,
+                  password: hashedPassword,
+                  name: `${firstName} ${lastName}`,
+                  role: 'TEACHER',
+                  active: true,
+                  firstName: firstName,
+                  lastName: lastName,
+              }
+          });
+          
+          const teacher = await prisma.teacher.create({
+              data: {
+                  userId: user.id,
+                  name: firstName,
+                  surname: lastName,
+                  subjects: {
+                      connect: { id: subject.id }
+                  }
+              }
+          });
+          createdTeachers.push(teacher);
       }
-    });
-    
-    // Assign a main subject to each teacher
-    const subjectToTeach = allSubjects[i % allSubjects.length];
-    
-    const teacher = await prisma.teacher.create({
-      data: {
-        userId: user.id,
-        name: firstName,
-        surname: lastName,
-        subjects: {
-          connect: { id: subjectToTeach.id }
-        }
-      }
-    });
-    createdTeachers.push(teacher);
   }
-  console.log(`✅ ${createdTeachers.length} professeurs créés.`);
+  console.log(`✅ ${createdTeachers.length} professeurs créés et assignés.`);
 
 
   // --- Create classrooms ---
