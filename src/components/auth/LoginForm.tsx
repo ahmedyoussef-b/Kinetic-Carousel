@@ -33,13 +33,13 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (isSuccess && loginSuccessData) {
-        console.log("✅ [LoginForm] Connexion réussie. Redirection...");
+        console.log("✅ [LoginForm] Connexion réussie. Redirection vers /dashboard...");
         toast({
           title: "Connexion réussie!",
           description: "Vous allez être redirigé vers votre tableau de bord."
         });
-        // Redirect to the accueil page, which will then handle role-based redirection.
-        window.location.href = '/accueil';
+        // Redirect to the central dashboard page, which will handle role-based redirection.
+        router.push('/dashboard');
     }
     if (isError) {
       const apiError = loginErrorData as any;

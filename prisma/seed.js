@@ -195,7 +195,12 @@ async function main() {
                 surname: `${i} ${level}A`,
                 classId: newClass.id,
                 gradeId: grade.id,
-                parentId: parent.id // Assign all students to the single parent
+                parentId: parent.id ,// Assign all students to the single parent
+                address: '123 Rue Exemple',
+                phone: '123456789',
+                birthday: new Date(),
+                sex: 'MALE',
+                bloodType: 'A+',
             }
         });
         allStudents.push(student);

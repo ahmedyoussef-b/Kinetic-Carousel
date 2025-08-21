@@ -12,13 +12,16 @@ export default function DashboardRedirectPage() {
   const currentUser = useAppSelector(selectCurrentUser);
 
   useEffect(() => {
-    // Redirect to the accueil page, which will handle the final role-based redirection.
-    // This simplifies logic and avoids duplicating the welcome page content.
-    if (currentUser) {
-        router.replace(`/${currentUser.role.toLowerCase()}`);
+    // This component is the single point of truth for role-based redirection
+    // after a user logs in.
+    if (currentUser?.role) {
+      console.log(`🚀 [DashboardPage] Utilisateur trouvé, redirection vers /${currentUser.role.toLowerCase()}`);
+      router.replace(`/${currentUser.role.toLowerCase()}`);
     } else {
-        // If for some reason there's no user, go back to the main entry point.
-        router.replace('/accueil');
+      // If for some reason there's no user, go back to the main entry point.
+      // The middleware will handle redirecting to /login if necessary.
+      console.log(" Redirecting to /accueil");
+      router.replace('/accueil');
     }
   }, [currentUser, router]);
 

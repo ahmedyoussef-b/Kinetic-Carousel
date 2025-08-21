@@ -46,15 +46,15 @@ export function middleware(req: NextRequest) {
   console.log(`[Middleware] Rôle de session trouvé : ${userRole}`);
   
   const loginUrl = new URL('/login', req.url);
+  const dashboardUrl = new URL('/dashboard', req.url);
 
   // --- Route Protection Logic ---
 
   // User is logged in
   if (userRole) {
-    const dashboardUrl = new URL(`/${userRole.toLowerCase()}`, req.url);
-    // If they are on a public/auth page, redirect them to their dashboard
+    // If they are on a public/auth page, redirect them to the central dashboard page
     if (['/login', '/register', '/accueil'].includes(pathname)) {
-        console.log(`[Middleware] L'utilisateur est connecté. Redirection de ${pathname} vers son tableau de bord.`);
+        console.log(`[Middleware] L'utilisateur est connecté. Redirection de ${pathname} vers /dashboard.`);
         return NextResponse.redirect(dashboardUrl);
     }
       
@@ -64,7 +64,7 @@ export function middleware(req: NextRequest) {
     )?.[1];
 
     if (allowedRoles && !allowedRoles.includes(userRole)) {
-      console.log(`[Middleware] Le rôle '${userRole}' n'est pas autorisé pour ${pathname}. Redirection vers son tableau de bord.`);
+      console.log(`[Middleware] Le rôle '${userRole}' n'est pas autorisé pour ${pathname}. Redirection vers /dashboard.`);
       return NextResponse.redirect(dashboardUrl);
     }
   } 
@@ -73,7 +73,7 @@ export function middleware(req: NextRequest) {
     const isProtectedRoute = Object.keys(routeAccessMap).some(route => new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname));
     const isPublicRoute = ['/login', '/register', '/accueil'].includes(pathname);
 
-    // If trying to access a protected route without being logged in, redirect to login
+    // If trying to access a protected route (that isn't public) without being logged in, redirect to login
     if (isProtectedRoute && !isPublicRoute) {
         console.log(`[Middleware] Accès non autorisé à ${pathname}, redirection vers la connexion.`);
         return NextResponse.redirect(loginUrl);

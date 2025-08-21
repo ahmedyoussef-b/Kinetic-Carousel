@@ -23,15 +23,9 @@ export default function AccueilZenPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Si l'utilisateur est connecté, le rediriger vers son tableau de bord après un court délai
-    if (currentUser?.role) {
-      setTimeout(() => {
-        router.push(`/${currentUser.role.toLowerCase()}`);
-      }, 500); // Délai de 0.5 seconde
-    }
-  }, [currentUser, router]);
-
-  useEffect(() => {
+    // Si l'utilisateur est connecté, le rediriger vers son tableau de bord.
+    // Cette logique est maintenant gérée par le middleware et la page /dashboard.
+    // Ce useEffect est conservé pour la personnalisation du message d'accueil.
     const storedName = localStorage.getItem('accueilZenName');
     if (storedName) {
       setName(storedName);
@@ -84,7 +78,7 @@ export default function AccueilZenPage() {
       <div className="absolute top-4 right-4">
         {currentUser ? (
              <Button asChild variant="outline">
-                <Link href={`/${currentUser.role.toLowerCase()}`}>
+                <Link href="/dashboard">
                     <User className="mr-2 h-4 w-4" />
                     Mon tableau de bord
                 </Link>
