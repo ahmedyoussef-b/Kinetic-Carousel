@@ -29,7 +29,7 @@ import useWizardData from '@/hooks/useWizardData';
 import { setInitialSchedule, saveSchedule } from '@/lib/redux/features/schedule/scheduleSlice';
 import { generateSchedule } from '@/lib/schedule-generation';
 import { useToast } from '@/hooks/use-toast';
-import { loadDraftsFromStorage, selectActiveDraft, saveDraftToStorage, setActiveDraft as setActiveDraftAction } from '@/lib/redux/features/scheduleDraftSlice';
+import { selectActiveDraft } from '@/lib/redux/features/scheduleDraftSlice';
 import { setInitialData } from '@/lib/redux/features/wizardSlice';
 
 import type { WizardData, Lesson, ValidationResult, Day, Subject, ClassWithGrade } from '@/types';
@@ -85,25 +85,10 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
     
     // HYDRATION EFFECT
     useEffect(() => {
-        console.log("💧 [ShuddlePageClient] Hydratation des données initiales.");
-        dispatch(loadDraftsFromStorage());
-        const storedDrafts = localStorage.getItem('scheduleDrafts');
-        let activeDraftFound = false;
-
-        if (storedDrafts) {
-            const drafts = JSON.parse(storedDrafts);
-            const activeDraftFromStorage = drafts.find((d: any) => d.isActive);
-            if (activeDraftFromStorage) {
-                console.log("💧 [ShuddlePageClient] Scénario actif trouvé dans le stockage local. Hydratation avec les données du scénario.");
-                dispatch(setInitialData(activeDraftFromStorage.data));
-                activeDraftFound = true;
-            }
-        }
-
-        if (!activeDraftFound) {
-            console.log("💧 [ShuddlePageClient] Aucun scénario actif local. Hydratation avec les données du serveur.");
-            dispatch(setInitialData(initialData));
-        }
+        console.log("💧 [ShuddlePageClient] Hydratation avec les données du serveur/actives.");
+        dispatch(setInitialData(initialData));
+        // Set the schedule from the server-fetched draft/data
+        dispatch(setInitialSchedule(initialData.schedule || []));
     }, [dispatch, initialData]);
     
     
@@ -172,19 +157,6 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
 
             dispatch(setInitialSchedule(finalSchedule));
             
-            // --- AUTO-SAVE TO ACTIVE DRAFT ---
-            if (activeDraft) {
-                const updatedDraft = {
-                    ...activeDraft,
-                    data: { ...wizardData, schedule: finalSchedule }, // Update the schedule within the draft's data
-                    updatedAt: new Date().toISOString(),
-                };
-                dispatch(saveDraftToStorage(updatedDraft));
-                dispatch(setActiveDraftAction(updatedDraft)); // Ensure the active draft in Redux is the updated one
-                console.log("💾 [ShuddlePageClient] Emploi du temps généré sauvegardé dans le scénario actif.");
-            }
-            // --- END AUTO-SAVE ---
-
             console.log(`✅ [ShuddlePageClient] Génération terminée. ${finalSchedule.length} cours placés.`);
 
             if (unplacedLessons.length > 0) {
@@ -328,6 +300,7 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
                     isEditable={true}
                     viewMode={viewMode}
                     selectedViewId={selectedViewId}
+                    scheduleOverride={scheduleItems} // Use the redux schedule items
                 />
             </div>
         </div>

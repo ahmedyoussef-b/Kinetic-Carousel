@@ -2,6 +2,7 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useSelector } from 'react-redux';
 import { authApi } from './api/authApi';
+import { draftApi } from './api/draftApi';
 import authReducer from './features/auth/authSlice';
 import classesReducer, { setAllClasses } from './features/classes/classesSlice';
 import subjectsReducer, { setAllSubjects } from './features/subjects/subjectsSlice';
@@ -26,6 +27,7 @@ import { setInitialData } from './features/wizardSlice';
 const rootReducer = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
   [entityApi.reducerPath]: entityApi.reducer,
+  [draftApi.reducerPath]: draftApi.reducer,
   auth: authReducer,
   classes: classesReducer,
   subjects: subjectsReducer,
@@ -72,7 +74,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       immutableCheck: false,
       serializableCheck: false,
-    }).concat([authApi.middleware, entityApi.middleware, hydrationMiddleware]),
+    }).concat([authApi.middleware, entityApi.middleware, draftApi.middleware, hydrationMiddleware]),
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

@@ -1,19 +1,9 @@
 // src/lib/redux/features/scheduleDraftSlice.ts
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { WizardData } from '@/types';
+import type { WizardData, ScheduleDraft as ClientScheduleDraft } from '@/types';
 import { setInitialData } from './wizardSlice'; // Centralized data management
 
-const DRAFTS_STORAGE_KEY = 'scheduleDrafts';
-
-export interface ClientScheduleDraft {
-    id: string;
-    name: string;
-    description: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    data: WizardData;
-}
+// Note: ClientScheduleDraft is now sourced from @/types
 
 interface DraftState {
     drafts: ClientScheduleDraft[];
@@ -29,38 +19,27 @@ const scheduleDraftSlice = createSlice({
     name: 'scheduleDraft',
     initialState,
     reducers: {
-        loadDraftsFromStorage: (state) => {
-            try {
-                const storedDrafts = localStorage.getItem(DRAFTS_STORAGE_KEY);
-                if (storedDrafts) {
-                    state.drafts = JSON.parse(storedDrafts);
-                    state.activeDraft = state.drafts.find(d => d.isActive) || null;
+        setAllDrafts: (state, action: PayloadAction<ClientScheduleDraft[]>) => {
+            state.drafts = action.payload;
+            state.activeDraft = action.payload.find(d => d.isActive) || null;
+        },
+        addDraft: (state, action: PayloadAction<ClientScheduleDraft>) => {
+            state.drafts.push(action.payload);
+        },
+        updateDraft: (state, action: PayloadAction<ClientScheduleDraft>) => {
+            const index = state.drafts.findIndex(d => d.id === action.payload.id);
+            if (index !== -1) {
+                state.drafts[index] = action.payload;
+                if (action.payload.isActive) {
+                    state.activeDraft = action.payload;
                 }
-            } catch (error) {
-                console.error("Failed to load drafts from localStorage:", error);
-                state.drafts = [];
             }
         },
-        saveDraftToStorage: (state, action: PayloadAction<ClientScheduleDraft>) => {
-            const newDraft = action.payload;
-            const existingIndex = state.drafts.findIndex(d => d.id === newDraft.id);
-
-            if (existingIndex !== -1) {
-                state.drafts[existingIndex] = newDraft;
-            } else {
-                state.drafts.push(newDraft);
-            }
-            
-            if (newDraft.isActive) {
-                state.drafts.forEach(draft => {
-                    draft.isActive = draft.id === newDraft.id;
-                });
-            }
-
-            try {
-                localStorage.setItem(DRAFTS_STORAGE_KEY, JSON.stringify(state.drafts));
-            } catch (error) {
-                console.error("Failed to save drafts to localStorage:", error);
+        deleteDraft: (state, action: PayloadAction<string>) => {
+            const draftIdToDelete = action.payload;
+            state.drafts = state.drafts.filter(d => d.id !== draftIdToDelete);
+            if (state.activeDraft?.id === draftIdToDelete) {
+                state.activeDraft = state.drafts.length > 0 ? state.drafts[0] : null;
             }
         },
         setActiveDraft: (state, action: PayloadAction<ClientScheduleDraft | null>) => {
@@ -69,28 +48,6 @@ const scheduleDraftSlice = createSlice({
                 draft.isActive = draft.id === draftToActivate?.id;
             });
             state.activeDraft = draftToActivate;
-            try {
-                localStorage.setItem(DRAFTS_STORAGE_KEY, JSON.stringify(state.drafts));
-            } catch (error) {
-                 console.error("Failed to update active draft in localStorage:", error);
-            }
-        },
-        deleteDraftFromStorage: (state, action: PayloadAction<string>) => {
-            const draftIdToDelete = action.payload;
-            state.drafts = state.drafts.filter(d => d.id !== draftIdToDelete);
-            
-            if (state.activeDraft?.id === draftIdToDelete) {
-                state.activeDraft = state.drafts.length > 0 ? state.drafts[0] : null;
-                if (state.activeDraft) {
-                    state.activeDraft.isActive = true;
-                }
-            }
-
-            try {
-                localStorage.setItem(DRAFTS_STORAGE_KEY, JSON.stringify(state.drafts));
-            } catch (error) {
-                console.error("Failed to save drafts after deletion:", error);
-            }
         },
     },
     selectors: {
@@ -100,10 +57,11 @@ const scheduleDraftSlice = createSlice({
 });
 
 export const { 
-    loadDraftsFromStorage, 
-    saveDraftToStorage, 
-    setActiveDraft, 
-    deleteDraftFromStorage 
+    setAllDrafts,
+    addDraft,
+    updateDraft,
+    deleteDraft,
+    setActiveDraft,
 } = scheduleDraftSlice.actions;
 
 export const { selectAllDrafts, selectActiveDraft } = scheduleDraftSlice.selectors;
