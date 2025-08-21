@@ -139,8 +139,9 @@ const TeachersForm: React.FC = () => {
 
                                 return (
                                 <AccordionItem value={`teacher-${teacher.id}`} key={teacher.id}>
-                                    <AccordionTrigger className="hover:no-underline">
-                                        <div className="flex justify-between items-center w-full pr-4">
+                                  <div className="flex items-center pr-4">
+                                    <AccordionTrigger className="flex-1 hover:no-underline p-4">
+                                        <div className="flex justify-between items-center w-full">
                                             <span className="font-semibold text-lg flex items-center gap-2">
                                                 <Users className="h-5 w-5" />
                                                 {teacher.name} {teacher.surname}
@@ -157,28 +158,29 @@ const TeachersForm: React.FC = () => {
                                               <span className="text-sm text-muted-foreground">
                                                   {teacher.subjects.length} matière(s)
                                               </span>
-                                              <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={(e) => e.stopPropagation()}>
-                                                      <Trash2 size={16}/>
-                                                  </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                  <AlertDialogHeader>
-                                                    <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                      Êtes-vous sûr de vouloir supprimer l'enseignant "{teacher.name} {teacher.surname}" ? Toutes ses assignations seront également supprimées.
-                                                    </AlertDialogDescription>
-                                                  </AlertDialogHeader>
-                                                  <AlertDialogFooter>
-                                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDeleteTeacher(teacher)} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
-                                                  </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                              </AlertDialog>
                                             </div>
                                         </div>
                                     </AccordionTrigger>
+                                     <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                              <Trash2 size={16}/>
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              Êtes-vous sûr de vouloir supprimer l'enseignant "{teacher.name} {teacher.surname}" ? Toutes ses assignations seront également supprimées.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteTeacher(teacher)} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                  </div>
                                     <AccordionContent>
                                         <div className="p-4 space-y-6">
                                             {teacher.subjects.length > 0 ? teacher.subjects.map((subject: Subject) => {
