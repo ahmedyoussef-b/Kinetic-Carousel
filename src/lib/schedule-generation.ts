@@ -11,7 +11,7 @@ type PlacedLesson = Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'> & {
 
 // --- CORE GENERATION LOGIC ---
 export function generateSchedule(wizardData: WizardData): { schedule: Lesson[], unplacedLessons: any[] } {
-  console.log("⚙️ [Generator V6] Démarrage de la génération avec gestion des matières optionnelles...");
+  console.log("⚙️ [Generator V7] Démarrage de la génération avec contraintes pédagogiques avancées...");
   
   const { 
     school, 
@@ -42,10 +42,7 @@ export function generateSchedule(wizardData: WizardData): { schedule: Lesson[], 
     let lessonsToPlace: Array<{ subjectInfo: Subject, teacherInfo: TeacherWithDetails, hours: number }> = [];
     
     subjects.forEach(subjectInfo => {
-      // Exclude optional subjects from this main loop
-      if (subjectInfo.isOptional) {
-          return;
-      }
+      if (subjectInfo.isOptional) return;
       
       const requirement = lessonRequirements.find(req => req.classId === classInfo.id && req.subjectId === subjectInfo.id);
       const hours = requirement ? requirement.hours : (subjectInfo.weeklyHours || 0);
@@ -68,14 +65,30 @@ export function generateSchedule(wizardData: WizardData): { schedule: Lesson[], 
       }
     });
 
-    const flattenedLessons = lessonsToPlace.flatMap(({ subjectInfo, teacherInfo, hours }) => 
-        Array(Math.round(hours)).fill({ subjectInfo, teacherInfo })
-    );
+    const flattenedLessons = lessonsToPlace.flatMap(({ subjectInfo, teacherInfo, hours }) => {
+      const isDoubleHourSubject = hours >= 2;
+      const sessions = [];
+      let remainingHours = hours;
+      
+      if (isDoubleHourSubject) {
+        const doubleSessions = Math.floor(hours / 2);
+        for(let i = 0; i < doubleSessions; i++) {
+          sessions.push({ subjectInfo, teacherInfo, duration: 2 });
+        }
+        remainingHours = hours % 2;
+      }
+      
+      for (let i = 0; i < remainingHours; i++) {
+        sessions.push({ subjectInfo, teacherInfo, duration: 1 });
+      }
+      
+      return sessions;
+    });
 
     flattenedLessons.sort(() => Math.random() - 0.5);
 
-    for (const { subjectInfo, teacherInfo } of flattenedLessons) {
-       placeIndividualLesson(schedule, classInfo.id, subjectInfo, teacherInfo, wizardData, timeSlots, unplacedLessons);
+    for (const { subjectInfo, teacherInfo, duration } of flattenedLessons) {
+       placeIndividualLesson(schedule, classInfo.id, subjectInfo, teacherInfo, wizardData, timeSlots, unplacedLessons, duration);
     }
   }
 
@@ -132,11 +145,12 @@ function placeIndividualLesson(
     teacherInfo: TeacherWithDetails,
     wizardData: WizardData,
     timeSlots: string[],
-    unplacedLessons: any[]
+    unplacedLessons: any[],
+    durationHours: number = 1 // New parameter for session duration
 ) {
   const { school, rooms, teacherConstraints, subjectRequirements, classes } = wizardData;
   const classInfo = classes.find(c => c.id === classId);
-  if (!classInfo) return; // Should not happen
+  if (!classInfo) return;
   
   let placed = false;
   const shuffledDays = [...(school.schoolDays || [])].sort(() => Math.random() - 0.5);
@@ -176,7 +190,7 @@ function placeIndividualLesson(
           continue;
       }
 
-      const lessonDuration = school.sessionDuration || 60;
+      const lessonDuration = (school.sessionDuration || 60) * durationHours;
       const lessonEndMinutes = lessonStartMinutes + lessonDuration;
 
       // --- Constraint Checks ---
