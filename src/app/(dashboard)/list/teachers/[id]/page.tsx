@@ -1,4 +1,3 @@
-
 // src/app/(dashboard)/list/teachers/[id]/page.tsx
 import prisma from "@/lib/prisma";
 import { getServerSession } from "@/lib/auth-utils";
@@ -46,8 +45,8 @@ const SingleTeacherPage = async ({
   // Construct the specific wizardData for this teacher's schedule display
   const teacherWizardData: WizardData = {
       ...wizardDataFromDb,
-      // Ensure the schedule in the wizard data contains the lessons for this teacher
-      schedule: teacherLessons,
+      // Ensure the schedule in the wizard data is empty so it doesn't conflict
+      schedule: [],
   };
 
   return (
@@ -82,6 +81,7 @@ const SingleTeacherPage = async ({
             wizardData={teacherWizardData} 
             viewMode={"teacher"} 
             selectedViewId={teacher.id} 
+            scheduleOverride={teacherLessons}
           />
         </CardContent>
       </Card>

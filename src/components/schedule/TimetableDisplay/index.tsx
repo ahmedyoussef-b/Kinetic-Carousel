@@ -1,4 +1,3 @@
-
 // src/components/schedule/TimetableDisplay/index.tsx
 'use client';
 
@@ -29,6 +28,7 @@ interface TimetableDisplayProps {
   isEditable?: boolean;
   viewMode: 'class' | 'teacher' | 'student';
   selectedViewId: string;
+  scheduleOverride?: Lesson[]; // New prop to force display of specific lessons
 }
 
 const TimetableDisplay: React.FC<TimetableDisplayProps> = ({ 
@@ -36,8 +36,10 @@ const TimetableDisplay: React.FC<TimetableDisplayProps> = ({
     isEditable = false, 
     viewMode,
     selectedViewId,
+    scheduleOverride,
 }) => {
-  const fullSchedule = useAppSelector((state) => state.schedule.items);
+  const reduxSchedule = useAppSelector((state) => state.schedule.items);
+  const fullSchedule = scheduleOverride || reduxSchedule; // Use override if provided
   const [hoveredSubjectId, setHoveredSubjectId] = useState<number | null>(null);
 
 
