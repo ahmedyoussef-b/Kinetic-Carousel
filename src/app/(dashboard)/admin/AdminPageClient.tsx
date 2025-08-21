@@ -19,9 +19,8 @@ export default function AdminPageClient({ children }: { children: React.ReactNod
     if (!isLoading) {
       // If loading is finished and there's no user or the user is not an admin, redirect
       if (!user || user.role !== Role.ADMIN) {
-        // This redirection is now handled by the middleware, but we keep it as a fallback.
-        // The primary purpose of this component is now to show a loading state and render the layout.
-        // NOTE: The primary redirection logic has been removed to prevent race conditions with the middleware.
+        console.warn("👑 [AdminPageClient] Access denied or session invalid. Redirecting to login...");
+        router.replace('/login');
       }
     }
   }, [user, isLoading, router]);
