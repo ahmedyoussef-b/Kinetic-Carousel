@@ -52,8 +52,8 @@ export function middleware(req: NextRequest) {
 
   // User is logged in
   if (userRole) {
-    // If they are on a public/auth page, redirect them to the central dashboard page
-    if (['/login', '/register', '/accueil'].includes(pathname)) {
+    // If they are on a public/auth page (including the welcome page), redirect them to the central dashboard page
+    if (['/login', '/register', '/accueil', '/'].includes(pathname)) {
         console.log(`[Middleware] L'utilisateur est connecté. Redirection de ${pathname} vers /dashboard.`);
         return NextResponse.redirect(dashboardUrl);
     }
