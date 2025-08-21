@@ -81,16 +81,20 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
 
     try {
-        // Use a transaction to ensure all related data is deleted atomically
         await prisma.$transaction(async (tx) => {
-            // 1. Find related Exams and Assignments
+            const lessonToDelete = await tx.lesson.findUnique({ where: { id } });
+            if (!lessonToDelete) {
+                // If the lesson is already gone, we can consider the operation a success.
+                console.log(`Leçon avec l'ID ${id} déjà supprimée. Aucune action nécessaire.`);
+                return;
+            }
+
             const exams = await tx.exam.findMany({ where: { lessonId: id }, select: { id: true } });
             const examIds = exams.map(e => e.id);
 
             const assignments = await tx.assignment.findMany({ where: { lessonId: id }, select: { id: true } });
             const assignmentIds = assignments.map(a => a.id);
             
-            // 2. Delete dependent Results if any exams or assignments were found
             if (examIds.length > 0 || assignmentIds.length > 0) {
               await tx.result.deleteMany({
                   where: {
@@ -102,17 +106,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
               });
             }
 
-            // 3. Delete related Exams and Assignments
             await tx.exam.deleteMany({ where: { lessonId: id } });
             await tx.assignment.deleteMany({ where: { lessonId: id } });
-
-            // 4. Delete related Attendances
             await tx.attendance.deleteMany({ where: { lessonId: id } });
 
-            // 5. Finally, delete the lesson itself
-            await tx.lesson.delete({
-                where: { id },
-            });
+            await tx.lesson.delete({ where: { id } });
         });
 
         return NextResponse.json({ message: 'Cours et ses données associées supprimés avec succès' }, { status: 200 });
