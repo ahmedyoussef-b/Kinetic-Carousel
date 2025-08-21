@@ -159,10 +159,23 @@ function placeIndividualLesson(
       const lessonStartMinutes = timeToMinutes(time);
       
       // Constraint: No classes on Saturday afternoon
-      if (dayEnum === 'SATURDAY' && lessonStartMinutes >= 720) { // 12:00 PM is 720 minutes
+      if (dayEnum === 'SATURDAY' && lessonStartMinutes >= 720) {
         continue;
       }
       
+      // Constraint: Don't place the same subject across the lunch break on the same day.
+      const isMorning = lessonStartMinutes < 720;
+      const hasBeenPlacedOnOtherSide = schedule.some(l => 
+          l.classId === classId && 
+          l.subjectId === subjectInfo.id && 
+          l.day === dayEnum &&
+          ( (isMorning && timeToMinutes(formatTimeSimple(l.startTime)) >= 720) || // current is AM, check for PM
+            (!isMorning && timeToMinutes(formatTimeSimple(l.startTime)) < 720) ) // current is PM, check for AM
+      );
+      if (hasBeenPlacedOnOtherSide) {
+          continue;
+      }
+
       const lessonDuration = school.sessionDuration || 60;
       const lessonEndMinutes = lessonStartMinutes + lessonDuration;
 
@@ -253,7 +266,7 @@ function placeOptionalLesson(
             const lessonStartMinutes = timeToMinutes(time);
 
             // Constraint: No classes on Saturday afternoon
-            if (dayEnum === 'SATURDAY' && lessonStartMinutes >= 720) { // 12:00 PM is 720 minutes
+            if (dayEnum === 'SATURDAY' && lessonStartMinutes >= 720) {
                 continue;
             }
 
@@ -337,3 +350,5 @@ const isTeacherBusy = (schedule: PlacedLesson[], teacherId: string, day: Day, st
         return start < existingEnd && end > existingStart;
     });
 };
+
+    
