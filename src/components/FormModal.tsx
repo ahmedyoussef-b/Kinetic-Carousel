@@ -31,7 +31,7 @@ const TeacherForm = dynamic(() => import("./forms/TeacherForm/TeacherForm"), { l
 const StudentForm = dynamic(() => import("./forms/StudentForm/StudentForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const SubjectForm = dynamic(() => import("./forms/SubjectForm/SubjectForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const ClassForm = dynamic(() => import("./forms/ClassForm/ClassForm"), { loading: () => <p>Chargement du formulaire...</p> });
-const ExamForm = dynamic(() => import("./forms/ExamForm/ExamForm"), { loading: () => <p>Chargement du formulaire...</p> });
+const ExamForm = dynamic(() => import("./forms/ExamForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const AssignmentForm = dynamic(() => import("./forms/AssignmentForm/AssignmentForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const EventForm = dynamic(() => import("./forms/EventForm/EventForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const AnnouncementForm = dynamic(() => import("./forms/AnnouncementForm/AnnouncementForm"), { loading: () => <p>Chargement du formulaire...</p> });
