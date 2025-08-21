@@ -29,7 +29,7 @@ import useWizardData from '@/hooks/useWizardData';
 import { setInitialSchedule, saveSchedule } from '@/lib/redux/features/schedule/scheduleSlice';
 import { generateSchedule } from '@/lib/schedule-generation';
 import { useToast } from '@/hooks/use-toast';
-import { loadDraftsFromStorage, selectActiveDraft } from '@/lib/redux/features/scheduleDraftSlice';
+import { loadDraftsFromStorage, selectActiveDraft, saveDraftToStorage, setActiveDraft as setActiveDraftAction } from '@/lib/redux/features/scheduleDraftSlice';
 import { setInitialData } from '@/lib/redux/features/wizardSlice';
 
 import type { WizardData, Lesson, ValidationResult, Day, Subject, ClassWithGrade } from '@/types';
@@ -171,6 +171,20 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
             setGenerationProgress(100);
 
             dispatch(setInitialSchedule(finalSchedule));
+            
+            // --- AUTO-SAVE TO ACTIVE DRAFT ---
+            if (activeDraft) {
+                const updatedDraft = {
+                    ...activeDraft,
+                    data: { ...wizardData, schedule: finalSchedule }, // Update the schedule within the draft's data
+                    updatedAt: new Date().toISOString(),
+                };
+                dispatch(saveDraftToStorage(updatedDraft));
+                dispatch(setActiveDraftAction(updatedDraft)); // Ensure the active draft in Redux is the updated one
+                console.log("💾 [ShuddlePageClient] Emploi du temps généré sauvegardé dans le scénario actif.");
+            }
+            // --- END AUTO-SAVE ---
+
             console.log(`✅ [ShuddlePageClient] Génération terminée. ${finalSchedule.length} cours placés.`);
 
             if (unplacedLessons.length > 0) {
