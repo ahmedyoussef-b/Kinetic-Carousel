@@ -201,8 +201,17 @@ function placeIndividualLesson(
           const existingEnd = timeToMinutes(formatTimeSimple(l.endTime));
           return lessonStartMinutes < existingEnd && lessonEndMinutes > existingStart;
       }).map(l => l.classroomId).filter((id): id is number => id !== null));
-
+      
       let potentialRooms = rooms.filter(r => !occupiedRoomIdsInSlot.has(r.id));
+      const isLabSubject = labSubjectKeywords.some(keyword => subjectInfo.name.toLowerCase().includes(keyword));
+
+      if (isLabSubject) {
+        const labRooms = potentialRooms.filter(r => r.name.toLowerCase().includes('labo'));
+        if (labRooms.length > 0) {
+            potentialRooms = labRooms;
+        }
+      }
+      
       if (subjectReq?.allowedRoomIds && subjectReq.allowedRoomIds.length > 0) {
         potentialRooms = potentialRooms.filter(r => subjectReq.allowedRoomIds!.includes(r.id));
         if (potentialRooms.length === 0) continue;
@@ -350,5 +359,3 @@ const isTeacherBusy = (schedule: PlacedLesson[], teacherId: string, day: Day, st
         return start < existingEnd && end > existingStart;
     });
 };
-
-    

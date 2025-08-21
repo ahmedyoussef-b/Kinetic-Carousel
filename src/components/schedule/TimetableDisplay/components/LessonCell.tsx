@@ -47,7 +47,7 @@ const LessonCell: React.FC<LessonCellProps> = ({
 
   const getTeacherName = (id: string) => {
     const teacher = wizardData.teachers?.find(t => t.id === id);
-    return teacher ? `${teacher.name?.charAt(0)}. ${teacher.surname}` : 'N/A';
+    return teacher ? `${teacher.name} ${teacher.surname}` : 'N/A';
   };
   const getClassName = (id: number) => wizardData.classes?.find(c => c.id === id)?.name || 'N/A';
   const getRoomName = (id: number | null) => {
