@@ -1,8 +1,9 @@
 // src/app/[locale]/(dashboard)/list/results/components/ResultsHeader.tsx
-import Image from "next/image";
 import { Role } from "@prisma/client";
 import FormContainer from "@/components/FormContainer";
 import TableSearch from "@/components/TableSearch";
+import { Filter, ArrowUpDown } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface ResultsHeaderProps {
   userRole?: Role;
@@ -15,12 +16,12 @@ export const ResultsHeader = ({ userRole }: ResultsHeaderProps) => {
       <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
         <TableSearch />
         <div className="flex items-center gap-4 self-end">
-          <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-            <Image src="/filter.png" alt="filter" width={14} height={14} />
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-            <Image src="/sort.png" alt="sort" width={14} height={14} />
-          </button>
+           <Button variant="ghost" size="icon" className="hover:bg-muted rounded-full">
+              <Filter className="w-5 h-5 text-muted-foreground" />
+            </Button>
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-full">
+              <ArrowUpDown className="w-5 h-5 text-muted-foreground" />
+            </Button>
           {(userRole === Role.ADMIN || userRole === Role.TEACHER) && (
             <FormContainer table="result" type="create" />
           )}

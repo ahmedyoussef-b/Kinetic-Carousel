@@ -6,9 +6,10 @@ import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/constants";
 import { type Exam, type Class, type Subject, type Teacher } from "@/types/index"; 
-import Image from "next/image";
 import { getServerSession } from "@/lib/auth-utils";
 import { Prisma, Role } from "@prisma/client";
+import { Filter, ArrowUpDown } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 type ExamListItem = Exam & {
   lesson: {
@@ -41,7 +42,7 @@ const ExamListPage = async ({
   const renderRow = (item: ExamListItem) => (
     <tr
       key={item.id}
-      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
+      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-muted/50 transition-colors"
     >
       <td className="flex items-center gap-4 p-4">{item.lesson.subject.name}</td>
       <td>{item.lesson.class.name}</td>
@@ -132,12 +133,12 @@ const ExamListPage = async ({
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="filter" width={14} height={14} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="sort" width={14} height={14} />
-            </button>
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-full">
+              <Filter className="w-5 h-5 text-muted-foreground" />
+            </Button>
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-full">
+              <ArrowUpDown className="w-5 h-5 text-muted-foreground" />
+            </Button>
             {(userRole === Role.ADMIN || userRole === Role.TEACHER) && (
               <FormContainer table="exam" type="create" />
             )}
