@@ -157,6 +157,12 @@ function placeIndividualLesson(
 
     for (const time of shuffledTimes) {
       const lessonStartMinutes = timeToMinutes(time);
+      
+      // Constraint: No classes on Saturday afternoon
+      if (dayEnum === 'SATURDAY' && lessonStartMinutes >= 720) { // 12:00 PM is 720 minutes
+        continue;
+      }
+      
       const lessonDuration = school.sessionDuration || 60;
       const lessonEndMinutes = lessonStartMinutes + lessonDuration;
 
@@ -245,6 +251,12 @@ function placeOptionalLesson(
 
         for (const time of shuffledTimes) {
             const lessonStartMinutes = timeToMinutes(time);
+
+            // Constraint: No classes on Saturday afternoon
+            if (dayEnum === 'SATURDAY' && lessonStartMinutes >= 720) { // 12:00 PM is 720 minutes
+                continue;
+            }
+
             const lessonDuration = school.sessionDuration || 60;
             const lessonEndMinutes = lessonStartMinutes + lessonDuration;
 
