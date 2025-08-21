@@ -21,7 +21,7 @@ export default function AdminPageClient({ children }: { children: React.ReactNod
       if (!user || user.role !== Role.ADMIN) {
         // This redirection is now handled by the middleware, but we keep it as a fallback.
         // The primary purpose of this component is now to show a loading state and render the layout.
-        router.replace('/login');
+        // NOTE: The primary redirection logic has been removed to prevent race conditions with the middleware.
       }
     }
   }, [user, isLoading, router]);
