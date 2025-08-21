@@ -32,7 +32,7 @@ function decodeJwt(token: string): JwtPayload | null {
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  console.log(`🚦 [Middleware] Processing request for: ${pathname}`);
+  console.log(`🚦 [Middleware] Traitement de la requête pour : ${pathname}`);
 
   const sessionToken = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   let userRole: Role | undefined;
@@ -43,7 +43,7 @@ export function middleware(req: NextRequest) {
       userRole = decodedToken.role;
     }
   }
-  console.log(`[Middleware] Session role found: ${userRole}`);
+  console.log(`[Middleware] Rôle de session trouvé : ${userRole}`);
   
   const loginUrl = new URL('/login', req.url);
 
@@ -52,9 +52,10 @@ export function middleware(req: NextRequest) {
   // User is logged in
   if (userRole) {
     const dashboardUrl = new URL(`/${userRole.toLowerCase()}`, req.url);
-    // If they are on a public/auth page, redirect them to their dashboard
-    if (['/login', '/register', '/accueil'].includes(pathname)) {
-        console.log(`[Middleware] User is logged in. Redirecting from ${pathname} to their dashboard.`);
+    
+    // If they are on a public/auth page, or the root, redirect them to their dashboard
+    if (['/login', '/register', '/accueil', '/'].includes(pathname)) {
+        console.log(`[Middleware] Utilisateur connecté. Redirection de ${pathname} vers son tableau de bord.`);
         return NextResponse.redirect(dashboardUrl);
     }
       
@@ -64,23 +65,23 @@ export function middleware(req: NextRequest) {
     )?.[1];
 
     if (allowedRoles && !allowedRoles.includes(userRole)) {
-      console.log(`[Middleware] Role '${userRole}' not allowed for ${pathname}. Redirecting to their dashboard.`);
+      console.log(`[Middleware] Rôle '${userRole}' non autorisé pour ${pathname}. Redirection vers son tableau de bord.`);
       return NextResponse.redirect(dashboardUrl);
     }
   } 
   // User is NOT logged in
   else {
     const isProtectedRoute = Object.keys(routeAccessMap).some(route => new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname));
-    const isPublicRoute = ['/login', '/register', '/accueil'].includes(pathname);
+    const isPublicRoute = ['/login', '/register', '/accueil', '/'].includes(pathname);
 
     // If trying to access a protected route without being logged in, redirect to login
     if (isProtectedRoute && !isPublicRoute) {
-        console.log(`[Middleware] Unauthorized access to ${pathname}, redirecting to login.`);
+        console.log(`[Middleware] Accès non autorisé à ${pathname}, redirection vers la connexion.`);
         return NextResponse.redirect(loginUrl);
     }
   }
 
-  console.log(`[Middleware] Allowing request to ${pathname}.`);
+  console.log(`[Middleware] Autorisation de la requête vers ${pathname}.`);
   return NextResponse.next();
 }
 

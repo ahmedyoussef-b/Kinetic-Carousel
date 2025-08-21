@@ -18,6 +18,7 @@ import SocialSignInButtons from './SocialSignInButtons';
 
 
 export default function LoginForm() {
+  console.log("🎨 [LoginForm] Le composant est en cours de rendu.");
   const router = useRouter();
   const { toast } = useToast();
   const [login, { isLoading, isSuccess, isError, data: loginSuccessData, error: loginErrorData }] = useLoginMutation();
@@ -32,14 +33,18 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (isSuccess && loginSuccessData) {
+        console.log("✅ [LoginForm] Connexion réussie. Données reçues:", loginSuccessData);
         toast({
           title: "Connexion réussie!",
           description: "Vous allez être redirigé vers votre tableau de bord."
         });
-        // Redirect to the accueil page, which will then handle role-based redirection.
-        window.location.href = '/accueil';
+        if ('user' in loginSuccessData) {
+            // Redirect directly to the user's role page
+            window.location.href = `/${loginSuccessData.user.role.toLowerCase()}`;
+        }
     }
     if (isError) {
+      console.error("❌ [LoginForm] Échec de la connexion :", loginErrorData);
       const apiError = loginErrorData as any;
       toast({
         variant: "destructive",
@@ -50,6 +55,7 @@ export default function LoginForm() {
   }, [isSuccess, isError, loginSuccessData, loginErrorData, router, toast]);
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
+    console.log(`➡️ [LoginForm] Le formulaire est soumis avec les données: ${data.email}`);
     await login(data);
   };
 

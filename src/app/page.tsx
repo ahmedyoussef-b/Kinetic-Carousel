@@ -1,8 +1,7 @@
 // src/app/page.tsx
-import { redirect } from 'next/navigation';
+import AccueilZenPage from './accueil/page';
  
-export default async function RootPage() {
-  // Always redirect to the main welcome/login page.
-  // The middleware will handle auth-based routing from there.
-  return redirect('/accueil');
+export default function RootPage() {
+  // Directly render the AccueilZenPage component
+  return <AccueilZenPage />;
 }

@@ -9,9 +9,6 @@ import { generateGreeting, type GreetingInput } from '@/ai/flows/greetingFlow';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, User, LogIn } from 'lucide-react';
 import Link from 'next/link';
-import { useAppSelector } from '@/hooks/redux-hooks';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
-import { useRouter } from 'next/navigation';
 
 export default function AccueilZenPage() {
   const [greeting, setGreeting] = useState('');
@@ -19,26 +16,13 @@ export default function AccueilZenPage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [isLoadingGreeting, setIsLoadingGreeting] = useState(true);
   const { toast } = useToast();
-  const currentUser = useAppSelector(selectCurrentUser);
-  const router = useRouter();
-
-  useEffect(() => {
-    // If user is logged in, redirect them to their dashboard after a short delay
-    if (currentUser?.role) {
-      setTimeout(() => {
-        router.push(`/${currentUser.role.toLowerCase()}`);
-      }, 500); // 0.5 second delay
-    }
-  }, [currentUser, router]);
-
+  
   useEffect(() => {
     const storedName = localStorage.getItem('accueilZenName');
     if (storedName) {
       setName(storedName);
-    } else if (currentUser?.name) {
-      setName(currentUser.name);
     }
-  }, [currentUser]);
+  }, []);
 
   useEffect(() => {
     const getBaseGreeting = (): string => {
@@ -82,21 +66,12 @@ export default function AccueilZenPage() {
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background text-foreground font-alegreya p-4">
       <div className="absolute top-4 right-4">
-        {currentUser ? (
-             <Button asChild variant="outline">
-                <Link href={`/${currentUser.role.toLowerCase()}`}>
-                    <User className="mr-2 h-4 w-4" />
-                    Mon tableau de bord
-                </Link>
-            </Button>
-        ) : (
-            <Button asChild variant="outline">
-                <Link href="/login">
-                     <LogIn className="mr-2 h-4 w-4" />
-                    Se connecter
-                </Link>
-            </Button>
-        )}
+        <Button asChild variant="outline">
+            <Link href="/login">
+                 <LogIn className="mr-2 h-4 w-4" />
+                Se connecter
+            </Link>
+        </Button>
       </div>
 
       <div className="text-center animate-fade-in-slow">
@@ -130,11 +105,9 @@ export default function AccueilZenPage() {
               </CardContent>
             </Card>
           ) : (
-            !currentUser && (
-                <Button variant="ghost" onClick={() => setIsEditingName(true)} className="text-muted-foreground hover:text-primary">
-                    {name ? `Ce n'est pas ${name} ?` : 'Personnaliser le message'}
-                </Button>
-            )
+            <Button variant="ghost" onClick={() => setIsEditingName(true)} className="text-muted-foreground hover:text-primary">
+                {name ? `Ce n'est pas ${name} ?` : 'Personnaliser le message'}
+            </Button>
           )}
         </div>
       </div>
