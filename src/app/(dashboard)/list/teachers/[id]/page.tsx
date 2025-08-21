@@ -11,6 +11,9 @@ import TeacherShortcuts from "@/components/teacher/TeacherShortcuts";
 import { fetchAllDataForWizard } from '@/lib/data-fetching/fetch-wizard-data';
 import TimetableDisplay from "@/components/schedule/TimetableDisplay";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 const SingleTeacherPage = async ({
   params,
@@ -43,6 +46,14 @@ const SingleTeacherPage = async ({
 
   return (
     <div className="flex-1 p-4 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <Button variant="outline" size="sm" asChild>
+            <Link href="/list/teachers">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour à la liste
+            </Link>
+        </Button>
+      </div>
       <div className="flex flex-col xl:flex-row gap-6">
           <div className="w-full xl:w-1/3">
              <TeacherProfileCard teacher={teacher} userRole={userRole} />
