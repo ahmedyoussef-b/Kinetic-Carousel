@@ -21,11 +21,14 @@ export const teachersSlice = createSlice({
   initialState,
   reducers: {
     setAllTeachers(state, action: PayloadAction<any[]>) {
-      state.items = action.payload.map(teacher => ({
-        ...teacher,
-        birthday: teacher.birthday ? new Date(teacher.birthday).toISOString() : null,
-        classes: teacher.classes || [], 
-      }));
+      // Ensure the payload is an array before attempting to map over it.
+      if (Array.isArray(action.payload)) {
+        state.items = action.payload.map(teacher => ({
+          ...teacher,
+          birthday: teacher.birthday ? new Date(teacher.birthday).toISOString() : null,
+          classes: teacher.classes || [], 
+        }));
+      }
       state.status = 'succeeded';
     },
   },
