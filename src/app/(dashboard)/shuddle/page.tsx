@@ -61,7 +61,7 @@ interface StepFooterProps {
 
 export default function ShuddlePage() {
     console.log("🚀 [ShuddlePage] Le composant client du planificateur est en cours de rendu.");
-    const dispatch = useAppAppDispatch();
+    const dispatch = useAppDispatch();
     const { toast } = useToast();
     const [mode, setMode] = useState<'wizard' | 'view'>('wizard');
     const scheduleItems = useAppSelector(state => state.schedule.items);
@@ -549,9 +549,3 @@ const PageHeader: React.FC = () => (
         <ScenarioManager />
     </div>
 );
-
-// A simple useAppDispatch hook typed correctly
-const useAppAppDispatch: () => AppDispatch = useAppDispatch;
-type AppDispatch = typeof store.dispatch;
-import { store } from '@/lib/redux/store';
-```
