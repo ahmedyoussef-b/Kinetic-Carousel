@@ -75,17 +75,14 @@ export async function POST(request: NextRequest) {
         }
         
         const { name, description, schoolConfig } = validation.data;
-        const { classes, subjects, teachers, rooms: classrooms, grades, lessonRequirements, teacherConstraints, subjectRequirements, teacherAssignments, schedule } = body;
+        const { classes, subjects, teachers, rooms, grades, lessonRequirements, teacherConstraints, subjectRequirements, teacherAssignments, schedule } = body;
         
-        // --- Transactional Draft Creation ---
         const newDraft = await prisma.$transaction(async (tx) => {
-            // Deactivate other drafts
             await tx.scheduleDraft.updateMany({
                 where: { userId: session.user.id },
                 data: { isActive: false },
             });
             
-            // Create the main draft record
             const draft = await tx.scheduleDraft.create({
                 data: {
                     userId: session.user.id,
@@ -96,12 +93,49 @@ export async function POST(request: NextRequest) {
                     classes: JSON.stringify(classes),
                     subjects: JSON.stringify(subjects),
                     teachers: JSON.stringify(teachers),
-                    classrooms: JSON.stringify(classrooms),
+                    classrooms: JSON.stringify(rooms),
                     grades: JSON.stringify(grades),
                 },
             });
+
+            if (lessonRequirements?.length > 0) {
+              await tx.lessonRequirement.createMany({
+                data: lessonRequirements.map((req: any) => ({ ...req, id: undefined, scheduleDraftId: draft.id }))
+              });
+            }
+            if (teacherConstraints?.length > 0) {
+              await tx.teacherConstraint.createMany({
+                data: teacherConstraints.map((c: any) => ({ ...c, id: undefined, scheduleDraftId: draft.id }))
+              });
+            }
+            if (subjectRequirements?.length > 0) {
+              await tx.subjectRequirement.createMany({
+                data: subjectRequirements.map((req: any) => ({...req, id: undefined, scheduleDraftId: draft.id }))
+              });
+            }
             
-             // Create related lessons
+            if (teacherAssignments && Array.isArray(teacherAssignments)) {
+                for (const assignment of teacherAssignments) {
+                    const { classIds, ...restOfAssignment } = assignment;
+                    const createdAssignment = await tx.teacherAssignment.create({
+                        data: {
+                            ...restOfAssignment,
+                            id: undefined, // Let prisma generate the ID
+                            scheduleDraftId: draft.id,
+                        },
+                    });
+            
+                    if (classIds && Array.isArray(classIds) && classIds.length > 0) {
+                        await tx.classAssignment.createMany({
+                            data: classIds.map((classId: number) => ({
+                                teacherAssignmentId: createdAssignment.id,
+                                classId: classId,
+                            })),
+                        });
+                    }
+                }
+            }
+
             if (schedule && schedule.length > 0) {
                 await tx.lesson.createMany({
                     data: schedule.map((lesson: any) => ({
