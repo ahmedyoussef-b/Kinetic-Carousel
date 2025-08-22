@@ -32,10 +32,9 @@ import type {
 } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 import type { FieldErrors, SubmitHandler, UseFormHandleSubmit, UseFormRegister, UseFormSetValue } from "react-hook-form";
-import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { TeacherSchema, ParentSchema, StudentSchema, SubjectSchema } from './schemas';
-import { UseMutation } from "@reduxjs/toolkit/dist/query/react/buildHooks";
 import { MutationDefinition } from "@reduxjs/toolkit/query";
 
 
@@ -288,8 +287,8 @@ export interface SubjectFormProps {
 }
 
 export interface UseSubjectFormProps extends SubjectFormProps {
-    createSubject: UseMutation<MutationDefinition<any, any, any, any>>;
-    updateSubject: UseMutation<MutationDefinition<any, any, any, any>>;
+    createSubject: (data: any) => any;
+    updateSubject: (data: any) => any;
 }
 
 

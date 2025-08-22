@@ -15,6 +15,11 @@ type LessonListItem = Lesson & {
   subject: Pick<Subject, 'name'>;
   class: Pick<Class, 'name'>;
   teacher: Pick<Teacher, 'name' | 'surname'>;
+  startTime: string;
+  endTime: string;
+  createdAt: string;
+  updatedAt: string;
+  
   
 };
 
@@ -102,6 +107,7 @@ const LessonListPage = async ({
     endTime: lesson.endTime.toISOString(),
     createdAt: lesson.createdAt.toISOString(),
     updatedAt: lesson.updatedAt.toISOString(),
+    
   }));
 
   return (
