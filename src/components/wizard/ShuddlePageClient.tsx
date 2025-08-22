@@ -72,6 +72,7 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
     const scheduleItems = useAppSelector(state => state.schedule.items);
     const wizardData = useWizardData();
     const activeDraft = useAppSelector(selectActiveDraft);
+    const hydrationRef = useRef(false);
 
     // View state
     const [viewMode, setViewMode] = useState<'class' | 'teacher'>('class');
@@ -84,8 +85,11 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
     
     // HYDRATION EFFECT
     useEffect(() => {
-        console.log("💧 [ShuddlePageClient] Hydratation avec les données du serveur/actives.");
-        dispatch(setInitialData(initialData));
+        if (!hydrationRef.current) {
+            console.log("💧 [ShuddlePageClient] Hydratation avec les données du serveur/actives.");
+            dispatch(setInitialData(initialData));
+            hydrationRef.current = true;
+        }
     }, [dispatch, initialData]);
     
     useEffect(() => {
