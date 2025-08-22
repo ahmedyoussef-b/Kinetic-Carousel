@@ -63,16 +63,15 @@ export default function ScenarioManager() {
     }
 
     try {
-        // Correctly structure the payload for the API
         const { school, ...restOfWizardData } = wizardData;
         const payload = {
             name: newScenarioName,
             description: newScenarioDesc,
-            schoolConfig: school, // Rename 'school' to 'schoolConfig'
+            schoolConfig: school,
             ...restOfWizardData,
         };
         
-        const newDraftData = await createDraft(payload).unwrap();
+        const newDraftData = await createDraft(payload as any).unwrap();
         
         dispatch(setActiveDraftAction(newDraftData));
         dispatch(setInitialData(newDraftData));

@@ -7,7 +7,7 @@ import { Prisma } from '@prisma/client';
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
     console.log("📥 [API PUT /draft/:id] Requête reçue pour mettre à jour le brouillon ID:", params.id);
     const session = await getServerSession();
-    if (!session?.user.id || session.user.role !== 'TEACHER') {
+    if (!session?.user.id ) {
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
     }
 
