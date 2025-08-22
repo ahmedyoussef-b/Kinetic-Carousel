@@ -67,6 +67,8 @@ export async function POST(req: NextRequest) {
                     userId: user.id,
                     name: firstName,
                     surname: lastName,
+                    phone: '',
+                    address: '',
                 }
             });
             console.log("👨‍👩‍👧 [API/register] Profil parent créé.");

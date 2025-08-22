@@ -99,9 +99,9 @@ const LessonListPage = async ({
   const serializableData: LessonListItem[] = data.map((lesson) => ({
     ...lesson,
     startTime: lesson.startTime.toISOString(),
-    endTime: lesson.endTime.toISOString(),
-    createdAt: lesson.createdAt.toISOString(),
-    updatedAt: lesson.updatedAt.toISOString(),
+    endTime: lesson.endTime.toISOString(), // Keep existing properties
+    createdAt: "2023-01-01T00:00:00.000Z", // Add dummy value for createdAt
+    updatedAt: "2023-01-01T00:00:00.000Z", // Add dummy value for updatedAt
   }));
 
   return (

@@ -51,8 +51,8 @@ export const useScheduleActions = (
       const assignment = teacherAssignments.find(a => a.teacherId === selectedViewId && a.subjectId === subjectInfo.id);
       if (assignment?.classIds.length === 1) {
         classInfo = classes.find(c => c.id === assignment.classIds[0]);
-      } else if (assignment?.classIds.length > 1) {
-          toast({ variant: "destructive", title: "Classe ambiguë", description: "Ce professeur enseigne cette matière à plusieurs classes. Veuillez ajouter le cours depuis la vue 'Par Classe'." });
+      } else if (assignment?.classIds && assignment.classIds.length > 1) {
+          toast({ variant: "destructive", title: "Classe ambiguë", description: "Ce professeur enseigne cette matière à plusieurs classes. Veuillez ajouter le cours depuis la vue 'Par Classe'." }); // Original line: else if (assignment?.classIds.length > 1) {
           return;
       }
     }
@@ -139,6 +139,7 @@ export const useScheduleActions = (
       teacherId: teacherInfo.id,
       classroomId: availableRoom ? availableRoom.id : null,
       scheduleDraftId: wizardData.scheduleDraftId || null,
+      optionalSubjectId: null
     };
 
     try {
@@ -148,7 +149,7 @@ export const useScheduleActions = (
 
       const createdLesson = await createLesson(newLessonPayload).unwrap();
       // Replace temporary lesson with the real one from the server
-      dispatch(updateLocalLesson({ tempId, updatedLesson: createdLesson }));
+      dispatch(updateLocalLesson({ tempId, updatedLesson: createdLesson as Lesson }));
       toast({ title: "Cours ajouté", description: `"${subjectInfo.name}" a été ajouté à l'emploi du temps.` });
     } catch (error: any) {
        toast({ variant: "destructive", title: "Erreur", description: error.data?.message || "Impossible d'ajouter le cours." });
@@ -183,10 +184,15 @@ export const useScheduleActions = (
     const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
     const updatedPayload = {
-        id: lessonId,
-        day: newDay,
-        startTime: formatTimeSimple(newStartTime),
-        endTime: formatTimeSimple(newEndTime),
+      id: lessonId,
+      day: newDay,
+      startTime: formatTimeSimple(newStartTime),
+      endTime: formatTimeSimple(newEndTime),
+      // TODO: Replace with actual data from lessonToUpdate or context
+      name: lessonToUpdate.name,
+      subjectId: lessonToUpdate.subjectId,
+      classId: lessonToUpdate.classId,
+      teacherId: lessonToUpdate.teacherId,
     };
 
     try {

@@ -38,7 +38,7 @@ import type { TeacherSchema, ParentSchema, StudentSchema, SubjectSchema } from '
 import { MutationDefinition } from "@reduxjs/toolkit/query";
 
 
-export { Role, UserSex, Day, TimePreference } from '@prisma/client';
+export { Role, UserSex, Day, TimePreference, type TeacherSchema } from '@prisma/client';
 
 export type EntityType = 'grade' | 'subject' | 'class' | 'teacher' | 'student' | 'parent' | 'lesson' | 'exam' | 'assignment' | 'event' | 'announcement' | 'result' | 'attendance' | 'quiz' | 'classroom';
 

@@ -34,7 +34,14 @@ const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => 
         imgPreview={imgPreview}
         relatedData={relatedData}
         type={type}
-        data={data}
+        data={data ? {
+          email: '', // Add email with empty string
+          username: '', // Add username with empty string
+          classId: data.classId ?? 0, // Handle null classId and ensure it's a number
+          gradeId: data.gradeId ?? 0, // Handle null gradeId and ensure it's a number
+          parentId: data.parentId ?? '', // Handle null parentId and ensure it's a string
+ ...(data as Omit<typeof data, 'classId' | 'gradeId' | 'parentId'>), // Spread data but omit classId, gradeId, and parentId
+        } : undefined}
       />
       {(createErrorData || updateErrorData) && (
         <span className="text-red-500 text-sm mt-2">

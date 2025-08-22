@@ -93,14 +93,15 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
     }, [dispatch, initialData]);
     
     useEffect(() => {
-        if (!selectedViewId) {
-            if (viewMode === 'class' && wizardData.classes.length > 0) {
+        // Add safe checks to ensure wizardData and its properties exist
+        if (!selectedViewId && wizardData) {
+            if (viewMode === 'class' && wizardData.classes && wizardData.classes.length > 0) {
                 setSelectedViewId(wizardData.classes[0].id.toString());
-            } else if (viewMode === 'teacher' && wizardData.teachers.length > 0) {
+            } else if (viewMode === 'teacher' && wizardData.teachers && wizardData.teachers.length > 0) {
                 setSelectedViewId(wizardData.teachers[0].id);
             }
         }
-    }, [viewMode, wizardData.classes, wizardData.teachers, selectedViewId]);
+    }, [viewMode, wizardData, selectedViewId]);
 
 
     const { steps, currentStep, progress, handleNext, handlePrevious, handleStepClick } = useWizardSteps();

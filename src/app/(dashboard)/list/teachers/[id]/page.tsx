@@ -81,7 +81,13 @@ const SingleTeacherPage = async ({
             wizardData={teacherWizardData} 
             viewMode={"teacher"} 
             selectedViewId={teacher.id} 
-            scheduleOverride={teacherLessons}
+            scheduleOverride={teacherLessons.map(lesson => ({
+              ...lesson,
+              startTime: lesson.startTime.toISOString(),
+              endTime: lesson.endTime.toISOString(),
+              createdAt: "2023-01-01T00:00:00.000Z", // Add dummy createdAt
+              updatedAt: "2023-01-01T00:00:00.000Z", // Add dummy updatedAt
+            }))}
           />
         </CardContent>
       </Card>

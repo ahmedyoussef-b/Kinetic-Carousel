@@ -8,7 +8,7 @@ import { Role } from "@/types";
 
 export default async function MessagesPage() {
   const session = await getServerSession();
-  const userRole = session?.role;
+  const userRole = session?.user?.role;
 
   const renderContent = () => {
     switch(userRole) {
