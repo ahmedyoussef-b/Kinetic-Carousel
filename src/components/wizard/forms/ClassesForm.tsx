@@ -96,7 +96,7 @@ const ClassesForm: React.FC<ClassesFormProps> = () => {
             <Select value={newClass.gradeLevel} onValueChange={(value) => setNewClass({ ...newClass, gradeLevel: value })} disabled={isCreating}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Choisir un niveau" /></SelectTrigger>
               <SelectContent>
-                {grades.map(grade => <SelectItem key={grade.id} value={String(grade.level)}>{`Niveau ${grade.level}`}</SelectItem>)}
+                {grades && grades.map(grade => <SelectItem key={grade.id} value={String(grade.level)}>{`Niveau ${grade.level}`}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
