@@ -29,6 +29,12 @@ const parseJsonFields = (draft: any) => {
         }
     });
 
+    // Ensure that 'teachers' is an array, converting from an object if necessary.
+    if (parsedData.teachers && typeof parsedData.teachers === 'object' && !Array.isArray(parsedData.teachers)) {
+        parsedData.teachers = Object.values(parsedData.teachers);
+    }
+
+
     // Ensure school config has default values if they are missing after parsing
     const defaultSchoolConfig = {
       name: "Collège Riadh 5",
