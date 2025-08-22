@@ -11,17 +11,14 @@ import { Prisma, Role } from "@prisma/client";
 import { Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
-type LessonListItem = Lesson & {
+type LessonListItem = Omit<Lesson, 'startTime' | 'endTime' | 'createdAt' | 'updatedAt'> & {
   subject: Pick<Subject, 'name'>;
   class: Pick<Class, 'name'>;
   teacher: Pick<Teacher, 'name' | 'surname'>;
   startTime: string;
   endTime: string;
-  createdAt: string;
-  updatedAt: string;
-  
-  
 };
+
 
 const LessonListPage = async ({
   searchParams,
@@ -105,9 +102,6 @@ const LessonListPage = async ({
     ...lesson,
     startTime: lesson.startTime.toISOString(),
     endTime: lesson.endTime.toISOString(),
-    createdAt: lesson.createdAt.toISOString(),
-    updatedAt: lesson.updatedAt.toISOString(),
-    
   }));
 
   return (
