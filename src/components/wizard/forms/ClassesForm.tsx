@@ -45,7 +45,7 @@ const ClassesForm: React.FC<ClassesFormProps> = () => {
     }
     
     const newClassName = `Niveau ${selectedGrade.level} - ${newClass.section}`;
-    const classExists = data.some(cls => cls.name.trim().toLowerCase() === newClassName.trim().toLowerCase());
+    const classExists = data && data.some(cls => cls.name.trim().toLowerCase() === newClassName.trim().toLowerCase());
 
     if (classExists) {
         toast({ variant: 'destructive', title: "Classe existante", description: `La classe "${newClassName}" existe déjà.` });

@@ -11,9 +11,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_ACCESS_TOKEN_EXPIRATION_TIME = '1h';
 
 export async function POST(req: NextRequest) {
-    console.log("--- 🚀 API: Tentative de Connexion ---");
+    console.log("--- 🚀 API: Login Attempt ---");
     if (!JWT_SECRET) {
-        console.error("❌ [API/login] JWT_SECRET n'est pas défini.");
+        console.error("❌ JWT_SECRET is not defined.");
         return NextResponse.json({ message: "Erreur de configuration du serveur." }, { status: 500 });
     }
 
@@ -22,12 +22,11 @@ export async function POST(req: NextRequest) {
         const validation = loginSchema.safeParse(body);
 
         if (!validation.success) {
-            console.log("🚫 [API/login] Données invalides.", validation.error.errors);
             return NextResponse.json({ message: "Données invalides.", errors: validation.error.errors }, { status: 400 });
         }
 
         const { email, password } = validation.data;
-        console.log(`👤 [API/login] Tentative de connexion pour: ${email}`);
+        console.log(`👤 Tentative de connexion pour: ${email}`);
         
         const user = await prisma.user.findFirst({
             where: {
@@ -39,30 +38,23 @@ export async function POST(req: NextRequest) {
         });
 
         if (!user) {
-            console.log("🚫 [API/login] Utilisateur non trouvé.");
+            console.log("🚫 Utilisateur non trouvé.");
             return NextResponse.json({ message: "Email ou mot de passe incorrect." }, { status: 401 });
         }
-        console.log("✅ [API/login] Utilisateur trouvé.");
+        console.log("✅ Utilisateur trouvé.");
 
-        if (!user.password) {
-            console.log("🚫 [API/login] Le mot de passe de l'utilisateur n'est pas défini (peut-être une connexion sociale ?).");
-            return NextResponse.json({ message: "Email ou mot de passe incorrect." }, { status: 401 });
+        if (user.password === null) {
+            console.log("🚫 Mot de passe utilisateur non défini.");
+            return NextResponse.json({ message: "Invalid credentials" }, { status: 400 });
         }
 
-        let isPasswordValid = false;
-        try {
-            isPasswordValid = await bcrypt.compare(password, user.password);
-        } catch (compareError) {
-            console.error("❌ [API/login] Erreur lors de la comparaison bcrypt :", compareError);
-            // Retourne une erreur 500 car c'est un problème serveur inattendu
-            return NextResponse.json({ message: "Erreur lors de la vérification des identifiants." }, { status: 500 });
-        }
+        const isPasswordValid = await bcrypt.compare(password, user.password as string);
 
         if (!isPasswordValid) {
-            console.log("🔑 [API/login] Mot de passe invalide.");
+            console.log("🔑 Mot de passe invalide.");
             return NextResponse.json({ message: "Email ou mot de passe incorrect." }, { status: 401 });
         }
-        console.log("🔑 [API/login] Mot de passe valide.");
+        console.log("🔑 Mot de passe valide.");
         
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: _, ...safeUser } = user;
@@ -75,20 +67,20 @@ export async function POST(req: NextRequest) {
             img: safeUser.img,
         };
         
-        console.log("✅ [API/login] Connexion réussie. Génération du JWT.");
+        console.log("✅ Connexion réussie. Génération du JWT final.");
         const finalToken = jwt.sign(tokenPayload, JWT_SECRET, {
             expiresIn: JWT_ACCESS_TOKEN_EXPIRATION_TIME,
         });
         
-        const response = NextResponse.json({ user: safeUser }, { status: 200 });
-        
-        console.log("🍪 [API/login] Création du cookie de session avec sameSite=none et secure=true.");
+        const response = NextResponse.json({user: safeUser}, { status: 200 });
+
+        console.log("🍪 Cookie de session créé.");
         response.cookies.set({
             name: SESSION_COOKIE_NAME,
             value: finalToken,
             httpOnly: true,
-            secure: true, 
-            sameSite: 'none', 
+            secure: process.env.NODE_ENV === 'production', 
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', 
             maxAge: 60 * 60 * 24, // 1 jour
             path: '/',
         });
@@ -96,7 +88,7 @@ export async function POST(req: NextRequest) {
         return response;
 
     } catch (error) {
-        console.error("❌ [API/login] Erreur interne de l'API de connexion :", error);
+        console.error("❌ Erreur de l'API de connexion:", error);
         return NextResponse.json({ message: 'Une erreur interne est survenue.' }, { status: 500 });
     }
 }

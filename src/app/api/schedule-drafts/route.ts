@@ -69,95 +69,43 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const validation = createDraftSchema.safeParse(body);
-
-        if (!validation.success) {
-            console.error("❌ [API POST /drafts] Erreur de validation Zod:", validation.error.flatten());
-            return NextResponse.json({ message: 'Données invalides', errors: validation.error.flatten().fieldErrors }, { status: 400 });
-        }
-        
-        const { name, description, schoolConfig } = validation.data;
-        const { classes, subjects, teachers, rooms, grades, lessonRequirements, teacherConstraints, subjectRequirements, teacherAssignments, schedule } = body;
+        const { name, description, ...wizardData } = body;
         
         console.log(`✍️ [API POST /drafts] Démarrage de la transaction pour le brouillon "${name}"...`);
+        
         const newDraft = await prisma.$transaction(async (tx) => {
-            // Deactivate other drafts first
             await tx.scheduleDraft.updateMany({
                 where: { userId: session.user.id },
                 data: { isActive: false },
             });
             
-            // Create the main draft record
             const draft = await tx.scheduleDraft.create({
                 data: {
                     userId: session.user.id,
                     name,
                     description,
                     isActive: true,
-                    schoolConfig: JSON.stringify(schoolConfig),
-                    classes: JSON.stringify(classes),
-                    subjects: JSON.stringify(subjects),
-                    teachers: JSON.stringify(teachers),
-                    classrooms: JSON.stringify(rooms),
-                    grades: JSON.stringify(grades),
+                    schoolConfig: JSON.stringify(wizardData.school),
+                    classes: JSON.stringify(wizardData.classes),
+                    subjects: JSON.stringify(wizardData.subjects),
+                    teachers: JSON.stringify(wizardData.teachers),
+                    classrooms: JSON.stringify(wizardData.rooms),
+                    grades: JSON.stringify(wizardData.grades),
                 },
             });
-            console.log(`✅ [API POST /drafts] Brouillon principal créé avec ID: ${draft.id}`);
 
-
-            // Now create related records with the new draft's ID
-            if (lessonRequirements && lessonRequirements.length > 0) {
-              await tx.lessonRequirement.createMany({
-                data: lessonRequirements.map((req: any) => ({ ...req, id: undefined, scheduleDraftId: draft.id }))
-              });
-            }
-            if (teacherConstraints && teacherConstraints.length > 0) {
-              await tx.teacherConstraint.createMany({
-                data: teacherConstraints.map((c: any) => ({ ...c, id: undefined, scheduleDraftId: draft.id }))
-              });
-            }
-            if (subjectRequirements && subjectRequirements.length > 0) {
-              await tx.subjectRequirement.createMany({
-                data: subjectRequirements.map((req: any) => ({...req, id: undefined, scheduleDraftId: draft.id }))
-              });
-            }
-            
-            if (teacherAssignments && Array.isArray(teacherAssignments)) {
-                for (const assignment of teacherAssignments) {
-                    const { classIds, ...restOfAssignment } = assignment;
-                    await tx.teacherAssignment.create({
-                        data: {
-                            teacherId: restOfAssignment.teacherId,
-                            subjectId: restOfAssignment.subjectId,
-                            scheduleDraftId: draft.id,
-                            classAssignments: {
-                                create: classIds.map((classId: number) => ({
-                                    class: { connect: { id: classId } }
-                                }))
-                            }
-                        },
-                    });
-                }
-            }
-
-            if (schedule && schedule.length > 0) {
+            if (wizardData.schedule && wizardData.schedule.length > 0) {
                 await tx.lesson.createMany({
-                    data: schedule.map((lesson: any) => ({
-                        name: lesson.name,
-                        day: lesson.day,
+                    data: wizardData.schedule.map((lesson: any) => ({
+                        ...lesson,
+                        id: undefined, // Let Prisma generate the ID
                         startTime: new Date(lesson.startTime),
                         endTime: new Date(lesson.endTime),
-                        subjectId: lesson.subjectId,
-                        classId: lesson.classId,
-                        teacherId: lesson.teacherId,
-                        classroomId: lesson.classroomId,
                         scheduleDraftId: draft.id,
-                        optionalSubjectId: lesson.optionalSubjectId
                     })),
                 });
             }
-            
-            console.log(`🔗 [API POST /drafts] Toutes les données associées ont été liées au brouillon ${draft.id}.`);
+
             return draft;
         });
 

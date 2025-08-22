@@ -66,7 +66,6 @@ export default function ScenarioManager() {
         const payload = {
             name: newScenarioName,
             description: newScenarioDesc,
-            schoolConfig: wizardData.school,
             ...wizardData, // Send the entire wizard data object
         };
         
@@ -113,7 +112,6 @@ export default function ScenarioManager() {
             id: activeDraft.id,
             name: activeDraft.name,
             description: activeDraft.description,
-            schoolConfig: wizardData.school,
             ...wizardData,
         };
 
