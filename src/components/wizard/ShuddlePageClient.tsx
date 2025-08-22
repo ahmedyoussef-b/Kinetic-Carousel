@@ -82,15 +82,11 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
     const [generationProgress, setGenerationProgress] = useState(0);
     const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
     
-    
     // HYDRATION EFFECT
     useEffect(() => {
         console.log("💧 [ShuddlePageClient] Hydratation avec les données du serveur/actives.");
         dispatch(setInitialData(initialData));
-        // Set the schedule from the server-fetched draft/data
-        dispatch(setInitialSchedule(initialData.schedule || []));
     }, [dispatch, initialData]);
-    
     
     useEffect(() => {
         if (!selectedViewId) {
