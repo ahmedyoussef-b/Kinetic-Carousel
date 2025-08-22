@@ -15,18 +15,17 @@ export default function AdminPageClient({ children }: { children: React.ReactNod
   const isLoading = useAppSelector(selectIsAuthLoading);
 
   useEffect(() => {
-    // La logique de redirection a été supprimée.
-    // Le middleware gère désormais la protection des routes de manière centralisée.
-    // Ce composant se concentre uniquement sur l'affichage du contenu pour un administrateur déjà authentifié.
-    if (!isLoading && !user) {
-        // Si l'état de chargement est terminé et qu'il n'y a pas d'utilisateur,
-        // cela peut indiquer une session expirée. Le middleware devrait déjà avoir redirigé,
-        // mais une redirection côté client peut servir de filet de sécurité.
+    // Wait until the auth state is fully loaded
+    if (!isLoading) {
+      // If loading is finished and there's no user or the user is not an admin, redirect
+      if (!user || user.role !== Role.ADMIN) {
+        console.warn("👑 [AdminPageClient] Access denied or session invalid. Redirecting to login...");
         router.replace('/login');
+      }
     }
   }, [user, isLoading, router]);
 
-  // Pendant la vérification de la session, afficher un spinner de chargement
+  // While checking the session, show a loading spinner
   if (isLoading || !user) {
     return (
       <div className="flex h-[80vh] w-full items-center justify-center">
@@ -35,7 +34,7 @@ export default function AdminPageClient({ children }: { children: React.ReactNod
     );
   }
 
-  // Si nous avons un utilisateur et qu'il est administrateur, afficher le tableau de bord
+  // If we have a user and they are an admin, render the dashboard
   if (user.role === Role.ADMIN) {
     return (
       <div className="flex flex-col gap-6">
@@ -45,7 +44,6 @@ export default function AdminPageClient({ children }: { children: React.ReactNod
     );
   }
 
-  // Ce cas ne devrait être atteint que si un utilisateur non-admin accède à cette page,
-  // ce que le middleware devrait empêcher. Retourner null pour éviter tout rendu incorrect.
+  // Fallback for the brief moment before redirection if logic fails
   return null;
 }
