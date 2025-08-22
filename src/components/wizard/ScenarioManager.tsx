@@ -61,13 +61,18 @@ export default function ScenarioManager() {
       toast({ variant: 'destructive', title: 'Nom du scénario requis' });
       return;
     }
-    
+
     try {
-        const newDraftData = await createDraft({
+        // Correctly structure the payload for the API
+        const { school, ...restOfWizardData } = wizardData;
+        const payload = {
             name: newScenarioName,
             description: newScenarioDesc,
-            ...wizardData
-        }).unwrap();
+            schoolConfig: school, // Rename 'school' to 'schoolConfig'
+            ...restOfWizardData,
+        };
+        
+        const newDraftData = await createDraft(payload).unwrap();
         
         dispatch(setActiveDraftAction(newDraftData));
         dispatch(setInitialData(newDraftData));
@@ -106,12 +111,16 @@ export default function ScenarioManager() {
     if (!activeDraft) return;
 
     try {
-        const updatedDraftData = await updateDraft({
+        const { school, ...restOfWizardData } = wizardData;
+        const payload = {
             id: activeDraft.id,
             name: activeDraft.name,
             description: activeDraft.description,
-            ...wizardData
-        }).unwrap();
+            schoolConfig: school,
+            ...restOfWizardData
+        };
+
+        const updatedDraftData = await updateDraft(payload).unwrap();
         
         dispatch(setActiveDraftAction(updatedDraftData));
         toast({ title: 'Scénario sauvegardé', description: `Vos modifications pour "${activeDraft.name}" ont été sauvegardées.`});
