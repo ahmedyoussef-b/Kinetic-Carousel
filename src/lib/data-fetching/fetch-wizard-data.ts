@@ -75,12 +75,27 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
             // Make sure students are fetched and added to the draft data
             const students = await prisma.student.findMany({ include: { optionalSubjects: true } });
 
+            // Correctly format teachers to include _count
+            const teachers: TeacherWithDetails[] = await Promise.all((parsedDraft.teachers || []).map(async (t: any) => {
+                const totalLessons = (parsedDraft.lessons || []).filter((l: Lesson) => l.teacherId === t.id).length;
+                const classIds = new Set((parsedDraft.lessons || []).filter((l: Lesson) => l.teacherId === t.id).map((l: Lesson) => l.classId));
+                return {
+                    ...t,
+                    classes: [], // Simplified for now, as this is complex to reconstruct from JSON
+                    _count: {
+                        subjects: (t.subjects || []).length,
+                        classes: classIds.size,
+                        lessons: totalLessons
+                    },
+                };
+            }));
+
             return toSerializable({
                 scheduleDraftId: parsedDraft.id,
                 school: parsedDraft.school,
                 classes: parsedDraft.classes || [],
                 subjects: parsedDraft.subjects || [],
-                teachers: parsedDraft.teachers || [],
+                teachers: teachers, // Use the correctly formatted teachers array
                 rooms: parsedDraft.classrooms || [],
                 grades: parsedDraft.grades || [],
                 students: students,
