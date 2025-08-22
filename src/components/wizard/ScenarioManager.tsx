@@ -63,12 +63,11 @@ export default function ScenarioManager() {
     }
 
     try {
-        const { school, ...restOfWizardData } = wizardData;
         const payload = {
             name: newScenarioName,
             description: newScenarioDesc,
-            schoolConfig: school,
-            ...restOfWizardData,
+            schoolConfig: wizardData.school,
+            ...wizardData, // Send the entire wizard data object
         };
         
         const newDraftData = await createDraft(payload as any).unwrap();
@@ -110,13 +109,12 @@ export default function ScenarioManager() {
     if (!activeDraft) return;
 
     try {
-        const { school, ...restOfWizardData } = wizardData;
         const payload = {
             id: activeDraft.id,
             name: activeDraft.name,
             description: activeDraft.description,
-            schoolConfig: school,
-            ...restOfWizardData
+            schoolConfig: wizardData.school,
+            ...wizardData,
         };
 
         const updatedDraftData = await updateDraft(payload).unwrap();

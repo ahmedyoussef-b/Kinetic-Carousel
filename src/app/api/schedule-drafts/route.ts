@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
 
 
 export async function POST(request: NextRequest) {
+    console.log("📥 [API POST /drafts] Requête reçue pour créer un nouveau brouillon.");
     const session = await getServerSession();
     if (!session?.user.id) {
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
@@ -71,18 +72,22 @@ export async function POST(request: NextRequest) {
         const validation = createDraftSchema.safeParse(body);
 
         if (!validation.success) {
+            console.error("❌ [API POST /drafts] Erreur de validation Zod:", validation.error.flatten());
             return NextResponse.json({ message: 'Données invalides', errors: validation.error.flatten().fieldErrors }, { status: 400 });
         }
         
         const { name, description, schoolConfig } = validation.data;
         const { classes, subjects, teachers, rooms, grades, lessonRequirements, teacherConstraints, subjectRequirements, teacherAssignments, schedule } = body;
         
+        console.log(`✍️ [API POST /drafts] Démarrage de la transaction pour le brouillon "${name}"...`);
         const newDraft = await prisma.$transaction(async (tx) => {
+            // Deactivate other drafts first
             await tx.scheduleDraft.updateMany({
                 where: { userId: session.user.id },
                 data: { isActive: false },
             });
             
+            // Create the main draft record
             const draft = await tx.scheduleDraft.create({
                 data: {
                     userId: session.user.id,
@@ -97,18 +102,21 @@ export async function POST(request: NextRequest) {
                     grades: JSON.stringify(grades),
                 },
             });
+            console.log(`✅ [API POST /drafts] Brouillon principal créé avec ID: ${draft.id}`);
 
-            if (lessonRequirements?.length > 0) {
+
+            // Now create related records with the new draft's ID
+            if (lessonRequirements && lessonRequirements.length > 0) {
               await tx.lessonRequirement.createMany({
                 data: lessonRequirements.map((req: any) => ({ ...req, id: undefined, scheduleDraftId: draft.id }))
               });
             }
-            if (teacherConstraints?.length > 0) {
+            if (teacherConstraints && teacherConstraints.length > 0) {
               await tx.teacherConstraint.createMany({
                 data: teacherConstraints.map((c: any) => ({ ...c, id: undefined, scheduleDraftId: draft.id }))
               });
             }
-            if (subjectRequirements?.length > 0) {
+            if (subjectRequirements && subjectRequirements.length > 0) {
               await tx.subjectRequirement.createMany({
                 data: subjectRequirements.map((req: any) => ({...req, id: undefined, scheduleDraftId: draft.id }))
               });
@@ -117,42 +125,47 @@ export async function POST(request: NextRequest) {
             if (teacherAssignments && Array.isArray(teacherAssignments)) {
                 for (const assignment of teacherAssignments) {
                     const { classIds, ...restOfAssignment } = assignment;
-                    const createdAssignment = await tx.teacherAssignment.create({
+                    await tx.teacherAssignment.create({
                         data: {
-                            ...restOfAssignment,
-                            id: undefined, // Let prisma generate the ID
+                            teacherId: restOfAssignment.teacherId,
+                            subjectId: restOfAssignment.subjectId,
                             scheduleDraftId: draft.id,
+                            classAssignments: {
+                                create: classIds.map((classId: number) => ({
+                                    class: { connect: { id: classId } }
+                                }))
+                            }
                         },
                     });
-            
-                    if (classIds && Array.isArray(classIds) && classIds.length > 0) {
-                        await tx.classAssignment.createMany({
-                            data: classIds.map((classId: number) => ({
-                                teacherAssignmentId: createdAssignment.id,
-                                classId: classId,
-                            })),
-                        });
-                    }
                 }
             }
 
             if (schedule && schedule.length > 0) {
                 await tx.lesson.createMany({
                     data: schedule.map((lesson: any) => ({
-                        ...lesson,
-                        id: undefined, // Let Prisma generate the ID
+                        name: lesson.name,
+                        day: lesson.day,
+                        startTime: new Date(lesson.startTime),
+                        endTime: new Date(lesson.endTime),
+                        subjectId: lesson.subjectId,
+                        classId: lesson.classId,
+                        teacherId: lesson.teacherId,
+                        classroomId: lesson.classroomId,
                         scheduleDraftId: draft.id,
+                        optionalSubjectId: lesson.optionalSubjectId
                     })),
                 });
             }
             
+            console.log(`🔗 [API POST /drafts] Toutes les données associées ont été liées au brouillon ${draft.id}.`);
             return draft;
         });
 
-
+        console.log("✅ [API POST /drafts] Transaction terminée avec succès.");
         return NextResponse.json(newDraft, { status: 201 });
+
     } catch (error: any) { 
-        console.error('❌ [API/schedule-drafts POST] Error:', error);
+        console.error('❌ [API/schedule-drafts POST] Erreur:', error);
         if (error instanceof z.ZodError) {
             return NextResponse.json({ message: 'Validation Zod échouée', errors: error.errors }, { status: 400 });
         }
