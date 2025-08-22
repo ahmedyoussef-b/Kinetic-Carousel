@@ -38,7 +38,7 @@ const InteractiveEmptyCell: React.FC<InteractiveEmptyCellProps> = ({
     return day === 'SATURDAY' && timeToMinutes(timeSlot) >= 720; // 12:00 PM
   }, [day, timeSlot]);
 
-  const isDisabled = isEditable || isSaturdayAfternoon;
+  const isDisabled = !isEditable || isSaturdayAfternoon;
   
   const { setNodeRef, isOver } = useDroppable({
     id: `empty-${day}-${timeSlot}`,
@@ -54,6 +54,34 @@ const InteractiveEmptyCell: React.FC<InteractiveEmptyCellProps> = ({
     fullSchedule
   ), [day, timeSlot, wizardData, fullSchedule]);
   
+  // Check if the currently hovered subject can be placed in this cell
+  const isHoveredSubjectValid = useMemo(() => {
+    if (!hoveredSubjectId || !isEditable) return false;
+
+    const subjectInfo = wizardData.subjects.find(s => s.id === hoveredSubjectId);
+    if (!subjectInfo) return false;
+
+    // Simplified checks based on what an empty cell needs to know
+    const lessonStartMinutes = timeToMinutes(timeSlot);
+    const lessonEndMinutes = lessonStartMinutes + (wizardData.school.sessionDuration || 60);
+
+    // This part assumes a specific context (e.g., class view) to find the teacher
+    // This logic might need to be passed down or refined based on the active view
+    const assignment = wizardData.teacherAssignments.find(a => a.subjectId === subjectInfo.id);
+    const teacherInfo = wizardData.teachers.find(t => t.id === assignment?.teacherId);
+
+    if (!teacherInfo) return false; // No teacher for this subject in any class
+
+    const lessonEndTimeStr = formatTimeSimple(new Date(Date.UTC(2000, 0, 1, 0, lessonEndMinutes)));
+    if (findConflictingConstraint(teacherInfo.id, day, timeSlot, lessonEndTimeStr, wizardData.teacherConstraints || [])) {
+        return false;
+    }
+    
+    // Additional checks (teacher busy, class busy) would be needed for full validation,
+    // but might be too heavy for a simple hover effect. This provides basic constraint checking.
+
+    return true;
+  }, [hoveredSubjectId, isEditable, wizardData, day, timeSlot]);
 
   return (
     <div 
@@ -61,7 +89,8 @@ const InteractiveEmptyCell: React.FC<InteractiveEmptyCellProps> = ({
       className={cn(
         "h-24 w-full rounded-md transition-colors relative group p-1", 
         isOver && !isDisabled && "bg-primary/20",
-        isDisabled && 'bg-muted/50 cursor-not-allowed'
+        isDisabled && 'bg-muted/50 cursor-not-allowed',
+        isHoveredSubjectValid && 'bg-green-500/20' // Highlight for valid placement
       )}
     >
       <div className={cn(
