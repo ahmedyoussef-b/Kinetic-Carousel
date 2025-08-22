@@ -76,9 +76,11 @@ const ClassesForm: React.FC<ClassesFormProps> = () => {
     }
   };
 
-  const totalStudents = data.reduce((sum, cls) => sum + (cls.capacity || 0), 0);
-  const averageClassSize = data.length > 0 ? Math.round(totalStudents / data.length) : 0;
-  const uniqueGradeLevels = new Set(data.map(cls => cls.grade?.level)).size;
+  // Safely calculate stats only when data is available
+  const totalStudents = data ? data.reduce((sum, cls) => sum + (cls.capacity || 0), 0) : 0;
+  const averageClassSize = data && data.length > 0 ? Math.round(totalStudents / data.length) : 0;
+  const uniqueGradeLevels = data ? new Set(data.map(cls => cls.grade?.level)).size : 0;
+
 
   return (
     <div className="space-y-6">
@@ -126,10 +128,10 @@ const ClassesForm: React.FC<ClassesFormProps> = () => {
       <Card className="p-6">
         <div className="flex items-center space-x-2 mb-4">
           <Users className="text-primary" size={20} />
-          <h3 className="text-lg font-semibold">Classes configurées ({data.length})</h3>
+          <h3 className="text-lg font-semibold">Classes configurées ({data?.length || 0})</h3>
         </div>
         
-        {data.length === 0 ? (
+        {!data || data.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Users size={48} className="mx-auto mb-4 text-muted" />
             <p>Aucune classe configurée</p>
@@ -161,7 +163,7 @@ const ClassesForm: React.FC<ClassesFormProps> = () => {
         )}
       </Card>
 
-      {data.length > 0 && (
+      {data && data.length > 0 && (
         <Card className="p-6 bg-primary/5 border-primary/20">
           <h3 className="text-lg font-semibold text-primary mb-3">Statistiques</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-primary/90">
