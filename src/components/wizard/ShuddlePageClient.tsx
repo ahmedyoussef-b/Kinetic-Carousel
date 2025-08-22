@@ -95,9 +95,9 @@ const ShuddlePageClient: React.FC<ShuddlePageClientProps> = ({ initialData }) =>
     useEffect(() => {
         // Add safe checks to ensure wizardData and its properties exist
         if (!selectedViewId && wizardData) {
-            if (viewMode === 'class' && wizardData.classes && wizardData.classes.length > 0) {
+            if (viewMode === 'class' && wizardData.classes && wizardData.classes.length > 0 && wizardData.classes[0]?.id) {
                 setSelectedViewId(wizardData.classes[0].id.toString());
-            } else if (viewMode === 'teacher' && wizardData.teachers && wizardData.teachers.length > 0) {
+            } else if (viewMode === 'teacher' && wizardData.teachers && wizardData.teachers.length > 0 && wizardData.teachers[0]?.id) {
                 setSelectedViewId(wizardData.teachers[0].id);
             }
         }
