@@ -129,10 +129,10 @@ export async function PUT(request: NextRequest) {
       name: SESSION_COOKIE_NAME,
       value: newToken,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
+      sameSite: 'none',
       maxAge: 60 * 60 * 24, // 1 day
       path: '/',
-      sameSite: 'lax',
     });
 
     return response;
