@@ -46,6 +46,12 @@ const reportSlice = createSlice({
   reducers: {
     addSessionReportFromActiveSession: (state, action: PayloadAction<{session: ActiveSession, hostName: string}>) => {
         const { session, hostName } = action.payload;
+
+        // Check if a report for this session already exists to prevent duplicates
+        if (state.sessions.some(s => s.id === session.id)) {
+            return;
+        }
+        
         const endTime = new Date().toISOString();
         const startTime = new Date(session.startTime);
 
