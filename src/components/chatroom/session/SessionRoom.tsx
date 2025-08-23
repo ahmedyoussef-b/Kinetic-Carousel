@@ -98,11 +98,10 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
   }
   
   const currentUserParticipant = activeSession.participants.find((p: SessionParticipant) => p.id === user.id);
-  const isHost = 
-    (user?.role === 'TEACHER' && activeSession.sessionType === 'class') ||
-    (user?.role === 'ADMIN' && activeSession.sessionType === 'meeting');
-
-  const isParticipant = activeSession.participants.some((p: SessionParticipant) => p.id === user?.id);
+  
+  // Simplified and corrected access control logic
+  const isHost = activeSession.hostId === user.id;
+  const isParticipant = activeSession.participants.some((p: SessionParticipant) => p.id === user.id);
 
   if (!isHost && !isParticipant) {
       return <div>Accès non autorisé à cette session.</div>
