@@ -46,25 +46,32 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user?.role !== Role.TEACHER) return;
 
+    console.log("🧑‍🏫 [TeacherView] Setting up presence polling interval.");
+
     const pollPresence = async () => {
+        console.log("🔄 [TeacherView] Polling for presence updates...");
         try {
             const response = await fetch('/api/presence/update');
             if (response.ok) {
                 const data = await response.json();
                 const onlineUserIds: string[] = data.onlineUserIds || [];
+                console.log(`📡 [TeacherView] Received presence data. Online users: ${onlineUserIds.length}`, onlineUserIds);
                 
                 // Dispatch an action to update the presence status in the Redux store
                 // We need to check against all students in all classes
                 dispatch(updateStudentPresence({ onlineUserIds }));
             }
         } catch (error) {
-            console.error("Failed to poll presence:", error);
+            console.error("❌ [TeacherView] Failed to poll presence:", error);
         }
     };
 
     const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
 
-    return () => clearInterval(intervalId);
+    return () => {
+      console.log("🛑 [TeacherView] Clearing presence polling interval.");
+      clearInterval(intervalId);
+    }
   }, [dispatch, user]);
 
   const handleClassSelect = (classroom: ClassRoom) => {

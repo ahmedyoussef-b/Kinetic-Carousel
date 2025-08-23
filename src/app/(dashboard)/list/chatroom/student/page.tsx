@@ -19,15 +19,21 @@ import { Spinner } from '@/components/ui/spinner';
 
 // Function to update presence status using fetch
 const updatePresence = async (status: 'online' | 'offline') => {
+  console.log(`📡 [StudentView] Sending presence status: ${status}`);
   try {
-    await fetch('/api/presence/update', {
+    const response = await fetch('/api/presence/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
       keepalive: status === 'offline', // Use keepalive for reliability on unload
     });
+    if(response.ok) {
+        console.log(`✅ [StudentView] Successfully sent presence status: ${status}`);
+    } else {
+        console.error(`❌ [StudentView] Failed to send presence status. Server responded with ${response.status}`);
+    }
   } catch (error) {
-    console.error(`Failed to set presence to ${status}:`, error);
+    console.error(`❌ [StudentView] Network error sending presence status ${status}:`, error);
   }
 };
 
@@ -58,11 +64,13 @@ export default function StudentChatroomPage() {
   // Effect to handle user presence
   useEffect(() => {
     if (user?.role === Role.STUDENT) {
+        console.log("👋 [StudentView] Student detected. Setting up presence management.");
         // Set user to online when component mounts
         updatePresence('online');
 
         const handleBeforeUnload = () => {
             // This is a synchronous call, best for unload events
+            console.log("🚪 [StudentView] Page unloading. Sending 'offline' status via Beacon.");
             navigator.sendBeacon('/api/presence/update', JSON.stringify({ status: 'offline' }));
         };
 
@@ -70,6 +78,7 @@ export default function StudentChatroomPage() {
 
         // Set user to offline when component unmounts (e.g., navigating away)
         return () => {
+            console.log("🛑 [StudentView] Component unmounting. Sending 'offline' status.");
             window.removeEventListener('beforeunload', handleBeforeUnload);
             updatePresence('offline');
         };
