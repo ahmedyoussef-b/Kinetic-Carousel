@@ -44,16 +44,18 @@ export default function ReactionsPanel({ studentId, studentName, isTeacher = fal
       message: 'Toutes les réactions ont été effacées',
     }));
   };
+  
+  const reactions = activeSession.reactions || [];
 
   // Count reactions by type
-  const reactionCounts = activeSession.reactions.reduce((acc: Record<string, number>, reaction: { type: string | number; }) => {
+  const reactionCounts = reactions.reduce((acc: Record<string, number>, reaction: { type: string | number; }) => {
     acc[reaction.type] = (acc[reaction.type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   return (
     <Card className="w-full max-w-md shadow-lg">
-      <ReactionsHeader reactionCount={activeSession.reactions.length} />
+      <ReactionsHeader reactionCount={reactions.length} />
       
       <CardContent className="space-y-4">
         {/* Reaction buttons for students */}
@@ -85,12 +87,12 @@ export default function ReactionsPanel({ studentId, studentName, isTeacher = fal
         )}
 
         {/* Recent reactions list */}
-        {activeSession.reactions.length > 0 && (
-          <RecentReactions reactions={activeSession.reactions} />
+        {reactions.length > 0 && (
+          <RecentReactions reactions={reactions} />
         )}
 
         {/* Clear reactions button for teacher */}
-        {isTeacher && activeSession.reactions.length > 0 && (
+        {isTeacher && reactions.length > 0 && (
           <div className="pt-2 border-t">
             <Button
               onClick={handleClearReactions}
@@ -103,7 +105,7 @@ export default function ReactionsPanel({ studentId, studentName, isTeacher = fal
           </div>
         )}
 
-        {activeSession.reactions.length === 0 && (
+        {reactions.length === 0 && (
           <p className="text-center text-gray-500 py-4 text-sm">
             Aucune réaction pour le moment
           </p>
