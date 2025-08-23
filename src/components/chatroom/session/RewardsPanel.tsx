@@ -43,6 +43,7 @@ export default function RewardsPanel({ isTeacher = false }: RewardsPanelProps) {
   
   const studentParticipants = activeSession.participants.filter(p => p.role === Role.STUDENT);
   const totalPoints = studentParticipants.reduce((sum, p) => sum + (p.points || 0), 0);
+  const rewardActions = activeSession.rewardActions || []; // Ensure rewardActions is always an array
 
   return (
     <Card className="w-full max-w-md shadow-lg">
@@ -58,7 +59,7 @@ export default function RewardsPanel({ isTeacher = false }: RewardsPanelProps) {
         
         <Leaderboard participants={studentParticipants} />
         
-        <RecentRewards rewards={activeSession.rewardActions} />
+        <RecentRewards rewards={rewardActions} />
       </CardContent>
     </Card>
   );
