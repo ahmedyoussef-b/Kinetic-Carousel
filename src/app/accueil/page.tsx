@@ -22,15 +22,17 @@ export default function AccueilZenPage() {
   const currentUser = useAppSelector(selectCurrentUser);
   const router = useRouter();
 
+  // Redirect logged-in users to their dashboard
   useEffect(() => {
-    // If user is logged in, redirect them to their dashboard after a short delay
     if (currentUser?.role) {
-      setTimeout(() => {
+      const redirectTimer = setTimeout(() => {
         router.push(`/${currentUser.role.toLowerCase()}`);
-      }, 500); // 0.5 second delay
+      }, 500);
+      return () => clearTimeout(redirectTimer);
     }
   }, [currentUser, router]);
 
+  // Load name from localStorage or currentUser
   useEffect(() => {
     const storedName = localStorage.getItem('accueilZenName');
     if (storedName) {
@@ -40,6 +42,7 @@ export default function AccueilZenPage() {
     }
   }, [currentUser]);
 
+  // Generate greeting on the client-side to prevent hydration errors
   useEffect(() => {
     const getBaseGreeting = (): string => {
       const hour = new Date().getHours();
@@ -51,22 +54,25 @@ export default function AccueilZenPage() {
     const fetchGreeting = async () => {
       setIsLoadingGreeting(true);
       const baseGreeting = getBaseGreeting();
-      setGreeting(baseGreeting); 
-
+      
       if (name) {
         try {
           const personalizedGreeting = await generateGreeting({ name, baseGreeting });
           setGreeting(personalizedGreeting);
         } catch (error) {
           console.error("Failed to fetch personalized greeting:", error);
+          // Fallback to a simple greeting if AI fails
           setGreeting(`${baseGreeting}, ${name} !`);
         }
+      } else {
+        // Set a default greeting if no name is available
+        setGreeting(baseGreeting);
       }
       setIsLoadingGreeting(false);
     };
 
     fetchGreeting();
-  }, [name]);
+  }, [name]); // This effect runs only when the name changes
 
   const handleNameSave = () => {
     if (name.trim()) {
