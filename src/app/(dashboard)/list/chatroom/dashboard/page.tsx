@@ -51,7 +51,8 @@ export default function DashboardPage() {
     const pollPresence = async () => {
         console.log("🔄 [TeacherView] Polling for presence updates...");
         try {
-            const response = await fetch('/api/presence/update');
+            // FIX: Added 'credentials: "include"' to ensure the session cookie is sent with the request.
+            const response = await fetch('/api/presence/update', { credentials: 'include' });
             if (response.ok) {
                 const data = await response.json();
                 const onlineUserIds: string[] = data.onlineUserIds || [];
