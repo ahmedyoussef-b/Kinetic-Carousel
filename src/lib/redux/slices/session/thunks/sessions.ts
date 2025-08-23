@@ -33,11 +33,12 @@ export const startSession = createAsyncThunk<ActiveSession, {
         breakoutRoomId: null 
       }));
     
+    // CORRECTION : S'assurer que l'hôte (professeur) est inclus dans la liste des participants
     participants.unshift({ 
       id: host.id, 
       name: host.name || host.email, 
       email: host.email, 
-      role: 'TEACHER', // Use the enum value
+      role: host.role as Role, // Utiliser le rôle de l'utilisateur actuel
       img: host.img, 
       isOnline: true, 
       isInSession: true, 
