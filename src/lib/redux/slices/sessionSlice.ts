@@ -27,6 +27,18 @@ import { spotlightReducers } from './session/reducers/spotlight';
 import { breakoutRoomReducers } from './session/reducers/breakoutRooms';
 import { chatReducers } from './session/reducers/chat';
 
+const ensureSessionArrays = (session: ActiveSession): ActiveSession => ({
+  ...session,
+  participants: session.participants || [],
+  raisedHands: session.raisedHands || [],
+  reactions: session.reactions || [],
+  polls: session.polls || [],
+  quizzes: session.quizzes || [],
+  rewardActions: session.rewardActions || [],
+  messages: session.messages || [],
+});
+
+
 const sessionSlice = createSlice({
   name: 'session',
   initialState,
@@ -64,13 +76,13 @@ const sessionSlice = createSlice({
       // Start Session / Meeting
       .addCase(startSession.pending, (state) => { state.loading = true; })
       .addCase(startSession.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = action.payload;
+        state.activeSession = ensureSessionArrays(action.payload);
         state.loading = false;
       })
       .addCase(startSession.rejected, (state) => { state.loading = false; })
       .addCase(startMeeting.pending, (state) => { state.loading = true; })
       .addCase(startMeeting.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = action.payload;
+        state.activeSession = ensureSessionArrays(action.payload);
         state.loading = false;
       })
       .addCase(startMeeting.rejected, (state) => { state.loading = false; })
@@ -78,7 +90,7 @@ const sessionSlice = createSlice({
       // Fetch Session State
       .addCase(fetchSessionState.pending, (state) => { state.loading = true; })
       .addCase(fetchSessionState.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = action.payload;
+        state.activeSession = ensureSessionArrays(action.payload);
         state.loading = false;
       })
       .addCase(fetchSessionState.rejected, (state) => { state.loading = false; })
