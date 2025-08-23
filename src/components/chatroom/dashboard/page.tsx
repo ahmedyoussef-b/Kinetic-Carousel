@@ -43,32 +43,36 @@ export default function DashboardPage() {
     }
   }, [dispatch, classes.length, loading]);
   
-  // New effect for polling presence
+  // Effect for polling presence
   useEffect(() => {
-      const pollPresence = async () => {
-          try {
-              const response = await fetch('/api/presence/update');
-              if (response.ok) {
-                  const data = await response.json();
-                  const onlineUserIds: string[] = data.onlineUserIds || [];
-                  
-                  // Dispatch an action to update the presence status in the Redux store
-                  classes.forEach(c => {
-                      c.students.forEach(s => {
-                          const isOnline = onlineUserIds.includes(s.id);
-                          dispatch(updateStudentPresence({ studentId: s.id, isOnline }));
-                      });
-                  });
-              }
-          } catch (error) {
-              console.error("Failed to poll presence:", error);
-          }
-      };
+    if (user?.role !== Role.TEACHER) return;
 
-      const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
+    console.log("🧑‍🏫 [TeacherView] Setting up presence polling interval.");
 
-      return () => clearInterval(intervalId);
-  }, [dispatch, classes]);
+    const pollPresence = async () => {
+        console.log("🔄 [TeacherView] Polling for presence updates...");
+        try {
+            const response = await fetch('/api/presence/update');
+            if (response.ok) {
+                const data = await response.json();
+                const onlineUserIds: string[] = data.onlineUserIds || [];
+                console.log(`📡 [TeacherView] Received presence data. Online users: ${onlineUserIds.length}`, onlineUserIds);
+                
+                // Dispatch a single action with the complete list of online user IDs
+                dispatch(updateStudentPresence({ onlineUserIds }));
+            }
+        } catch (error) {
+            console.error("❌ [TeacherView] Failed to poll presence:", error);
+        }
+    };
+
+    const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
+
+    return () => {
+      console.log("🛑 [TeacherView] Clearing presence polling interval.");
+      clearInterval(intervalId);
+    }
+  }, [dispatch, user]);
 
   const handleClassSelect = (classroom: ClassRoom) => {
     if (selectedClass?.id === classroom.id) {
