@@ -42,7 +42,7 @@ export async function GET() {
         email: s.user?.email || 'N/A',
         img: s.user?.img,
         role: Role.STUDENT,
-        isOnline: Math.random() > 0.3, 
+        isOnline: true, // Assume students are online and available for selection
         isInSession: false,
         points: 0,
         badges: [],

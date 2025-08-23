@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Video, LogOut } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import { updateStudentPresence, tickTimer, breakoutTimerTick, endSession } from '@/lib/redux/slices/sessionSlice';
+import { tickTimer, breakoutTimerTick } from '@/lib/redux/slices/sessionSlice';
 import TimerDisplay from './TimerDisplay';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { useToast } from "@/hooks/use-toast";
@@ -36,26 +36,6 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
-
-  // Simulate student presence updates
-  useEffect(() => {
-    if (!activeSession) return;
-
-    const interval = setInterval(() => {
-      activeSession.participants.forEach((participant: SessionParticipant) => {
-        if (participant.role === Role.ADMIN) return; 
-        const shouldUpdate = Math.random() < 0.1;
-        if (shouldUpdate) {
-          dispatch(updateStudentPresence({
-            studentId: participant.id,
-            isOnline: Math.random() > 0.2,
-          }));
-        }
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [activeSession, dispatch]);
 
   // Timer tick effect for main class timer
   useEffect(() => {

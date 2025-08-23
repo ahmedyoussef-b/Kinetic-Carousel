@@ -36,7 +36,7 @@ export async function GET() {
       email: t.user?.email || 'N/A',
       img: t.user?.img || t.img,
       role: Role.TEACHER,
-      isOnline: Math.random() > 0.3,
+      isOnline: true, // Teachers are considered online for selection
       isInSession: false,
       points: 0,
       badges: [],
