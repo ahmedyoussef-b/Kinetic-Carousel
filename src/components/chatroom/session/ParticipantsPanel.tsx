@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Star, UserX, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SessionParticipant } from '@/lib/redux/slices/session/types';
+import { Role } from '@/types';
 
 interface ParticipantsPanelProps {
   isHost: boolean;
