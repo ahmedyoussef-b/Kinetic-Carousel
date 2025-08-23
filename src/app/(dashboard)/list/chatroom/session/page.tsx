@@ -1,4 +1,4 @@
-// src/app/[locale]/(dashboard)/list/chatroom/session/page.tsx
+// src/app/(dashboard)/list/chatroom/session/page.tsx
 'use client';
 
 import { useAppSelector, useAppDispatch } from '@/hooks/redux-hooks';
