@@ -52,16 +52,21 @@ export const participantReducers = {
       });
     }
   },
-  updateStudentPresence: (state: SessionState, action: PayloadAction<{ studentId: string; isOnline: boolean }>) => {
-    const { studentId, isOnline } = action.payload;
-    state.classes.forEach(c => {
-      const student = c.students.find(s => s.id === studentId);
-      if (student) student.isOnline = isOnline;
-    });
+  updateStudentPresence: (state: SessionState, action: PayloadAction<{ onlineUserIds: string[] }>) => {
+    const { onlineUserIds } = action.payload;
     
+    // Update presence for all students across all classes
+    state.classes.forEach(c => {
+        c.students.forEach(s => {
+            s.isOnline = onlineUserIds.includes(s.id);
+        });
+    });
+
+    // Update presence for participants in the active session
     if (state.activeSession) {
-      const participant = state.activeSession.participants.find(p => p.id === studentId);
-      if (participant) participant.isOnline = isOnline;
+        state.activeSession.participants.forEach(p => {
+            p.isOnline = onlineUserIds.includes(p.id);
+        });
     }
   },
 };

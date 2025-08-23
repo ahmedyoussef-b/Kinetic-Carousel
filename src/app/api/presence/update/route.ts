@@ -1,34 +1,33 @@
 // src/app/api/presence/update/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { getServerSession } from '@/lib/auth-utils';
-import { Role } from '@/types';
-
-// In-memory store for presence status. In a real production app, use a database or a service like Redis.
-const presenceStore = new Map<string, { status: 'online' | 'offline'; lastSeen: number }>();
+import { PresenceService } from '@/services/presence-service';
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession();
-  if (!session?.user?.id || session.user.role !== Role.STUDENT) {
+  if (!session?.user?.id) {
     return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
   }
 
-  const { status } = await request.json();
+  try {
+    const { status } = await request.json();
 
-  if (status !== 'online' && status !== 'offline') {
-    return NextResponse.json({ message: 'Statut invalide' }, { status: 400 });
+    if (status !== 'online' && status !== 'offline') {
+      return NextResponse.json({ message: 'Statut invalide' }, { status: 400 });
+    }
+
+    PresenceService.updateUserStatus(session.user.id, status);
+    
+    // Log the current state for debugging
+    console.log(`[API Presence] User ${session.user.id} set to ${status}. Current online users: ${PresenceService.getOnlineUserIds().length}`);
+
+    return NextResponse.json({ success: true, onlineUsers: PresenceService.getOnlineUserIds() });
+  } catch (error) {
+    console.error('[API Presence POST] Error:', error);
+    return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
   }
-
-  presenceStore.set(session.user.id, { status, lastSeen: Date.now() });
-  
-  // Clean up old entries periodically (optional but good practice)
-  for (const [userId, data] of presenceStore.entries()) {
-      if (Date.now() - data.lastSeen > 1000 * 60 * 10) { // 10 minutes timeout
-          presenceStore.delete(userId);
-      }
-  }
-
-  return NextResponse.json({ success: true });
 }
+
 
 export async function GET(request: NextRequest) {
     const session = await getServerSession();
@@ -36,9 +35,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
     }
 
-    const onlineUserIds = Array.from(presenceStore.entries())
-        .filter(([, data]) => data.status === 'online')
-        .map(([userId]) => userId);
+    const onlineUserIds = PresenceService.getOnlineUserIds();
+    // Log for debugging
+    console.log(`[API Presence GET] Responding with ${onlineUserIds.length} online users.`);
 
     return NextResponse.json({ onlineUserIds });
 }

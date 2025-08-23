@@ -37,37 +37,35 @@ export default function DashboardPage() {
   }, [user, activeSession, router]);
 
   useEffect(() => {
-    if (classes.length === 0 && !loading) {
+    if (user?.role === Role.TEACHER && classes.length === 0 && !loading) {
         dispatch(fetchChatroomClasses());
     }
-  }, [dispatch, classes.length, loading]);
+  }, [dispatch, classes.length, loading, user]);
   
-  // New effect for polling presence
+  // Effect for polling presence
   useEffect(() => {
-      const pollPresence = async () => {
-          try {
-              const response = await fetch('/api/presence/update');
-              if (response.ok) {
-                  const data = await response.json();
-                  const onlineUserIds: string[] = data.onlineUserIds || [];
-                  
-                  // Dispatch an action to update the presence status in the Redux store
-                  classes.forEach(c => {
-                      c.students.forEach(s => {
-                          const isOnline = onlineUserIds.includes(s.id);
-                          dispatch(updateStudentPresence({ studentId: s.id, isOnline }));
-                      });
-                  });
-              }
-          } catch (error) {
-              console.error("Failed to poll presence:", error);
-          }
-      };
+    if (user?.role !== Role.TEACHER) return;
 
-      const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
+    const pollPresence = async () => {
+        try {
+            const response = await fetch('/api/presence/update');
+            if (response.ok) {
+                const data = await response.json();
+                const onlineUserIds: string[] = data.onlineUserIds || [];
+                
+                // Dispatch an action to update the presence status in the Redux store
+                // We need to check against all students in all classes
+                dispatch(updateStudentPresence({ onlineUserIds }));
+            }
+        } catch (error) {
+            console.error("Failed to poll presence:", error);
+        }
+    };
 
-      return () => clearInterval(intervalId);
-  }, [dispatch, classes]);
+    const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(intervalId);
+  }, [dispatch, user]);
 
   const handleClassSelect = (classroom: ClassRoom) => {
     if (selectedClass?.id === classroom.id) {

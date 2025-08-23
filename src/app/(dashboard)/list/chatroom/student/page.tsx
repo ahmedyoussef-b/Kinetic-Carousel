@@ -16,6 +16,22 @@ import { NoInvitations } from '@/components/chatroom/student/NoInvitations';
 import { NotificationList } from '@/components/chatroom/student/NotificationList';
 import { Spinner } from '@/components/ui/spinner';
 
+
+// Function to update presence status using fetch
+const updatePresence = async (status: 'online' | 'offline') => {
+  try {
+    await fetch('/api/presence/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+      keepalive: status === 'offline', // Use keepalive for reliability on unload
+    });
+  } catch (error) {
+    console.error(`Failed to set presence to ${status}:`, error);
+  }
+};
+
+
 export default function StudentChatroomPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -38,9 +54,32 @@ export default function StudentChatroomPage() {
       }
     }
   }, [isAuthenticated, user, router, isAuthLoading]);
+  
+  // Effect to handle user presence
+  useEffect(() => {
+    if (user?.role === Role.STUDENT) {
+        // Set user to online when component mounts
+        updatePresence('online');
+
+        const handleBeforeUnload = () => {
+            // This is a synchronous call, best for unload events
+            navigator.sendBeacon('/api/presence/update', JSON.stringify({ status: 'offline' }));
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // Set user to offline when component unmounts (e.g., navigating away)
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            updatePresence('offline');
+        };
+    }
+  }, [user]);
+
 
   const handleLogout = async () => {
     try {
+      await updatePresence('offline'); // Ensure offline status is set before logging out
       await logout().unwrap();
       router.push('/login');
     } catch (error) {
