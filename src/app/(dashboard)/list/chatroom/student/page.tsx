@@ -17,24 +17,13 @@ import { NotificationList } from '@/components/chatroom/student/NotificationList
 import { Spinner } from '@/components/ui/spinner';
 
 
-// Function to update presence status using fetch
-const updatePresence = async (status: 'online' | 'offline') => {
-  console.log(`📡 [StudentView] Sending presence status: ${status}`);
-  try {
-    const response = await fetch('/api/presence/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-      keepalive: status === 'offline', // Use keepalive for reliability on unload
-    });
-    if(response.ok) {
-        console.log(`✅ [StudentView] Successfully sent presence status: ${status}`);
-    } else {
-        console.error(`❌ [StudentView] Failed to send presence status. Server responded with ${response.status}`);
-    }
-  } catch (error) {
-    console.error(`❌ [StudentView] Network error sending presence status ${status}:`, error);
-  }
+// Unified presence update function using sendBeacon for reliability
+const updatePresence = (status: 'online' | 'offline') => {
+  console.log(`📡 [StudentView] Sending presence status: ${status} via Beacon.`);
+  const data = JSON.stringify({ status });
+  // Use navigator.sendBeacon as it's more reliable for sending data on page unload.
+  // It works perfectly for sending data when the page is active as well.
+  navigator.sendBeacon('/api/presence/update', data);
 };
 
 
@@ -69,14 +58,13 @@ export default function StudentChatroomPage() {
         updatePresence('online');
 
         const handleBeforeUnload = () => {
-            // This is a synchronous call, best for unload events
-            console.log("🚪 [StudentView] Page unloading. Sending 'offline' status via Beacon.");
-            navigator.sendBeacon('/api/presence/update', JSON.stringify({ status: 'offline' }));
+            console.log("🚪 [StudentView] Page unloading. Sending 'offline' status.");
+            updatePresence('offline');
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
 
-        // Set user to offline when component unmounts (e.g., navigating away)
+        // Set user to offline when component unmounts (e.g., navigating away in a SPA context)
         return () => {
             console.log("🛑 [StudentView] Component unmounting. Sending 'offline' status.");
             window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -88,7 +76,7 @@ export default function StudentChatroomPage() {
 
   const handleLogout = async () => {
     try {
-      await updatePresence('offline'); // Ensure offline status is set before logging out
+      updatePresence('offline'); // Ensure offline status is set before logging out
       await logout().unwrap();
       router.push('/login');
     } catch (error) {
