@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
-import { setSelectedClass, fetchChatroomClasses, startSession } from "@/lib/redux/slices/sessionSlice";
+import { setSelectedClass, fetchChatroomClasses, startSession, updateStudentPresence } from "@/lib/redux/slices/sessionSlice";
 import type { ClassRoom } from '@/lib/redux/slices/session/types';
 import ClassCard from '@/components/chatroom/dashboard/ClassCard';
 import StudentSelector from '@/components/chatroom/dashboard/StudentSelector';
 import TemplateSelector from '@/components/chatroom/dashboard/TemplateSelector';
-import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
+import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { Role } from '@/types';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +43,33 @@ export default function DashboardPage() {
     }
   }, [dispatch, classes.length, loading]);
   
+  // New effect for polling presence
+  useEffect(() => {
+      const pollPresence = async () => {
+          try {
+              const response = await fetch('/api/presence/update');
+              if (response.ok) {
+                  const data = await response.json();
+                  const onlineUserIds: string[] = data.onlineUserIds || [];
+                  
+                  // Dispatch an action to update the presence status in the Redux store
+                  classes.forEach(c => {
+                      c.students.forEach(s => {
+                          const isOnline = onlineUserIds.includes(s.id);
+                          dispatch(updateStudentPresence({ studentId: s.id, isOnline }));
+                      });
+                  });
+              }
+          } catch (error) {
+              console.error("Failed to poll presence:", error);
+          }
+      };
+
+      const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
+
+      return () => clearInterval(intervalId);
+  }, [dispatch, classes]);
+
   const handleClassSelect = (classroom: ClassRoom) => {
     if (selectedClass?.id === classroom.id) {
         dispatch(setSelectedClass(null));

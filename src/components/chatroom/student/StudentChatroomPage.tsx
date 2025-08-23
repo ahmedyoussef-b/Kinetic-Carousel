@@ -22,6 +22,12 @@ function WelcomeMessage({ name }: { name: string | null }) {
   );
 }
 
+// Function to update presence status
+const updatePresence = (status: 'online' | 'offline') => {
+  navigator.sendBeacon('/api/presence/update', JSON.stringify({ status }));
+};
+
+
 export default function StudentChatroomPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -44,8 +50,29 @@ export default function StudentChatroomPage() {
     }
   }, [isAuthenticated, user, router, isAuthLoading]);
 
+  // Effect to handle user presence
+  useEffect(() => {
+      if (user?.role === Role.STUDENT) {
+          // Set user to online when component mounts
+          updatePresence('online');
+
+          const handleBeforeUnload = () => {
+              updatePresence('offline');
+          };
+
+          window.addEventListener('beforeunload', handleBeforeUnload);
+
+          // Set user to offline when component unmounts
+          return () => {
+              window.removeEventListener('beforeunload', handleBeforeUnload);
+              updatePresence('offline');
+          };
+      }
+  }, [user]);
+
   const handleLogout = async () => {
     try {
+      updatePresence('offline');
       await logout().unwrap();
       router.push('/login');
     } catch (error) {
