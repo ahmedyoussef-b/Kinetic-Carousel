@@ -15,37 +15,37 @@ interface TemplateSelectorProps {
 
 export default function TemplateSelector({ selectedTemplateId, onSelectTemplate }: TemplateSelectorProps) {
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle>Étape 1: Choisir un modèle (Optionnel)</CardTitle>
-        <CardDescription>
+    <div className="shadow-lg">
+      <div className="p-6">
+        <h2 className="text-xl font-semibold">Étape 1: Choisir un modèle (Optionnel)</h2>
+        <p className="text-muted-foreground">
           Sélectionnez un modèle pour pré-charger des quiz et des sondages dans votre session.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+      <div className="p-6 pt-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(SESSION_TEMPLATES as SessionTemplate[]).map((template) => { // Cast SESSION_TEMPLATES to SessionTemplate[]
             const isSelected = selectedTemplateId === template.id;
             return (
-              <Card
+              <div
                 key={template.id}
                 onClick={() => onSelectTemplate(isSelected ? null : template.id)}
                 className={cn(
-                  'cursor-pointer transition-all duration-200 hover:shadow-md',
+                  'cursor-pointer transition-all duration-200 hover:shadow-md rounded-lg',
                   isSelected && 'ring-2 ring-primary border-primary bg-primary/5'
                 )}
               >
-                <CardHeader className="pb-3">
+                <div className="p-4 pb-2">
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-base font-semibold">
+                    <h3 className="text-base font-semibold">
                       {template.name}
-                    </CardTitle>
+                    </h3>
                     {isSelected && (
                       <CheckCircle className="w-5 h-5 text-primary" />
                     )}
                   </div>
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="p-4 pt-0">
                   <p className="text-sm text-muted-foreground mb-3">
                     {template.description}
                   </p>
@@ -63,12 +63,12 @@ export default function TemplateSelector({ selectedTemplateId, onSelectTemplate 
                       </Badge>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -16,19 +16,19 @@ export default function ClassCard({ classroom, onSelect }: ClassCardProps) {
   const totalStudents = classroom.students.length;
 
   return (
-    <Card className={`hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 bg-gradient-to-r from-white to-blue-50/30`}>
-      <CardHeader className="pb-3">
+    <div className={`hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 bg-gradient-to-r from-white to-blue-50/30 rounded-lg`}>
+      <div className="p-4 pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800">
             {classroom.name}
-          </CardTitle>
+          </h3>
           <Badge variant={onlineStudents > 0 ? "default" : "secondary"} className="bg-green-100 text-green-800">
             {onlineStudents} en ligne
           </Badge>
         </div>
-      </CardHeader>
+      </div>
       
-      <CardContent>
+      <div className="p-4 pt-0">
         <div className="space-y-4">
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
@@ -69,7 +69,7 @@ export default function ClassCard({ classroom, onSelect }: ClassCardProps) {
             Gérer cette classe
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
