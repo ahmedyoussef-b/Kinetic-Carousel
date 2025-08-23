@@ -38,6 +38,9 @@ export default function VideoTile({
 }: VideoTileProps) {
 
   const getInitials = (fullName: string) => {
+    if (!fullName || typeof fullName !== 'string') {
+      return 'U'; // Return a default initial if name is not available
+    }
     return fullName
       .split(' ')
       .map(word => word[0])
