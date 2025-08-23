@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, BarChart3, Clock, Users, TrendingUp, Loader2 } from 'lucide-react';
 import { useAppSelector } from '@/lib/redux/store';
 import SessionReportCard from '@/components/chatroom/reports/SessionReportCard';
-import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
+import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { Role } from '@/types';
 import type { SessionReport } from '@/lib/redux/slices/reportSlice';
 
