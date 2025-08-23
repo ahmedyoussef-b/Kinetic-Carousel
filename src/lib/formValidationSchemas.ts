@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Role, UserSex, TimePreference, Day } from "@prisma/client";
 
 export const loginSchema = z.object({
-  email: z.string().email({ message: 'Veuillez entrer une adresse email valide.' }),
+  email: z.string().min(1, { message: "L'email ou le nom d'utilisateur est requis." }),
   password: z.string().min(1, { message: 'Le mot de passe est requis.' }),
 });
 
