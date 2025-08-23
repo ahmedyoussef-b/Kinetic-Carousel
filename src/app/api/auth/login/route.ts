@@ -79,8 +79,8 @@ export async function POST(req: NextRequest) {
             name: SESSION_COOKIE_NAME,
             value: finalToken,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', 
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', 
+            secure: true,
+            sameSite: 'none',
             maxAge: 60 * 60 * 24, // 1 jour
             path: '/',
         });
