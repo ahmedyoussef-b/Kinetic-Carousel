@@ -17,13 +17,21 @@ export default function SessionReportCard({ session }: SessionReportCardProps) {
   const averageTime = session.participants.length > 0 
     ? session.participants.reduce((sum, p) => sum + p.duration, 0) / session.participants.length
     : 0;
+  
+  // Ensure className is a string
+  const getClassName = (session: SessionReport) => {
+    if (typeof session.className === 'object' && session.className !== null) {
+      return (session.className as any).name || 'Session';
+    }
+    return session.className || 'Session';
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">{session.className}</CardTitle>
+            <CardTitle className="text-lg">{getClassName(session)}</CardTitle>
             <p className="text-sm text-gray-600 mt-1">
               Par {session.teacherName}
             </p>

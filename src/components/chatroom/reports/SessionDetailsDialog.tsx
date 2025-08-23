@@ -15,6 +15,14 @@ export function SessionDetailsDialog({ session, children }: SessionDetailsDialog
     ? session.participants.reduce((sum, p) => sum + p.duration, 0) / session.participants.length
     : 0;
 
+  // Ensure className is a string
+  const getClassName = (session: SessionReport) => {
+    if (typeof session.className === 'object' && session.className !== null) {
+      return (session.className as any).name || 'Session';
+    }
+    return session.className || 'Session';
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -22,7 +30,7 @@ export function SessionDetailsDialog({ session, children }: SessionDetailsDialog
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Détails de la session - {session.className}</DialogTitle>
+          <DialogTitle>Détails de la session - {getClassName(session)}</DialogTitle>
           <DialogDescription>
             Session du {new Intl.DateTimeFormat('fr-FR', {
               dateStyle: 'short',
