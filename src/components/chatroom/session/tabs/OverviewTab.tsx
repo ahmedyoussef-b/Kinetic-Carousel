@@ -31,7 +31,6 @@ const DraggableVideoTile = ({ participant, user, isHost }: { participant: Sessio
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
             <VideoTile
-              key={participant.id}
               name={participant.id === user?.id ? `${participant.name} (Vous)`: participant.name}
               isOnline={participant.isOnline}
               isTeacher={participant.role === 'TEACHER' || participant.role === 'ADMIN'}
@@ -84,6 +83,7 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
         {spotlightedParticipant ? (
           <div className="flex-1 min-h-0">
             <VideoTile
+                key={spotlightedParticipant.id}
                 name={spotlightedParticipant.name}
                 isOnline={spotlightedParticipant.isOnline}
                 isTeacher={spotlightedParticipant.role === 'TEACHER' || spotlightedParticipant.role === 'ADMIN'}
