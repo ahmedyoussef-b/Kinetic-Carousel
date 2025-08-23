@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +13,10 @@ interface ClassCardProps {
 }
 
 export default function ClassCard({ classroom, onSelect }: ClassCardProps) {
-  const onlineStudents = classroom.students.filter(s => s.isOnline).length;
-  const totalStudents = classroom.students.length;
+  // Ensure students is always an array
+  const students = classroom.students || [];
+  const onlineStudents = students.filter(s => s.isOnline).length;
+  const totalStudents = students.length;
 
   return (
     <div className={`hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 bg-gradient-to-r from-white to-blue-50/30 rounded-lg`}>
@@ -42,7 +45,7 @@ export default function ClassCard({ classroom, onSelect }: ClassCardProps) {
           </div>
           
           <div className="flex flex-wrap gap-1">
-            {classroom.students.slice(0, 6).map((student) => (
+            {students.slice(0, 6).map((student) => (
               <div
                 key={student.id}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
@@ -55,9 +58,9 @@ export default function ClassCard({ classroom, onSelect }: ClassCardProps) {
                 {student.name.charAt(0).toUpperCase()}
               </div>
             ))}
-            {classroom.students.length > 6 && (
+            {students.length > 6 && (
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
-                +{classroom.students.length - 6}
+                +{students.length - 6}
               </div>
             )}
           </div>

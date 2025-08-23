@@ -1,3 +1,4 @@
+
 // src/components/chatroom/dashboard/StudentSelector.tsx
 'use client';
 
@@ -21,7 +22,10 @@ export default function StudentSelector({ classroom }: StudentSelectorProps) {
   const dispatch = useAppDispatch();
   const { selectedStudents } = useAppSelector(state => state.session);
 
-  const filteredStudents = classroom.students.filter(student =>
+  // Ensure classroom.students is treated as an array, even if it's undefined.
+  const students = classroom.students || [];
+
+  const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
