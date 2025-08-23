@@ -54,5 +54,13 @@ class PresenceServiceController {
   }
 }
 
-// Export a single instance of the controller
-export const PresenceService = new PresenceServiceController();
+// Singleton pattern for development to prevent re-initialization on hot reloads
+declare global {
+  var presenceService: PresenceServiceController | undefined;
+}
+
+export const PresenceService = global.presenceService || new PresenceServiceController();
+
+if (process.env.NODE_ENV !== 'production') {
+  global.presenceService = PresenceService;
+}
