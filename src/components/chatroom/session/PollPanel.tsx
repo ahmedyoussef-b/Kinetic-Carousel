@@ -22,7 +22,8 @@ export default function PollPanel({ studentId, isTeacher = false }: PollPanelPro
     return null;
   }
 
-  const { activePoll, polls } = activeSession;
+  const { activePoll } = activeSession;
+  const polls = activeSession.polls || [];
 
   const handleVote = (optionId: string) => {
     if (!activePoll || !studentId) return;
