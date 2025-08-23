@@ -22,7 +22,7 @@ export default function HandRaisePanel({ isTeacher = false }: HandRaisePanelProp
     return null;
   }
 
-  const raisedHandsData = activeSession.raisedHands.map(studentId => {
+  const raisedHandsData = (activeSession.raisedHands || []).map(studentId => {
     const participant = activeSession.participants.find(p => p.id === studentId);
     return participant;
   }).filter(Boolean);
