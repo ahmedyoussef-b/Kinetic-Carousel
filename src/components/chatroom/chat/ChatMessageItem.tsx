@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { ChatMessage } from '@/lib/redux/slices/session/types';
 
@@ -24,13 +25,15 @@ export function ChatMessageItem({ message, isCurrentUser }: ChatMessageItemProps
         return 'bg-gray-100 text-gray-800';
     }
   };
+  
+  const userName = typeof message.userName === 'string' ? message.userName : 'Utilisateur';
 
   return (
     <div className={`flex gap-3 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
       {!isCurrentUser && (
         <img
-          src={message.userAvatar || `https://api.dicebear.com/8.x/bottts/svg?seed=${message.userName}`}
-          alt={message.userName}
+          src={message.userAvatar || `https://api.dicebear.com/8.x/bottts/svg?seed=${userName}`}
+          alt={userName}
           className="w-8 h-8 rounded-full flex-shrink-0"
         />
       )}
@@ -44,7 +47,7 @@ export function ChatMessageItem({ message, isCurrentUser }: ChatMessageItemProps
           {!isCurrentUser && (
             <div className="flex items-center gap-2 mb-1">
               <span className="font-medium text-sm">
-                {message.userName}
+                {userName}
               </span>
               <Badge 
                 variant="secondary" 
@@ -66,8 +69,8 @@ export function ChatMessageItem({ message, isCurrentUser }: ChatMessageItemProps
 
       {isCurrentUser && (
         <img
-          src={message.userAvatar || `https://api.dicebear.com/8.x/bottts/svg?seed=${message.userName}`}
-          alt={message.userName}
+          src={message.userAvatar || `https://api.dicebear.com/8.x/bottts/svg?seed=${userName}`}
+          alt={userName}
           className="w-8 h-8 rounded-full flex-shrink-0"
         />
       )}
