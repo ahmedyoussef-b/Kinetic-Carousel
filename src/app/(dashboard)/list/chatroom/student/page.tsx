@@ -14,7 +14,7 @@ import { InvitationList } from '@/components/chatroom/student/InvitationList';
 import { StudentHeader } from '@/components/chatroom/student/StudentHeader';
 import { NoInvitations } from '@/components/chatroom/student/NoInvitations';
 import { NotificationList } from '@/components/chatroom/student/NotificationList';
-import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
+import { Spinner } from '@/components/ui/spinner';
 
 export default function StudentChatroomPage() {
   const router = useRouter();
@@ -62,8 +62,13 @@ export default function StudentChatroomPage() {
     dispatch(removeNotification(invitationId));
   };
 
-  if (isAuthLoading) return <Skeleton />;
-  if (!user) return <Skeleton />;
+  if (isAuthLoading || !user) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <Spinner size="lg" />
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
