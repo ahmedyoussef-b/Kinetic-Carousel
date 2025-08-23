@@ -64,9 +64,16 @@ const nextConfig = {
     });
     
     // Add rule to handle SVGs with @svgr/webpack
+    // This configuration allows SVGs to be used as React components
+    // while still allowing next/image to handle them as static assets.
     config.module.rules.push({
         test: /\.svg$/,
-        use: ['@svgr/webpack'],
+        use: [{
+            loader: '@svgr/webpack',
+            options: {
+                // You can add SVGR options here if needed
+            },
+        }],
     });
 
     // Suppress warnings from handlebars library
