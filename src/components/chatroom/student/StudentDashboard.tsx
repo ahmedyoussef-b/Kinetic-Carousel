@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { useLogoutMutation } from '@/lib/redux/api/authApi';
-import { removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice';
+import { addNotification, removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice';
 import { selectCurrentUser, selectIsAuthenticated } from '@/lib/redux/features/auth/authSlice';
 import { Role, type SafeUser } from '@/types';
 import { StudentHeader } from './StudentHeader';
@@ -35,10 +35,33 @@ export default function StudentDashboard() {
     }
   }, [isAuthenticated, user, router]);
 
+  // Effect for polling for new notifications from the server
+  useEffect(() => {
+      const pollNotifications = async () => {
+          try {
+              const response = await fetch('/api/notifications', { credentials: 'include' });
+              if (response.ok) {
+                  const data = await response.json();
+                  if (data.notifications && data.notifications.length > 0) {
+                      data.notifications.forEach((notif: any) => {
+                          // Dispatch each fetched notification to the local Redux store
+                          dispatch(addNotification(notif));
+                      });
+                  }
+              }
+          } catch (error) {
+              console.error("Failed to poll for notifications:", error);
+          }
+      };
+      
+      const intervalId = setInterval(pollNotifications, 5000); // Poll every 5 seconds
+      
+      return () => clearInterval(intervalId);
+  }, [dispatch]);
+
   // Effect for audio notification
   useEffect(() => {
     const playNotificationSound = () => {
-      // Use browser's Audio API to create a simple beep sound
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -47,18 +70,17 @@ export default function StudentDashboard() {
       gainNode.connect(audioContext.destination);
 
       oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A high-pitched beep (A5 note)
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
       gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
 
       oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3); // Play for 0.3 seconds
+      oscillator.stop(audioContext.currentTime + 0.3);
     };
       
     if (pendingInvitations.length > prevInvitationsCount.current) {
       playNotificationSound();
     }
     
-    // Update the ref with the current count for the next render
     prevInvitationsCount.current = pendingInvitations.length;
 
   }, [pendingInvitations]);

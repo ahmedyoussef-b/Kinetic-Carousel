@@ -28,7 +28,17 @@ export default function ParticipantsPanel({ isHost }: ParticipantsPanelProps) {
   )
   const spotlightId = activeSession.spotlightedParticipantId;
   const hostId = activeSession.hostId;
-
+// Dans OverviewTab.tsx et ParticipantsPanel.tsx
+useEffect(() => {
+  console.log('🔍 [DEBUG] Participants userIDs:', activeSession.participants.map(p => p.userId));
+  
+  const hasDuplicates = new Set(activeSession.participants.map(p => p.userId)).size !== activeSession.participants.length;
+  if (hasDuplicates) {
+    console.error('❌ DUPLICATE userIDs FOUND!');
+  } else {
+    console.log('✅ No duplicate userIDs found');
+  }
+}, [activeSession.participants]);
 
   return (
     <Card>
@@ -44,7 +54,7 @@ export default function ParticipantsPanel({ isHost }: ParticipantsPanelProps) {
           <div className="space-y-2">
           {uniqueParticipants.map((p: SessionParticipant) => (
               <ParticipantItem
-                key={p.id} 
+                key={p.userId} 
                 p={p}
                 isHost={isHost}
                 hostId={hostId}

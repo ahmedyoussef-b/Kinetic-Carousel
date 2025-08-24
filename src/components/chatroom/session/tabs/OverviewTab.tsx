@@ -27,17 +27,20 @@ const DraggableVideoTile = React.memo(({ participant, user, isHost }: {
         setNodeRef,
         transform,
         transition
-      } = useSortable({id: participant.id});
+      } = useSortable({id: participant.userId});
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
     };
     
+
+
+    
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
             <VideoTile
-              name={participant.id === user?.id ? `${participant.name} (Vous)`: participant.name}
+              name={participant.userId === user?.id ? `${participant.name} (Vous)`: participant.name}
               isOnline={participant.isOnline}
               isTeacher={participant.role === 'TEACHER' || participant.role === 'ADMIN'}
               hasRaisedHand={participant.hasRaisedHand}
@@ -45,8 +48,8 @@ const DraggableVideoTile = React.memo(({ participant, user, isHost }: {
               badgeCount={participant.badges?.length}
               isMuted={participant.isMuted}
               isHost={isHost}
-              onToggleMute={() => dispatch(toggleMute(participant.id))}
-              onToggleSpotlight={() => dispatch(toggleSpotlight(participant.id))}
+              onToggleMute={() => dispatch(toggleMute(participant.userId))}
+              onToggleSpotlight={() => dispatch(toggleSpotlight(participant.userId))}
               isSpotlighted={false}
             />
         </div>
@@ -69,7 +72,7 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
 
   const uniqueParticipants = activeSession.participants.filter((participant, index, self) =>
     index === self.findIndex((p) => (
-      p.id === participant.id
+      p.id === participant.userId
     ))
   )
 
@@ -97,7 +100,7 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
         {spotlightedParticipant ? (
           <div className="flex-1 min-h-0">
             <VideoTile
-                key={spotlightedParticipant.id}
+                key={spotlightedParticipant.userId}
                 name={spotlightedParticipant.name}
                 isOnline={spotlightedParticipant.isOnline}
                 isTeacher={spotlightedParticipant.role === 'TEACHER' || spotlightedParticipant.role === 'ADMIN'}
@@ -106,8 +109,8 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
                 badgeCount={spotlightedParticipant.badges?.length}
                 isMuted={spotlightedParticipant.isMuted}
                 isHost={isHost}
-                onToggleMute={() => dispatch(toggleMute(spotlightedParticipant.id))}
-                onToggleSpotlight={() => dispatch(toggleSpotlight(spotlightedParticipant.id))}
+                onToggleMute={() => dispatch(toggleMute(spotlightedParticipant.userId))}
+                onToggleSpotlight={() => dispatch(toggleSpotlight(spotlightedParticipant.userId))}
                 isSpotlighted={true}
               />
           </div>
@@ -123,7 +126,7 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
               {otherParticipants.map(p => (
                 <div key={p.id} className="w-48 flex-shrink-0">
                    <VideoTile
-                    key={p.id}
+                     key={p.userId}
                     name={p.name}
                     isOnline={p.isOnline}
                     isTeacher={p.role === 'TEACHER' || p.role === 'ADMIN'}
@@ -153,13 +156,13 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext 
-          items={uniqueParticipants.map(p => p.id)}
-          strategy={rectSortingStrategy}
-        >
+  items={activeSession.participants.map(p => p.userId)} // ← Utilisez userId ici
+  strategy={rectSortingStrategy}
+>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {uniqueParticipants.map((participant) => (
+          {activeSession.participants.map((participant) => (
                 <DraggableVideoTile 
-                  key={participant.id}
+                  key={participant.userId}
                   participant={participant} 
                   user={user} 
                   isHost={isHost} 

@@ -23,7 +23,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
     if (!host || !selectedClass) return rejectValue('Host or class data not found');
 
     const participants: SessionParticipant[] = selectedClass.students
-      .filter((s: SessionParticipant) => participantIds.includes(s.id))
+      .filter((s: SessionParticipant) => participantIds.includes(s.id!))
       .map((s: SessionParticipant) => ({ 
         ...s, 
         isInSession: true, 
@@ -100,30 +100,32 @@ export const startSession = createAsyncThunk<ActiveSession, {
       }
       const newSession: ActiveSession = await response.json();
       
-      // --- DEBUGGING LOGS ---
+      // --- ENVOI DES NOTIFICATIONS AUX ÉLÈVES ---
       console.log(`[startSession Thunk] Début de l'envoi des notifications.`);
-      console.log(`[startSession Thunk] Hôte ID: ${host.id}`);
-      console.log(`[startSession Thunk] IDs des participants à inviter:`, participantIds);
       
-      participantIds.forEach(participantId => {
-          console.log(`[startSession Thunk] Traitement de l'ID du participant: ${participantId}`);
-          const shouldSend = participantId !== host.id;
-          console.log(`[startSession Thunk] Est-ce que ${participantId} !== ${host.id} ? ${shouldSend}`);
+      for (const participantId of participantIds) {
+        if(participantId !== host.id) {
+          console.log(`[startSession Thunk] ✅ Envoi de la notification à ${participantId}`);
           
-          if(shouldSend) {
-              console.log(`[startSession Thunk] ✅ Envoi de la notification à ${participantId}`);
-              dispatch(addNotification({
-                  type: 'session_invite',
-                  title: `Invitation à la session: ${className}`,
-                  message: `Le professeur ${host.name} vous invite à rejoindre la session.`,
-                  actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
-              }));
-          } else {
-              console.log(`[startSession Thunk] ❌ Notification ignorée pour l'hôte ${participantId}`);
+          // Appel API pour envoyer la notification à l'élève
+          try {
+            await fetch('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                recipientId: participantId,
+                type: 'session_invite',
+                title: `Invitation à la session: ${className}`,
+                message: `Le professeur ${host.name} vous invite à rejoindre la session.`,
+                actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
+              })
+            });
+          } catch (error) {
+            console.error(`❌ Erreur envoi notification à ${participantId}:`, error);
           }
-      });
-       // --- FIN DES LOGS DE DÉBOGAGE ---
-
+        }
+      }
+      
       return newSession;
     } catch (error) {
       return rejectValue(error instanceof Error ? error.message : 'Unknown error');
@@ -147,7 +149,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
     if (!host) return rejectValue('Host user not found');
 
     const participants: SessionParticipant[] = allCandidates
-      .filter((p: SessionParticipant) => participantIds.includes(p.id))
+      .filter((p: SessionParticipant) => participantIds.includes(p.id!))
       .map((p: SessionParticipant) => ({ 
         ...p, 
         isInSession: true, 
@@ -198,27 +200,25 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
        const newSession: ActiveSession = await response.json();
 
       // Dispatch notifications for meetings too
-      console.log(`[startMeeting Thunk] Début de l'envoi des notifications de réunion.`);
-      console.log(`[startMeeting Thunk] Hôte ID: ${host.id}`);
-      console.log(`[startMeeting Thunk] IDs des participants à inviter:`, participantIds);
-
-      participantIds.forEach(participantId => {
-        console.log(`[startMeeting Thunk] Traitement de l'ID du participant: ${participantId}`);
-        const shouldSend = participantId !== host.id;
-        console.log(`[startMeeting Thunk] Est-ce que ${participantId} !== ${host.id} ? ${shouldSend}`);
-
-        if(shouldSend) {
-          console.log(`[startMeeting Thunk] ✅ Envoi de la notification à ${participantId}`);
-          dispatch(addNotification({
-              type: 'session_invite',
-              title: `Invitation à la réunion: ${title}`,
-              message: `${host.name} vous invite à rejoindre la réunion.`,
-              actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
-          }));
-        } else {
-           console.log(`[startMeeting Thunk] ❌ Notification ignorée pour l'hôte ${participantId}`);
+      for (const participantId of participantIds) {
+        if(participantId !== host.id) {
+          try {
+            await fetch('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  recipientId: participantId,
+                  type: 'session_invite',
+                  title: `Invitation à la réunion: ${title}`,
+                  message: `${host.name} vous invite à rejoindre la réunion.`,
+                  actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
+              })
+            });
+          } catch (error) {
+            console.error(`❌ Erreur envoi notification de réunion à ${participantId}:`, error);
+          }
         }
-      });
+      }
 
       return newSession;
     } catch (error) {
@@ -235,7 +235,7 @@ export const fetchSessionState = createAsyncThunk(
       if (!response.ok) throw new Error('Failed to fetch session state');
       return await response.json();
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );
@@ -250,7 +250,7 @@ export const endSession = createAsyncThunk(
       if (!response.ok) throw new Error('Failed to end session');
       return await response.json();
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );
