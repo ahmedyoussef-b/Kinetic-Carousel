@@ -13,44 +13,35 @@ import BreakoutRoomsManagement from '../BreakoutRoomsManagement';
 import { SafeUser } from '@/types';
 import type { ActiveSession, SessionParticipant } from '@/lib/redux/slices/session/types';
 import React, { useEffect } from 'react';
+import VideoTileItem from '../VideoTileItem';
 
 // Composant DraggableVideoTile séparé
-const DraggableVideoTile = React.memo(({ participant, user, isHost }: { 
+const DraggableVideoTile = React.memo(({ participant, user, isHost, isSpotlighted }: { 
   participant: SessionParticipant, 
   user: SafeUser | null, 
-  isHost: boolean 
+  isHost: boolean,
+  isSpotlighted?: boolean,
 }) => {
-    const dispatch = useAppDispatch();
     const {
         attributes,
         listeners,
         setNodeRef,
         transform,
         transition
-      } = useSortable({id: participant.userId});
+      } = useSortable({id: participant.id!});
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
     };
     
-
-
-    
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            <VideoTile
-              name={participant.userId === user?.id ? `${participant.name} (Vous)`: participant.name}
-              isOnline={participant.isOnline}
-              isTeacher={participant.role === 'TEACHER' || participant.role === 'ADMIN'}
-              hasRaisedHand={participant.hasRaisedHand}
-              points={participant.points}
-              badgeCount={participant.badges?.length}
-              isMuted={participant.isMuted}
+            <VideoTileItem
+              participant={participant}
+              user={user}
               isHost={isHost}
-              onToggleMute={() => dispatch(toggleMute(participant.userId))}
-              onToggleSpotlight={() => dispatch(toggleSpotlight(participant.userId))}
-              isSpotlighted={false}
+              isSpotlighted={isSpotlighted}
             />
         </div>
     );
@@ -70,11 +61,15 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
 
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
-  const uniqueParticipants = activeSession.participants.filter((participant, index, self) =>
-    index === self.findIndex((p) => (
-      p.id === participant.userId
-    ))
-  )
+  const uniqueParticipants = React.useMemo(() => {
+    const seen = new Set();
+    return activeSession.participants.filter(p => {
+        const duplicate = seen.has(p.id);
+        seen.add(p.id);
+        return !duplicate;
+    });
+  }, [activeSession.participants]);
+
 
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
@@ -99,18 +94,10 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
       <div className="flex flex-col h-full gap-4">
         {spotlightedParticipant ? (
           <div className="flex-1 min-h-0">
-            <VideoTile
-                key={spotlightedParticipant.userId}
-                name={spotlightedParticipant.name}
-                isOnline={spotlightedParticipant.isOnline}
-                isTeacher={spotlightedParticipant.role === 'TEACHER' || spotlightedParticipant.role === 'ADMIN'}
-                hasRaisedHand={spotlightedParticipant.hasRaisedHand}
-                points={spotlightedParticipant.points}
-                badgeCount={spotlightedParticipant.badges?.length}
-                isMuted={spotlightedParticipant.isMuted}
+            <VideoTileItem
+                participant={spotlightedParticipant}
+                user={user}
                 isHost={isHost}
-                onToggleMute={() => dispatch(toggleMute(spotlightedParticipant.userId))}
-                onToggleSpotlight={() => dispatch(toggleSpotlight(spotlightedParticipant.userId))}
                 isSpotlighted={true}
               />
           </div>
@@ -125,19 +112,11 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
             <div className="flex gap-4 pb-4">
               {otherParticipants.map(p => (
                 <div key={p.id} className="w-48 flex-shrink-0">
-                   <VideoTile
-                     key={p.userId}
-                    name={p.name}
-                    isOnline={p.isOnline}
-                    isTeacher={p.role === 'TEACHER' || p.role === 'ADMIN'}
-                    hasRaisedHand={p.hasRaisedHand}
-                    points={p.points}
-                    badgeCount={p.badges?.length}
-                    isMuted={p.isMuted}
-                    isHost={isHost}
-                    onToggleMute={() => dispatch(toggleMute(p.id))}
-                    onToggleSpotlight={() => dispatch(toggleSpotlight(p.id))}
-                    isSpotlighted={false}
+                   <VideoTileItem
+                     participant={p}
+                     user={user}
+                     isHost={isHost}
+                     isSpotlighted={false}
                   />
                 </div>
               ))}
@@ -156,13 +135,13 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext 
-  items={activeSession.participants.map(p => p.userId)} // ← Utilisez userId ici
-  strategy={rectSortingStrategy}
->
+            items={uniqueParticipants.map(p => p.id!)}
+            strategy={rectSortingStrategy}
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {activeSession.participants.map((participant) => (
+          {uniqueParticipants.map((participant) => (
                 <DraggableVideoTile 
-                  key={participant.userId}
+                  key={participant.id}
                   participant={participant} 
                   user={user} 
                   isHost={isHost} 

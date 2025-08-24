@@ -1,13 +1,15 @@
 // src/components/chatroom/session/VideoTile.tsx
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Video, Mic, MicOff, Hand, Crown, Trophy, Award, Star, UserCog } from 'lucide-react';
+import { Video, Mic, MicOff, Hand, Crown, Trophy, Award, Star, UserCog, VideoOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface VideoTileProps {
   name: string;
@@ -19,6 +21,7 @@ interface VideoTileProps {
   isMuted?: boolean;
   isHost: boolean;
   isSpotlighted: boolean;
+  isCurrentUser: boolean; // Added to identify the local user's tile
   onToggleMute: () => void;
   onToggleSpotlight: () => void;
 }
@@ -33,13 +36,50 @@ export default function VideoTile({
   isMuted = false,
   isHost,
   isSpotlighted,
+  isCurrentUser,
   onToggleMute,
   onToggleSpotlight,
 }: VideoTileProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!isCurrentUser) return;
+
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setHasCameraPermission(true);
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Accès Caméra Refusé',
+          description: 'Veuillez autoriser l\'accès à la caméra dans les paramètres de votre navigateur.',
+        });
+      }
+    };
+
+    getCameraPermission();
+
+    // Cleanup function to stop media tracks when the component unmounts
+    return () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+        }
+    };
+  }, [isCurrentUser, toast]);
+
 
   const getInitials = (fullName: string) => {
     if (!fullName || typeof fullName !== 'string') {
-      return 'U'; // Return a default initial if name is not available
+      return 'U';
     }
     return fullName
       .split(' ')
@@ -74,14 +114,33 @@ export default function VideoTile({
         </div>
 
         <div className="aspect-video bg-gray-900 rounded-lg mb-2 flex items-center justify-center relative group/tile">
-          <Avatar className="w-16 h-16">
-            <AvatarFallback className={cn(
-                'text-lg font-semibold',
-                isTeacher ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
-            )}>
-              {getInitials(name)}
-            </AvatarFallback>
-          </Avatar>
+            {isCurrentUser && !hasCameraPermission && (
+                <div className="text-center text-white p-2">
+                    <VideoOff className="w-8 h-8 mx-auto mb-2" />
+                    <p className="text-xs">Caméra désactivée</p>
+                </div>
+            )}
+             {(!isCurrentUser || (isCurrentUser && hasCameraPermission)) && (
+                 <video
+                    ref={videoRef}
+                    className="w-full h-full object-cover rounded-lg"
+                    autoPlay
+                    playsInline
+                    muted={isCurrentUser || isMuted} // Mute self-view and others who are muted
+                />
+             )}
+              {!isCurrentUser && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-100">
+                    <Avatar className="w-16 h-16">
+                        <AvatarFallback className={cn(
+                            'text-lg font-semibold',
+                            isTeacher ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
+                        )}>
+                        {getInitials(name)}
+                        </AvatarFallback>
+                    </Avatar>
+                </div>
+            )}
           
           <div className="absolute bottom-1 left-1 flex gap-1">
             <Badge variant="secondary" className="p-1 bg-black/30 border-none text-white">

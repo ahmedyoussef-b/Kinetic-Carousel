@@ -20,10 +20,11 @@ export default function VideoTileItem({
   isSpotlighted = false 
 }: VideoTileItemProps) {
   const dispatch = useAppDispatch();
-
+  const participantName = participant.name || 'Participant';
+  
   return (
     <VideoTile
-      name={participant.id === user?.id ? `${participant.name} (Vous)`: participant.name}
+      name={participant.id === user?.id ? `${participantName} (Vous)`: participantName}
       isOnline={participant.isOnline}
       isTeacher={participant.role === 'TEACHER' || participant.role === 'ADMIN'}
       hasRaisedHand={participant.hasRaisedHand}
@@ -31,9 +32,10 @@ export default function VideoTileItem({
       badgeCount={participant.badges?.length}
       isMuted={participant.isMuted}
       isHost={isHost}
-      onToggleMute={() => dispatch(toggleMute(participant.id))}
-      onToggleSpotlight={() => dispatch(toggleSpotlight(participant.id))}
+      onToggleMute={() => dispatch(toggleMute(participant.id!))}
+      onToggleSpotlight={() => dispatch(toggleSpotlight(participant.id!))}
       isSpotlighted={isSpotlighted}
+      isCurrentUser={participant.id === user?.id}
     />
   );
 }
