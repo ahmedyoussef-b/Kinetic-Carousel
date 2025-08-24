@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
 import { setSelectedClass, fetchChatroomClasses, startSession, updateStudentPresence } from "@/lib/redux/slices/sessionSlice";
 import type { ClassRoom } from '@/lib/redux/slices/session/types';
@@ -51,7 +52,6 @@ export default function DashboardPage() {
     const pollPresence = async () => {
         console.log("🔄 [TeacherView] Polling for presence updates...");
         try {
-            // FIX: Added 'credentials: "include"' to ensure the session cookie is sent with the request.
             const response = await fetch('/api/presence/update', { credentials: 'include' });
             if (response.ok) {
                 const data = await response.json();
@@ -61,6 +61,9 @@ export default function DashboardPage() {
                 // Dispatch an action to update the presence status in the Redux store
                 // We need to check against all students in all classes
                 dispatch(updateStudentPresence({ onlineUserIds }));
+            } else {
+                // If the response is not OK, log the status to understand the error
+                console.error(`❌ [TeacherView] Failed to poll presence with status: ${response.status}`);
             }
         } catch (error) {
             console.error("❌ [TeacherView] Failed to poll presence:", error);
@@ -123,25 +126,25 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
-            <div className="shadow-lg animate-in fade-in-0">
-             <div className="p-6">
+            <Card className="shadow-lg animate-in fade-in-0">
+             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-semibold">Étape 3: Sélectionner les élèves pour {selectedClass.name}</h2>
-                        <p className="text-muted-foreground">Cochez les élèves que vous souhaitez inviter à la session interactive.</p>
+                        <CardTitle>Étape 3: Sélectionner les élèves pour {selectedClass.name}</CardTitle>
+                        <CardDescription>Cochez les élèves que vous souhaitez inviter à la session interactive.</CardDescription>
                     </div>
                     <Button variant="outline" onClick={() => dispatch(setSelectedClass(null))}>
                         <ArrowLeft className="mr-2 h-4 w-4"/>
                         Changer de classe
                     </Button>
                 </div>
-            </div>
-            <div className="p-6 pt-0">
+            </CardHeader>
+            <CardContent className="pt-6">
               <StudentSelector 
                 classroom={selectedClass}
               />
-            </div>
-            <div className="p-6 pt-0">
+            </CardContent>
+            <CardContent>
                <div className="mt-6 pt-6 border-t">
                   <Button
                     onClick={handleStartSession}
@@ -152,8 +155,8 @@ export default function DashboardPage() {
                     {loading ? 'Démarrage...' : `Lancer la session (${selectedStudents.length} élève${selectedStudents.length > 1 ? 's' : ''})`}
                   </Button>
                 </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -170,12 +173,12 @@ export default function DashboardPage() {
         />
         
         {/* Step 2: Class Selection Card */}
-        <div className="shadow-lg">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold">Étape 2: Sélectionner une classe</h2>
-            <p className="text-muted-foreground">Choisissez la classe pour laquelle vous souhaitez démarrer une session.</p>
-          </div>
-          <div className="p-6 pt-0">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle>Étape 2: Sélectionner une classe</CardTitle>
+            <CardDescription>Choisissez la classe pour laquelle vous souhaitez démarrer une session.</CardDescription>
+          </CardHeader>
+          <CardContent>
             {loading ? (
               <div className="flex justify-center items-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -191,8 +194,8 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
