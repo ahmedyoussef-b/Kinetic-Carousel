@@ -144,13 +144,15 @@ export const authApi = createApi({
           if (data?.user) {
             dispatch(setUser(data.user));
           } else {
-             // We no longer automatically log out here to prevent race conditions.
-             // The UI will simply show a logged-out state if user is null.
-             console.log("ℹ️ [authApi] getSession found no active user.");
+             // If no user is returned, it means the session is invalid or expired.
+             // Dispatch logout to clear client-side auth state.
+             console.log("ℹ️ [authApi] getSession found no active user. Logging out client-side.");
+             dispatch(logoutAction());
           }
         } catch (error) {
           console.error("❌ [authApi] getSession queryFulfilled failed.", error);
-          // We also don't logout on error to avoid race conditions.
+          // If the query fails (e.g., network error, invalid token), also log out client-side.
+          dispatch(logoutAction());
         }
       },
     }),
