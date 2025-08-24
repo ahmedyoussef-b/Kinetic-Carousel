@@ -101,19 +101,8 @@ export const startSession = createAsyncThunk<ActiveSession, {
       const newSession: ActiveSession = await response.json();
       
       // --- ENVOI DES NOTIFICATIONS AUX ÉLÈVES ---
-      console.log(`[startSession Thunk] Début de l'envoi des notifications.`);
-      console.log(`[startSession Thunk] Hôte ID: ${host.id}`);
-      console.log(`[startSession Thunk] IDs des participants à inviter:`, participantIds);
-      
       for (const participantId of participantIds) {
-        console.log(`[startSession Thunk] Traitement de l'ID du participant: ${participantId}`);
-        const shouldSend = participantId !== host.id;
-        console.log(`[startSession Thunk] Est-ce que ${participantId} !== ${host.id} ? ${shouldSend}`);
-        
-        if(shouldSend) {
-          console.log(`[startSession Thunk] ✅ Envoi de la notification à ${participantId}`);
-          
-          // Appel API pour envoyer la notification à l'élève
+        if(participantId !== host.id) {
           try {
             await fetch('/api/notifications/send', {
               method: 'POST',
@@ -129,8 +118,6 @@ export const startSession = createAsyncThunk<ActiveSession, {
           } catch (error) {
             console.error(`❌ Erreur envoi notification à ${participantId}:`, error);
           }
-        } else {
-          console.log(`[startSession Thunk] ❌ Notification ignorée pour l'hôte ${participantId}`);
         }
       }
       
@@ -240,10 +227,17 @@ export const fetchSessionState = createAsyncThunk(
   async (sessionId: string, { rejectWithValue }) => {
     try {
       const response = await fetch(`/api/chatroom/sessions/${sessionId}`);
-      if (!response.ok) throw new Error('Failed to fetch session state');
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 404) {
+          // Special handling for ended sessions
+          return rejectWithValue('SESSION_ENDED');
+        }
+        throw new Error(errorData.message || 'Failed to fetch session state');
+      }
       return await response.json();
     } catch (error) {
-      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );
@@ -258,17 +252,15 @@ export const endSession = createAsyncThunk(
       if (!response.ok) throw new Error('Failed to end session');
       return await response.json();
     } catch (error) {
-      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );
 
+// This thunk now calls the API
 export const raiseHand = createAsyncThunk(
   'session/raiseHand',
-  async (sessionId: string, { rejectWithValue, getState }) => {
-    const { auth } = getState() as { auth: { user: SafeUser | null } };
-    if (!auth.user) return rejectWithValue('User not authenticated');
-
+  async (sessionId: string, { rejectWithValue, dispatch }) => {
     try {
       const response = await fetch(`/api/chatroom/sessions/${sessionId}/raise-hand`, {
         method: 'POST',
@@ -276,19 +268,18 @@ export const raiseHand = createAsyncThunk(
         body: JSON.stringify({ action: 'raise' }),
       });
       if (!response.ok) throw new Error('Failed to raise hand');
-      return await response.json();
+      // We don't need to return anything, the polling will update the state
+      dispatch(addNotification({ type: 'hand_raised', title: 'Main levée', message: 'Votre main a été levée. Le professeur a été notifié.' }));
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );
 
+// This thunk now calls the API
 export const lowerHand = createAsyncThunk(
   'session/lowerHand',
-  async (sessionId: string, { rejectWithValue, getState }) => {
-    const { auth } = getState() as { auth: { user: SafeUser | null } };
-    if (!auth.user) return rejectWithValue('User not authenticated');
-
+  async (sessionId: string, { rejectWithValue, dispatch }) => {
     try {
       const response = await fetch(`/api/chatroom/sessions/${sessionId}/raise-hand`, {
         method: 'POST',
@@ -296,7 +287,7 @@ export const lowerHand = createAsyncThunk(
         body: JSON.stringify({ action: 'lower' }),
       });
       if (!response.ok) throw new Error('Failed to lower hand');
-      return await response.json();
+      dispatch(addNotification({ type: 'hand_lowered', title: 'Main baissée', message: 'Vous avez baissé la main' }));
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
