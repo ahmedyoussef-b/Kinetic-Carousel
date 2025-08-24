@@ -2,7 +2,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 import type { JwtPayload, SafeUser } from '@/types';
 import prisma from './prisma';
 import { SESSION_COOKIE_NAME } from './constants';
@@ -19,7 +19,10 @@ export async function getServerSession() {
   console.log('✅ [Serveur] Jeton trouvé, tentative de vérification...');
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+    const { payload } = await jwtVerify(token, secret);
+    
+    const decoded = payload as JwtPayload;
     console.log('🔍 [Serveur] Jeton décodé:', decoded);
 
     const user = await prisma.user.findUnique({
