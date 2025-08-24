@@ -34,13 +34,13 @@ export const startSession = createAsyncThunk<ActiveSession, {
         breakoutRoomId: null 
       }));
     
-    // CORRECTION : S'assurer que l'hôte (professeur) est inclus dans la liste des participants
+    // Assurer que l'hôte (professeur) est inclus dans la liste des participants
     participants.unshift({ 
       id: host.id,
       userId: host.id,
       name: host.name || host.email, 
       email: host.email, 
-      role: host.role as Role, // Utiliser le rôle de l'utilisateur actuel
+      role: host.role as Role,
       img: host.img, 
       isOnline: true, 
       isInSession: true, 
@@ -96,25 +96,37 @@ export const startSession = createAsyncThunk<ActiveSession, {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        return rejectWithValue(errorData.message || 'Failed to start session on server');
+        return rejectValue(errorData.message || 'Failed to start session on server');
       }
       const newSession: ActiveSession = await response.json();
       
-      // Dispatch notifications ONLY to selected students (not the host)
-      participantIds.forEach(studentId => {
-          if(studentId !== host.id) { // This condition prevents the host from getting the invite
+      // --- DEBUGGING LOGS ---
+      console.log(`[startSession Thunk] Début de l'envoi des notifications.`);
+      console.log(`[startSession Thunk] Hôte ID: ${host.id}`);
+      console.log(`[startSession Thunk] IDs des participants à inviter:`, participantIds);
+      
+      participantIds.forEach(participantId => {
+          console.log(`[startSession Thunk] Traitement de l'ID du participant: ${participantId}`);
+          const shouldSend = participantId !== host.id;
+          console.log(`[startSession Thunk] Est-ce que ${participantId} !== ${host.id} ? ${shouldSend}`);
+          
+          if(shouldSend) {
+              console.log(`[startSession Thunk] ✅ Envoi de la notification à ${participantId}`);
               dispatch(addNotification({
                   type: 'session_invite',
                   title: `Invitation à la session: ${className}`,
                   message: `Le professeur ${host.name} vous invite à rejoindre la session.`,
                   actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
               }));
+          } else {
+              console.log(`[startSession Thunk] ❌ Notification ignorée pour l'hôte ${participantId}`);
           }
       });
+       // --- FIN DES LOGS DE DÉBOGAGE ---
 
       return newSession;
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );
@@ -132,7 +144,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
     const host = state.auth.user;
     const allCandidates = state.session.meetingCandidates;
 
-    if (!host) return rejectWithValue('Host user not found');
+    if (!host) return rejectValue('Host user not found');
 
     const participants: SessionParticipant[] = allCandidates
       .filter((p: SessionParticipant) => participantIds.includes(p.id))
@@ -181,22 +193,33 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        return rejectWithValue(errorData.message || 'Failed to start meeting on server');
+        return rejectValue(errorData.message || 'Failed to start meeting on server');
       }
        const newSession: ActiveSession = await response.json();
 
       // Dispatch notifications for meetings too
+      console.log(`[startMeeting Thunk] Début de l'envoi des notifications de réunion.`);
+      console.log(`[startMeeting Thunk] Hôte ID: ${host.id}`);
+      console.log(`[startMeeting Thunk] IDs des participants à inviter:`, participantIds);
+
       participantIds.forEach(participantId => {
-        if(participantId !== host.id) {
+        console.log(`[startMeeting Thunk] Traitement de l'ID du participant: ${participantId}`);
+        const shouldSend = participantId !== host.id;
+        console.log(`[startMeeting Thunk] Est-ce que ${participantId} !== ${host.id} ? ${shouldSend}`);
+
+        if(shouldSend) {
+          console.log(`[startMeeting Thunk] ✅ Envoi de la notification à ${participantId}`);
           dispatch(addNotification({
               type: 'session_invite',
               title: `Invitation à la réunion: ${title}`,
               message: `${host.name} vous invite à rejoindre la réunion.`,
               actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
           }));
+        } else {
+           console.log(`[startMeeting Thunk] ❌ Notification ignorée pour l'hôte ${participantId}`);
         }
       });
-      
+
       return newSession;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
