@@ -8,6 +8,11 @@ import { getServerSession } from './lib/auth-utils';
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   console.log(`🚦 [Middleware] Processing request for: ${pathname}`);
+  
+  // 1. Toujours rediriger la racine vers /accueil
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/accueil', req.url));
+  }
 
   const session = await getServerSession();
   const userRole = session?.user?.role;
@@ -16,18 +21,19 @@ export async function middleware(req: NextRequest) {
   
   const loginUrl = new URL('/login', req.url);
 
-  // --- Route Protection Logic ---
+  // --- Logique de protection des routes ---
 
-  // User is logged in
+  // L'utilisateur est connecté
   if (userRole) {
     const dashboardUrl = new URL(`/${userRole.toLowerCase()}`, req.url);
-    // If they are on a public/auth page, redirect them to their dashboard
+    
+    // S'il est sur une page publique/d'authentification, le rediriger vers son tableau de bord
     if (['/login', '/register', '/accueil'].includes(pathname)) {
         console.log(`[Middleware] User is logged in. Redirecting from ${pathname} to their dashboard.`);
         return NextResponse.redirect(dashboardUrl);
     }
       
-    // Check if the user has access to the requested protected route
+    // Vérifier si l'utilisateur a accès à la route protégée demandée
     const allowedRoles = Object.entries(routeAccessMap).find(([route]) => 
       new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname)
     )?.[1];
@@ -37,13 +43,15 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(dashboardUrl);
     }
   } 
-  // User is NOT logged in
+  // L'utilisateur N'EST PAS connecté
   else {
-    const isProtectedRoute = Object.keys(routeAccessMap).some(route => new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname));
-    const isPublicRoute = ['/login', '/register', '/accueil', '/'].includes(pathname);
+    const isProtectedRoute = Object.keys(routeAccessMap).some(route => 
+        new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname)
+    );
+    const isPublicAuthRoute = ['/login', '/register', '/accueil'].includes(pathname);
 
-    // If trying to access a protected route without being logged in, redirect to login
-    if (isProtectedRoute && !isPublicRoute) {
+    // S'il essaie d'accéder à une route protégée sans être connecté, le rediriger vers la page de connexion
+    if (isProtectedRoute && !isPublicAuthRoute) {
         console.log(`[Middleware] Unauthorized access to ${pathname}, redirecting to login.`);
         return NextResponse.redirect(loginUrl);
     }
