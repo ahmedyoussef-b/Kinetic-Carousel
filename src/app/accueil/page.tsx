@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { useAppSelector } from '@/hooks/redux-hooks';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
-
+ 
 export default function AccueilZenPage() {
   const [greeting, setGreeting] = useState('');
   const [name, setName] = useState('');

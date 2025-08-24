@@ -29,8 +29,9 @@ const DraggableVideoTile = ({ participant, user, isHost }: { participant: Sessio
     };
     
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} key={participant.id}>
             <VideoTile
+            key={participant.id}
               name={participant.id === user?.id ? `${participant.name} (Vous)`: participant.name}
               isOnline={participant.isOnline}
               isTeacher={participant.role === 'TEACHER' || participant.role === 'ADMIN'}
@@ -141,7 +142,7 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
           items={activeSession.participants.map(p => p.id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div key={activeSession.id} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {activeSession.participants.map((participant) => (
               <DraggableVideoTile key={participant.id} participant={participant} user={user} isHost={isHost} />
             ))}
