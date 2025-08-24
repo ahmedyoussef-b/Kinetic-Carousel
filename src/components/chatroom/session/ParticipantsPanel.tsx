@@ -25,15 +25,15 @@ export default function ParticipantsPanel({ isHost }: ParticipantsPanelProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle key={spotlightId} className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
             <Users size={20} />
  Participants ({participants.length})
         </CardTitle>
         <CardDescription>Gérez les participants de la session.</CardDescription>
       </CardHeader>
- <CardContent key={activeSession?.id}>
+ <CardContent>
         <ScrollArea className="h-64">
-          <div key={spotlightId} className="space-y-2">
+          <div className="space-y-2">
             {participants.map((p: SessionParticipant) => (
               <div key={p.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
                 <div className="flex items-center gap-3">

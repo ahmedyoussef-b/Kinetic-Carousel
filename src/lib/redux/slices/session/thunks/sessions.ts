@@ -3,6 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ActiveSession, ClassRoom, Poll, Quiz, SessionParticipant, QuizQuestion } from '../types';
 import { SESSION_TEMPLATES } from '@/lib/constants';
 import type { SafeUser, Role, SessionTemplatePoll } from '@/types';
+import { addNotification } from '../../notificationSlice';
 
 export const startSession = createAsyncThunk<ActiveSession, { 
   classId: string; 
@@ -14,7 +15,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
   state: { session: { classes: ClassRoom[] }, auth: { user: SafeUser | null } };
 }>(
   'session/startSession',
-  async ({ classId, className, participantIds, templateId }, { rejectWithValue, getState }) => {
+  async ({ classId, className, participantIds, templateId }, { rejectWithValue, getState, dispatch }) => {
     const state = getState();
     const host = state.auth.user;
     const selectedClass = state.session.classes.find((c: ClassRoom) => c.id.toString() === classId);
@@ -96,7 +97,19 @@ export const startSession = createAsyncThunk<ActiveSession, {
         const errorData = await response.json();
         return rejectWithValue(errorData.message || 'Failed to start session on server');
       }
-      return await response.json();
+      const newSession: ActiveSession = await response.json();
+      
+      // *** FIX: Dispatch notifications to selected students ***
+      participantIds.forEach(studentId => {
+          dispatch(addNotification({
+              type: 'session_invite',
+              title: `Invitation à la session: ${className}`,
+              message: `Le professeur ${host.name} vous invite à rejoindre la session.`,
+              actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
+          }));
+      });
+
+      return newSession;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
