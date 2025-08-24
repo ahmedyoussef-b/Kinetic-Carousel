@@ -1,11 +1,11 @@
 // src/components/chatroom/student/StudentChatroomPage.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { useLogoutMutation } from '@/lib/redux/api/authApi';
-import { removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice';
+import { removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice'; // Importer AppNotification
 import { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } from '@/lib/redux/features/auth/authSlice';
 import { Role, type SafeUser } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -16,29 +16,20 @@ import { NoInvitations } from '@/components/chatroom/student/NoInvitations';
 import { NotificationList } from '@/components/chatroom/student/NotificationList';
 import { Spinner } from '@/components/ui/spinner';
 
-function WelcomeMessage({ name }: { name: string | null }) {
-  return (
-    <h2 className="text-2xl font-bold text-gray-800">Bienvenue, {name || 'étudiant'} !</h2>
-  );
-}
-
-// Function to update presence status
-const updatePresence = (status: 'online' | 'offline') => {
-  navigator.sendBeacon('/api/presence/update', JSON.stringify({ status }));
-};
-
 
 export default function StudentChatroomPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const user = useAppSelector(selectCurrentUser);
+  const user = useAppSelector(selectCurrentUser) as SafeUser;
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isAuthLoading = useAppSelector(selectIsAuthLoading);
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const { toast } = useToast();
-  const { notifications } = useAppSelector(state => state.notifications);
+  // Utiliser AppNotification pour le typage
+  const { notifications } = useAppSelector(state => state.notifications) as { notifications: AppNotification[] };
+  const prevInvitationsCount = useRef(0);
 
-  const pendingInvitations = notifications.filter(
+  const pendingInvitations: (AppNotification & { actionUrl: string })[] = notifications.filter(
     (n: AppNotification): n is AppNotification & { actionUrl: string } => n.type === 'session_invite' && !!n.actionUrl && !n.read
   );
 
@@ -49,30 +40,39 @@ export default function StudentChatroomPage() {
       }
     }
   }, [isAuthenticated, user, router, isAuthLoading]);
-
-  // Effect to handle user presence
+  
+    // Effect for audio notification
   useEffect(() => {
-      if (user?.role === Role.STUDENT) {
-          // Set user to online when component mounts
-          updatePresence('online');
+    const playNotificationSound = () => {
+      // Use browser's Audio API to create a simple beep sound
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-          const handleBeforeUnload = () => {
-              updatePresence('offline');
-          };
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-          window.addEventListener('beforeunload', handleBeforeUnload);
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A high-pitched beep (A5 note)
+      gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
 
-          // Set user to offline when component unmounts
-          return () => {
-              window.removeEventListener('beforeunload', handleBeforeUnload);
-              updatePresence('offline');
-          };
-      }
-  }, [user]);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3); // Play for 0.3 seconds
+    };
+      
+    if (pendingInvitations.length > prevInvitationsCount.current) {
+      playNotificationSound();
+    }
+    
+    // Update the ref with the current count for the next render
+    prevInvitationsCount.current = pendingInvitations.length;
+
+  }, [pendingInvitations]);
+
 
   const handleLogout = async () => {
     try {
-      updatePresence('offline');
+      // The presence update is now handled by the wrapper component's cleanup function
       await logout().unwrap();
       router.push('/login');
     } catch (error) {
@@ -96,15 +96,15 @@ export default function StudentChatroomPage() {
 
   if (isAuthLoading || !user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Spinner size="lg" />
-      </div>
+        <div className="flex h-screen w-full items-center justify-center">
+            <Spinner size="lg" />
+        </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
-      <StudentHeader user={user as SafeUser} onLogout={handleLogout} isLoggingOut={isLoggingOut} />
+      <StudentHeader user={user} onLogout={handleLogout} isLoggingOut={isLoggingOut} />
       
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         <WelcomeMessage name={user.name} />
@@ -124,5 +124,12 @@ export default function StudentChatroomPage() {
         )}
       </main>
     </div>
+  );
+}
+
+// Assuming WelcomeMessage is a component you have somewhere else
+function WelcomeMessage({ name }: { name: string | null }) {
+  return (
+    <h2 className="text-2xl font-bold text-gray-800">Bienvenue, {name || 'étudiant'} !</h2>
   );
 }
