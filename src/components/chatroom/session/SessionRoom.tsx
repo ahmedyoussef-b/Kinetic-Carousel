@@ -3,12 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Video, LogOut } from 'lucide-react';
+import { Video, LogOut, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { tickTimer, breakoutTimerTick, fetchSessionState } from '@/lib/redux/slices/sessionSlice';
 import TimerDisplay from './TimerDisplay';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 // Import session components
 import OverviewTab from './tabs/OverviewTab';
@@ -31,6 +32,7 @@ export type ViewMode = 'grid' | 'screenShare' | 'whiteboard';
 export default function SessionRoom({ onEndSession }: SessionRoomProps) {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
+  const router = useRouter();
   const { activeSession } = useAppSelector(state => state.session);
   const user = useAppSelector(selectCurrentUser);
 
@@ -157,10 +159,15 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
                     <h2 className="font-semibold">{activeSession.className}</h2>
                     <TimerDisplay />
                 </div>
-                {isHost && (
+                {isHost ? (
                     <Button size="sm" variant="destructive" onClick={onEndSession}>
                         <LogOut className="w-4 h-4 mr-2" />
-                        Terminer
+                        Terminer pour tous
+                    </Button>
+                ) : (
+                   <Button size="sm" variant="outline" onClick={() => router.push('/list/chatroom')}>
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Quitter la session
                     </Button>
                 )}
              </div>

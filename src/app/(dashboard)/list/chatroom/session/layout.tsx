@@ -1,12 +1,16 @@
-// The specific full-screen styling has been removed from this layout.
-// This ensures that the session room correctly inherits the main dashboard layout,
-// which includes the Navbar and Sidebar, preventing display issues when navigating
-// away from the session page.
+// src/app/(dashboard)/list/chatroom/session/layout.tsx
+
+// Ce layout crée un environnement en plein écran pour la session,
+// sans la barre de menu latérale, pour une expérience immersive.
 
 export default function SessionPageLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div className="w-full h-screen bg-background text-foreground">
+      {children}
+    </div>
+  );
 }
