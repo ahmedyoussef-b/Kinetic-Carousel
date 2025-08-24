@@ -66,6 +66,7 @@ export interface Badge {
 export interface SessionParticipant {
   id: string;
   name: string;
+  userId: string;
   email: string;
   role: Role;
   img?: string | null;

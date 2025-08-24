@@ -37,7 +37,8 @@ export async function GET() {
       id: cls.id,
       name: cls.name,
       students: cls.students.map((s): SessionParticipant => ({
-        id: s.userId,
+        id: s.userId, // FIX: Use userId as the primary identifier for the participant
+        userId: s.userId,
         name: `${s.name} ${s.surname}`,
         email: s.user?.email || 'N/A',
         img: s.user?.img,

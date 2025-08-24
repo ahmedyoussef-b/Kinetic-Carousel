@@ -12,9 +12,9 @@ import { CSS } from '@dnd-kit/utilities';
 import BreakoutRoomsManagement from '../BreakoutRoomsManagement';
 import { SafeUser } from '@/types';
 import type { ActiveSession, SessionParticipant } from '@/lib/redux/slices/session/types';
-import React from 'react';
+import React, { useEffect } from 'react';
 
-// Utilisation de React.memo pour optimiser le rendu
+// Composant DraggableVideoTile séparé
 const DraggableVideoTile = React.memo(({ participant, user, isHost }: { 
   participant: SessionParticipant, 
   user: SafeUser | null, 
@@ -27,7 +27,7 @@ const DraggableVideoTile = React.memo(({ participant, user, isHost }: {
         setNodeRef,
         transform,
         transition
-    } = useSortable({id: participant.id});
+      } = useSortable({id: participant.id || `participant-${Date.now()}-${Math.random()}`});
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -65,19 +65,31 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
   const spotlightedParticipantId = useAppSelector(state => state.session.activeSession?.spotlightedParticipantId);
   const isHost = user?.role === 'TEACHER' || user?.role === 'ADMIN';
 
-  // FIX: Filter out duplicate participants to prevent React key warnings
-  const uniqueParticipants = activeSession.participants.filter((participant, index, array) => 
-    array.findIndex(p => p.id === participant.id) === index
-  );
-
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
+  // Débogage ultime - vérification des doublons
+  useEffect(() => {
+    console.log('🔍 [DEBUG] Participants data structure:', activeSession.participants);
+    
+    // Affichez toutes les propriétés du premier participant
+    if (activeSession.participants.length > 0) {
+      const firstParticipant = activeSession.participants[0];
+      console.log('🔍 [DEBUG] First participant keys:', Object.keys(firstParticipant));
+      console.log('🔍 [DEBUG] First participant full object:', firstParticipant);
+      
+      // Cherchez les propriétés qui pourraient servir d'ID
+      const possibleIdKeys = Object.keys(firstParticipant).filter(key => 
+        key.toLowerCase().includes('id') || key.toLowerCase().includes('key')
+      );
+      console.log('🔍 [DEBUG] Possible ID keys:', possibleIdKeys);
+    }
+  }, [activeSession.participants]);
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
 
     if (over && active.id !== over.id) {
-        const oldIndex = uniqueParticipants.findIndex(p => p.id === active.id);
-        const newIndex = uniqueParticipants.findIndex(p => p.id === over.id);
+        const oldIndex = activeSession.participants.findIndex(p => p.id === active.id);
+        const newIndex = activeSession.participants.findIndex(p => p.id === over.id);
         dispatch(moveParticipant({ fromIndex: oldIndex, toIndex: newIndex }));
     }
   }
@@ -88,8 +100,8 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
   }
 
   if (spotlightedParticipantId) {
-    const spotlightedParticipant = uniqueParticipants.find(p => p.id === spotlightedParticipantId);
-    const otherParticipants = uniqueParticipants.filter(p => p.id !== spotlightedParticipantId);
+    const spotlightedParticipant = activeSession.participants.find(p => p.id === spotlightedParticipantId);
+    const otherParticipants = activeSession.participants.filter(p => p.id !== spotlightedParticipantId);
 
     return (
       <div className="flex flex-col h-full gap-4">
@@ -152,18 +164,19 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext 
-          items={uniqueParticipants.map(p => p.id)}
+          items={activeSession.participants.map((p, index) => p.id || `participant-${index}`)}
           strategy={rectSortingStrategy}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {uniqueParticipants.map((participant) => (
-              <DraggableVideoTile 
-                key={participant.id} 
-                participant={participant} 
-                user={user} 
-                isHost={isHost} 
-              />
-            ))}
+          {activeSession.participants.map((participant, index) => (
+  <div key={participant.id || `participant-${index}`}> {/* Fallback key */}
+    <DraggableVideoTile 
+      participant={participant} 
+      user={user} 
+      isHost={isHost} 
+    />
+  </div>
+))}
           </div>
         </SortableContext>
       </DndContext>

@@ -36,7 +36,8 @@ export const startSession = createAsyncThunk<ActiveSession, {
     
     // CORRECTION : S'assurer que l'hôte (professeur) est inclus dans la liste des participants
     participants.unshift({ 
-      id: host.id, 
+      id: host.id,
+      userId: host.id,
       name: host.name || host.email, 
       email: host.email, 
       role: host.role as Role, // Utiliser le rôle de l'utilisateur actuel
@@ -144,7 +145,8 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
       }));
 
     participants.unshift({ 
-      id: host.id, 
+      id: host.id,
+      userId: host.id,
       name: host.name || host.email, 
       email: host.email, 
       role: 'ADMIN', // Use the enum value
