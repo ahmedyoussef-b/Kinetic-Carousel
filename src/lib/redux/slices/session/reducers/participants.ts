@@ -3,6 +3,9 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { SessionState, SessionParticipant, ClassRoom } from '../types';
 
 export const participantReducers = {
+  setMeetingCandidates: (state: SessionState, action: PayloadAction<SessionParticipant[]>) => {
+    state.meetingCandidates = action.payload;
+  },
   setSelectedClass: (state: SessionState, action: PayloadAction<ClassRoom | null>) => {
     state.selectedClass = action.payload;
     state.selectedStudents = [];
@@ -57,15 +60,22 @@ export const participantReducers = {
     
     // Update presence for all students across all classes
     state.classes.forEach(c => {
-        c.students.forEach(s => {
-            s.isOnline = onlineUserIds.includes(s.id);
-        });
+        if(c.students) {
+            c.students.forEach(s => {
+                s.isOnline = onlineUserIds.includes(s.id!);
+            });
+        }
+    });
+
+    // Update presence for teacher meeting candidates
+    state.meetingCandidates.forEach(p => {
+        p.isOnline = onlineUserIds.includes(p.id!);
     });
 
     // Update presence for participants in the active session
     if (state.activeSession) {
         state.activeSession.participants.forEach(p => {
-            p.isOnline = onlineUserIds.includes(p.id);
+            p.isOnline = onlineUserIds.includes(p.id!);
         });
     }
   },

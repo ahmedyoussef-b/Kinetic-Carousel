@@ -11,18 +11,14 @@ import type { SessionParticipant } from '@/lib/redux/slices/session/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-interface TeacherSelectorProps {
-  teachers: SessionParticipant[];
-}
-
-export default function TeacherSelector({ teachers }: TeacherSelectorProps) {
+export default function TeacherSelector() {
   const [searchTerm, setSearchTerm] = useState('');
   const dispatch = useAppDispatch();
-  const { selectedTeachers } = useAppSelector(state => state.session);
+  const { selectedTeachers, meetingCandidates: teachers } = useAppSelector(state => state.session);
 
   const filteredTeachers = teachers.filter(teacher =>
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (teacher.email && teacher.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleTeacherToggle = (teacherId: string) => {
@@ -44,13 +40,13 @@ export default function TeacherSelector({ teachers }: TeacherSelectorProps) {
         <ScrollArea className="h-96">
             <div className="space-y-3 pr-4">
             {filteredTeachers.map((teacher) => {
-              const isSelected = selectedTeachers.includes(teacher.id);
+              const isSelected = selectedTeachers.includes(teacher.id!);
               const isDisabled = !teacher.isOnline;
 
               return (
               <div
                 key={teacher.id}
-                onClick={() => !isDisabled && handleTeacherToggle(teacher.id)}
+                onClick={() => !isDisabled && handleTeacherToggle(teacher.id!)}
                 className={cn(
                   "flex items-center space-x-4 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer",
                   isDisabled 
@@ -62,7 +58,7 @@ export default function TeacherSelector({ teachers }: TeacherSelectorProps) {
                 <Checkbox
                   id={`teacher-${teacher.id}`}
                   checked={isSelected}
-                  onCheckedChange={() => handleTeacherToggle(teacher.id)}
+                  onCheckedChange={() => handleTeacherToggle(teacher.id!)}
                   disabled={isDisabled}
                 />
                 
@@ -85,10 +81,10 @@ export default function TeacherSelector({ teachers }: TeacherSelectorProps) {
                     variant={teacher.isOnline ? "default" : "secondary"}
                     className={cn(
                       "flex items-center gap-1.5",
-                      teacher.isOnline && "bg-green-500 hover:bg-green-600"
+                       teacher.isOnline ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
                     )}
                   >
-                    <div className={cn("w-2 h-2 rounded-full", teacher.isOnline ? "bg-white/80" : "bg-muted-foreground")} />
+                    <div className={cn("w-2 h-2 rounded-full", teacher.isOnline ? "bg-green-500" : "bg-muted-foreground")} />
                     {teacher.isOnline ? "En ligne" : "Hors ligne"}
                   </Badge>
                 </div>

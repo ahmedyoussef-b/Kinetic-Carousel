@@ -95,7 +95,12 @@ const sessionSlice = createSlice({
         state.activeSession = ensureSessionArrays(action.payload);
         state.loading = false;
       })
-      .addCase(fetchSessionState.rejected, (state) => { state.loading = false; })
+      .addCase(fetchSessionState.rejected, (state, action) => { 
+        if (action.payload === 'SESSION_ENDED' || action.payload?.includes('Session non trouvée')) {
+            state.activeSession = null;
+        }
+        state.loading = false;
+      })
       
       // End Session
       .addCase(endSession.fulfilled, (state) => {
@@ -113,16 +118,21 @@ const sessionSlice = createSlice({
       })
       
       // Raise/Lower Hand
-      .addCase(raiseHand.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = ensureSessionArrays(action.payload);
+      .addCase(raiseHand.fulfilled, (state, action: PayloadAction<ActiveSession | undefined>) => {
+        if (action.payload) {
+          state.activeSession = ensureSessionArrays(action.payload);
+        }
       })
-      .addCase(lowerHand.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = ensureSessionArrays(action.payload);
+      .addCase(lowerHand.fulfilled, (state, action: PayloadAction<ActiveSession | undefined>) => {
+        if (action.payload) {
+          state.activeSession = ensureSessionArrays(action.payload);
+        }
       });
   },
 });
 
 export const {
+  setMeetingCandidates,
   setSelectedClass,
   toggleStudentSelection,
   toggleTeacherSelection,
