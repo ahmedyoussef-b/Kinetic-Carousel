@@ -163,7 +163,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
       userId: host.id,
       name: host.name || host.email, 
       email: host.email, 
-      role: 'ADMIN', // Use the enum value
+      role: host.role as Role,
       img: host.img, 
       isOnline: true, 
       isInSession: true, 
@@ -222,7 +222,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
 
       return newSession;
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );

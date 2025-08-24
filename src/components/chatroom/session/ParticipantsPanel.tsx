@@ -17,51 +17,43 @@ interface ParticipantsPanelProps {
 export default function ParticipantsPanel({ isHost }: ParticipantsPanelProps) {
   const dispatch = useAppDispatch();
   const { activeSession } = useAppSelector(state => state.session);
-  const participants = activeSession?.participants || [];
-  const spotlightId = activeSession?.spotlightedParticipantId;
-  const hostId = activeSession?.hostId;
+  
+  if (!activeSession) return null;
 
-  // Débogage ultime - vérification des doublons
-  useEffect(() => {
-    console.log('🔍 [ParticipantsPanel] Participants data:', participants);
-    console.log('🔍 [ParticipantsPanel] Unique IDs:', participants.map(p => p.id));
-    
-    const ids = participants.map(p => p.id || p.userId);
-    const hasDuplicates = new Set(ids).size !== participants.length;    if (hasDuplicates) {
-      console.error('❌ [ParticipantsPanel] DUPLICATE IDs FOUND!');
-      const duplicates = participants.filter((p, index, array) => 
-        array.findIndex(pp => pp.id === p.id) !== index
-      );
-      console.error('❌ [ParticipantsPanel] Duplicates:', duplicates);
-    } else {
-      console.log('✅ [ParticipantsPanel] No duplicate IDs found');
-    }
-  }, [participants]);
+  const participants = activeSession.participants || [];
+  const uniqueParticipants = participants.filter((participant, index, self) =>
+    index === self.findIndex((p) => (
+      p.id === participant.id
+    ))
+  )
+  const spotlightId = activeSession.spotlightedParticipantId;
+  const hostId = activeSession.hostId;
+
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users size={20} />
-          Participants ({participants.length})
+          Participants ({uniqueParticipants.length})
         </CardTitle>
         <CardDescription>Gérez les participants de la session.</CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-64">
           <div className="space-y-2">
-          {participants.map((p: SessionParticipant, index) => (
-  <ParticipantItem
-    key={p.id ||  `participant-${index}-${Date.now()}`} 
-    p={p}
-    isHost={isHost}
-    hostId={hostId}
-    spotlightId={spotlightId || undefined}
-    onToggleMute={(id) => dispatch(toggleMute(id))}
-    onToggleSpotlight={(id) => dispatch(toggleSpotlight(id))}
-    onRemove={(id) => dispatch(removeStudentFromSession(id))}
-  />
-))}
+          {uniqueParticipants.map((p: SessionParticipant) => (
+              <ParticipantItem
+                key={p.id} 
+                p={p}
+                isHost={isHost}
+                hostId={hostId}
+                spotlightId={spotlightId || undefined}
+                onToggleMute={(id) => dispatch(toggleMute(id))}
+                onToggleSpotlight={(id) => dispatch(toggleSpotlight(id))}
+                onRemove={(id) => dispatch(removeStudentFromSession(id))}
+              />
+          ))}
           </div>
         </ScrollArea>
       </CardContent>

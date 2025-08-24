@@ -27,7 +27,7 @@ const DraggableVideoTile = React.memo(({ participant, user, isHost }: {
         setNodeRef,
         transform,
         transition
-      } = useSortable({id: participant.id || `participant-${Date.now()}-${Math.random()}`});
+      } = useSortable({id: participant.id});
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -67,23 +67,12 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
 
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
-  // Débogage ultime - vérification des doublons
-  useEffect(() => {
-    console.log('🔍 [DEBUG] Participants data structure:', activeSession.participants);
-    
-    // Affichez toutes les propriétés du premier participant
-    if (activeSession.participants.length > 0) {
-      const firstParticipant = activeSession.participants[0];
-      console.log('🔍 [DEBUG] First participant keys:', Object.keys(firstParticipant));
-      console.log('🔍 [DEBUG] First participant full object:', firstParticipant);
-      
-      // Cherchez les propriétés qui pourraient servir d'ID
-      const possibleIdKeys = Object.keys(firstParticipant).filter(key => 
-        key.toLowerCase().includes('id') || key.toLowerCase().includes('key')
-      );
-      console.log('🔍 [DEBUG] Possible ID keys:', possibleIdKeys);
-    }
-  }, [activeSession.participants]);
+  const uniqueParticipants = activeSession.participants.filter((participant, index, self) =>
+    index === self.findIndex((p) => (
+      p.id === participant.id
+    ))
+  )
+
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
 
@@ -100,8 +89,8 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
   }
 
   if (spotlightedParticipantId) {
-    const spotlightedParticipant = activeSession.participants.find(p => p.id === spotlightedParticipantId);
-    const otherParticipants = activeSession.participants.filter(p => p.id !== spotlightedParticipantId);
+    const spotlightedParticipant = uniqueParticipants.find(p => p.id === spotlightedParticipantId);
+    const otherParticipants = uniqueParticipants.filter(p => p.id !== spotlightedParticipantId);
 
     return (
       <div className="flex flex-col h-full gap-4">
@@ -164,19 +153,18 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext 
-          items={activeSession.participants.map((p, index) => p.id || `participant-${index}`)}
+          items={uniqueParticipants.map(p => p.id)}
           strategy={rectSortingStrategy}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {activeSession.participants.map((participant, index) => (
-  <div key={participant.id || `participant-${index}`}> {/* Fallback key */}
-    <DraggableVideoTile 
-      participant={participant} 
-      user={user} 
-      isHost={isHost} 
-    />
-  </div>
-))}
+            {uniqueParticipants.map((participant) => (
+                <DraggableVideoTile 
+                  key={participant.id}
+                  participant={participant} 
+                  user={user} 
+                  isHost={isHost} 
+                />
+            ))}
           </div>
         </SortableContext>
       </DndContext>
