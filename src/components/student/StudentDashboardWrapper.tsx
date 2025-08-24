@@ -38,7 +38,15 @@ export default function StudentDashboardWrapper({ children }: { children: React.
     }
 
     console.log("👋 [StudentWrapper] Student detected. Setting up presence management.");
+    
+    // Initial online signal
     updatePresence('online');
+
+    // Heartbeat to keep the user online every 30 seconds
+    const heartbeatInterval = setInterval(() => {
+        console.log("💓 [StudentWrapper] Sending heartbeat presence signal.");
+        updatePresence('online');
+    }, 30000); // Every 30 seconds
 
     const handleBeforeUnload = () => {
         console.log("🚪 [StudentWrapper] Page unloading. Sending 'offline' status.");
@@ -49,7 +57,8 @@ export default function StudentDashboardWrapper({ children }: { children: React.
 
     // This cleanup runs when the component unmounts (e.g., on logout or navigating away from the SPA)
     return () => {
-        console.log("🛑 [StudentWrapper] Component unmounting. Sending 'offline' status.");
+        console.log("🛑 [StudentWrapper] Component unmounting. Clearing heartbeat and sending 'offline' status.");
+        clearInterval(heartbeatInterval);
         window.removeEventListener('beforeunload', handleBeforeUnload);
         updatePresence('offline');
     };
