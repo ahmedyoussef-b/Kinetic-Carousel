@@ -76,10 +76,10 @@ const ClassesForm: React.FC<ClassesFormProps> = () => {
     }
   };
 
-  // Safely calculate stats only when data is available
-  const totalStudents = data ? data.reduce((sum, cls) => sum + (cls.capacity || 0), 0) : 0;
-  const averageClassSize = data && data.length > 0 ? Math.round(totalStudents / data.length) : 0;
-  const uniqueGradeLevels = data ? new Set(data.map(cls => cls.grade?.level)).size : 0;
+  // Safely calculate stats only when data is an array
+  const totalStudents = Array.isArray(data) ? data.reduce((sum, cls) => sum + (cls.capacity || 0), 0) : 0;
+  const averageClassSize = Array.isArray(data) && data.length > 0 ? Math.round(totalStudents / data.length) : 0;
+  const uniqueGradeLevels = Array.isArray(data) ? new Set(data.map(cls => cls.grade?.level)).size : 0;
 
 
   return (
