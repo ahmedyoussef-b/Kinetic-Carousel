@@ -43,7 +43,6 @@ const useResultForm = ({
   type,
   data,
   setOpen,
-  relatedData
 }: ResultFormProps): ResultFormReturn => {
   const {
     register,
@@ -56,28 +55,17 @@ const useResultForm = ({
     resolver: zodResolver(resultSchema),
     defaultValues: data ? {
         ...data,
+        assessmentType: data.examId ? 'exam' : 'assignment',
         examId: data.examId ?? undefined,
         assignmentId: data.assignmentId ?? undefined,
     } : {
         score: 0,
+        assessmentType: 'exam',
     }
   });
 
-  const [assessmentType, setAssessmentType] = useState<'exam' | 'assignment'>('exam');
-  const watchedAssessmentType = watch('assessmentType');
-
-  useEffect(() => {
-    if(watchedAssessmentType){
-        setAssessmentType(watchedAssessmentType);
-    }
-  }, [watchedAssessmentType]);
-
-  useEffect(() => {
-    if (data?.examId) setAssessmentType('exam');
-    else if (data?.assignmentId) setAssessmentType('assignment');
-  }, [data]);
-
-
+  const assessmentType = watch('assessmentType');
+  
   const router = useRouter();
   const [createResult, { 
     isLoading: isCreating, 

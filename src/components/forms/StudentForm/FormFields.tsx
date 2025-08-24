@@ -2,8 +2,8 @@
 import React from "react";
 import InputField from "@/components/InputField";
 import ImageUpload from "./ImageUpload";
-import { StudentFormValues, UserSex } from "@/types/index";
-import { UseFormRegister, FieldErrors, UseFormSetValue, SubmitHandler } from "react-hook-form";
+import { UserSex } from "@/types/index";
+import { UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
 import { StudentSchema } from "@/lib/formValidationSchemas";
 
 interface FormFieldsProps {
@@ -18,7 +18,7 @@ interface FormFieldsProps {
     parents?: { id: string; name: string; surname: string }[];
   };
   type: "create" | "update";
-  data?: StudentFormValues; // Added data prop here
+  data?: Partial<StudentSchema> & { id?: string };
 }
 
 const FormFields = ({
@@ -29,7 +29,7 @@ const FormFields = ({
   imgPreview,
   relatedData,
   type,
-  data, // Destructure data prop
+  data,
 }: FormFieldsProps) => {
   const { grades = [], classes = [], parents = [] } = relatedData || {};
 

@@ -25,6 +25,7 @@ const useClassForm = ({
       name: data.name,
       abbreviation: data.abbreviation || '',
       capacity: data.capacity || 0,
+      gradeLevel: data.grade?.level, // Set gradeLevel from related data
       studentIds: data.students?.map((s: { id: string }) => s.id) || [],
     } : { 
       capacity: 25,

@@ -40,12 +40,12 @@ const useSubjectForm = ({
       } else if (data?.id) {
         await updateSubject({ ...formData, id: data.id }).unwrap();
       }
-      toast({ title: `Subject ${type === "create" ? "created" : "updated"} successfully!` });
+      toast({ title: `Matière ${type === "create" ? "créée" : "mise à jour"} avec succès !` });
       setOpen(false);
       router.refresh();
     } catch (err: any) {
-       const errorMessage = err?.data?.message || `Failed to ${type === "create" ? "create" : "update"} subject.`;
-       toast({ variant: "destructive", title: "Error", description: errorMessage });
+       const errorMessage = err?.data?.message || `Impossible de ${type === "create" ? "créer" : "mettre à jour"} la matière.`;
+       toast({ variant: "destructive", title: "Erreur", description: errorMessage });
     }
   };
 

@@ -40,14 +40,12 @@ const useLessonForm = ({
   const [createLesson, { 
     isLoading: isCreating, 
     isSuccess: createSuccess, 
-    isError: createIsError, 
     error: createErrorData 
   }] = useCreateLessonMutation();
   
   const [updateLesson, { 
     isLoading: isUpdating, 
     isSuccess: updateSuccess, 
-    isError: updateIsError, 
     error: updateErrorData 
   }] = useUpdateLessonMutation();
 
@@ -66,6 +64,16 @@ const useLessonForm = ({
   };
 
   useEffect(() => {
+    if(createSuccess || updateSuccess) {
+      toast({ title: `Cours ${type === "create" ? "créé" : "mis à jour"} avec succès !` });
+      setOpen(false);
+      reset();
+      router.refresh();
+    }
+  }, [createSuccess, updateSuccess, type, setOpen, reset, router]);
+
+
+  useEffect(() => {
     const error: FetchBaseQueryError | SerializedError | undefined = 
     (createErrorData as FetchBaseQueryError | SerializedError | undefined) ||
     (updateErrorData as FetchBaseQueryError | SerializedError | undefined);
@@ -73,7 +81,7 @@ const useLessonForm = ({
       const errorMessage = (error as any)?.data?.message || "Une erreur inattendue s'est produite.";
       toast({ variant: "destructive", title: "Échec de l'opération", description: errorMessage });
     }
-  }, [createIsError, updateIsError, createErrorData, updateErrorData]);
+  }, [createErrorData, updateErrorData]);
 
   return {
     register,

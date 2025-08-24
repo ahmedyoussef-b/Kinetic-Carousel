@@ -26,6 +26,7 @@ const useExamForm = ({
       ...data,
       startTime: data.startTime ? new Date(data.startTime).toISOString().slice(0, 16) : undefined,
       endTime: data.endTime ? new Date(data.endTime).toISOString().slice(0, 16) : undefined,
+      lessonId: data.lessonId,
     } : {},
   });
 

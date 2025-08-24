@@ -21,6 +21,15 @@ const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => 
     updateErrorData,
   } = useStudentForm({ type, data, setOpen });
 
+  const studentDataForFields = data ? {
+    ...data,
+    username: data.user?.username || '',
+    email: data.user?.email || '',
+    classId: data.classId ?? undefined,
+    gradeId: data.gradeId ?? undefined,
+    parentId: data.parentId ?? undefined,
+  } : undefined;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
        <h1 className="text-xl font-semibold">
@@ -34,14 +43,7 @@ const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => 
         imgPreview={imgPreview}
         relatedData={relatedData}
         type={type}
-        data={data ? {
-          email: '', // Add email with empty string
-          username: '', // Add username with empty string
-          classId: data.classId ?? 0, // Handle null classId and ensure it's a number
-          gradeId: data.gradeId ?? 0, // Handle null gradeId and ensure it's a number
-          parentId: data.parentId ?? '', // Handle null parentId and ensure it's a string
- ...(data as Omit<typeof data, 'classId' | 'gradeId' | 'parentId'>), // Spread data but omit classId, gradeId, and parentId
-        } : undefined}
+        data={studentDataForFields}
       />
       {(createErrorData || updateErrorData) && (
         <span className="text-red-500 text-sm mt-2">
@@ -51,7 +53,7 @@ const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => 
         </span>
       )}
       <Button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50">
-        {isLoading ? 'Saving...' : 'Save'}
+        {isLoading ? 'Enregistrement...' : 'Enregistrer'}
       </Button>
     </form>
   );

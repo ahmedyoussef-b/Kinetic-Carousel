@@ -36,6 +36,7 @@ const useAnnouncementForm = ({ type, data, setOpen }: AnnouncementFormProps) => 
     formState: { errors },
     reset,
     setValue,
+    watch,
   } = useForm<AnnouncementSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,15 +47,6 @@ const useAnnouncementForm = ({ type, data, setOpen }: AnnouncementFormProps) => 
     },
   });
  
-  const watch = useForm<AnnouncementSchema>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: data?.title ?? "",
-      description: data?.description ?? "", // The raw description string
-      date: data?.date ? new Date(data.date) : new Date(),
-      classId: data?.classId ?? null,
-    },
-  }).watch;
   const textValue = watch('description');
 
   useEffect(() => {

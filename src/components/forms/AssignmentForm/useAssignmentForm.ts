@@ -26,6 +26,7 @@ const useAssignmentForm = ({
       ...data,
       startDate: data.startDate ? new Date(data.startDate).toISOString().slice(0, 16) : undefined,
       dueDate: data.dueDate ? new Date(data.dueDate).toISOString().slice(0, 16) : undefined,
+      lessonId: data.lessonId,
     } : {},
   });
 

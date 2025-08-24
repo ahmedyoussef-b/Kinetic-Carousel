@@ -1,10 +1,11 @@
 import type { Dispatch, SetStateAction } from "react";
 import { UseFormHandleSubmit, FieldErrors, UseFormRegister, UseFormSetValue, SubmitHandler } from "react-hook-form";
 import type { ClassSchema } from "@/lib/formValidationSchemas";
+import type { ClassWithDetails } from "@/app/(dashboard)/list/classes/page";
 
 export interface ClassFormProps {
   type: "create" | "update";
-  data?: any;
+  data?: ClassWithDetails;
   setOpen: Dispatch<SetStateAction<boolean>>;
   relatedData?: { 
     grades?: { id: number; level: number }[];

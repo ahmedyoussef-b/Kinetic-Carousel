@@ -11,33 +11,13 @@ import { useAppSelector } from '@/hooks/redux-hooks';
 import SessionReportCard from '@/components/chatroom/reports/SessionReportCard';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { Role } from '@/types';
-
-export type SessionReport = {
-  id: string;
-  classId: string;
-  className: string;
-  teacherId: string;
-  teacherName: string;
-  startTime: string;
-  endTime: string;
-  duration: number;
-  participants: {
-    id: string;
-    name: string;
-    email: string;
-    joinTime: string;
-    leaveTime: string;
-    duration: number;
-  }[];
-  maxParticipants: number;
-  status: 'active' | 'completed';
-};
+import type { SessionReport } from '@/lib/redux/slices/reportSlice';
 
 export default function ReportsPage() {
   console.log("📊 [TeacherReportsPage] Le composant est en cours de rendu.");
   const router = useRouter();
   const user = useAppSelector(selectCurrentUser);
-  const { sessions, loading } = useAppSelector(state => state.reports) as { sessions: SessionReport[]; loading: boolean };
+  const { sessions, loading } = useAppSelector(state => state.reports);
 
   useEffect(() => {
      console.log("📊 [TeacherReportsPage] Le composant est monté. Vérification du rôle.");
@@ -177,7 +157,7 @@ export default function ReportsPage() {
             ) : (
               <div className="grid gap-6">
                 {sessions.map((session) => (
-                  <SessionReportCard key={session.id} session={session as any} />
+                  <SessionReportCard key={session.id} session={session} />
                 ))}
               </div>
             )}

@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import FormFields from "./FormFields";
 import useTeacherForm from "./useTeacherForm";
-import type { TeacherFormProps } from "./types";
+import type { TeacherFormProps } from "../types";
 
 const TeacherForm = ({
   type,
