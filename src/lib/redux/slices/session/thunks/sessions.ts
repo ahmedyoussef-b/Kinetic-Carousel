@@ -102,9 +102,15 @@ export const startSession = createAsyncThunk<ActiveSession, {
       
       // --- ENVOI DES NOTIFICATIONS AUX ÉLÈVES ---
       console.log(`[startSession Thunk] Début de l'envoi des notifications.`);
+      console.log(`[startSession Thunk] Hôte ID: ${host.id}`);
+      console.log(`[startSession Thunk] IDs des participants à inviter:`, participantIds);
       
       for (const participantId of participantIds) {
-        if(participantId !== host.id) {
+        console.log(`[startSession Thunk] Traitement de l'ID du participant: ${participantId}`);
+        const shouldSend = participantId !== host.id;
+        console.log(`[startSession Thunk] Est-ce que ${participantId} !== ${host.id} ? ${shouldSend}`);
+        
+        if(shouldSend) {
           console.log(`[startSession Thunk] ✅ Envoi de la notification à ${participantId}`);
           
           // Appel API pour envoyer la notification à l'élève
@@ -123,6 +129,8 @@ export const startSession = createAsyncThunk<ActiveSession, {
           } catch (error) {
             console.error(`❌ Erreur envoi notification à ${participantId}:`, error);
           }
+        } else {
+          console.log(`[startSession Thunk] ❌ Notification ignorée pour l'hôte ${participantId}`);
         }
       }
       
@@ -251,6 +259,46 @@ export const endSession = createAsyncThunk(
       return await response.json();
     } catch (error) {
       return rejectValue(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+);
+
+export const raiseHand = createAsyncThunk(
+  'session/raiseHand',
+  async (sessionId: string, { rejectWithValue, getState }) => {
+    const { auth } = getState() as { auth: { user: SafeUser | null } };
+    if (!auth.user) return rejectWithValue('User not authenticated');
+
+    try {
+      const response = await fetch(`/api/chatroom/sessions/${sessionId}/raise-hand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'raise' }),
+      });
+      if (!response.ok) throw new Error('Failed to raise hand');
+      return await response.json();
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+);
+
+export const lowerHand = createAsyncThunk(
+  'session/lowerHand',
+  async (sessionId: string, { rejectWithValue, getState }) => {
+    const { auth } = getState() as { auth: { user: SafeUser | null } };
+    if (!auth.user) return rejectWithValue('User not authenticated');
+
+    try {
+      const response = await fetch(`/api/chatroom/sessions/${sessionId}/raise-hand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'lower' }),
+      });
+      if (!response.ok) throw new Error('Failed to lower hand');
+      return await response.json();
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );

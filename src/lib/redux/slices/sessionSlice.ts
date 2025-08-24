@@ -11,7 +11,9 @@ import {
   startMeeting, 
   fetchSessionState, 
   endSession,
-  sendMessage 
+  sendMessage,
+  raiseHand,
+  lowerHand,
 } from './session/thunks';
 
 // Reducers
@@ -88,7 +90,7 @@ const sessionSlice = createSlice({
       .addCase(startMeeting.rejected, (state) => { state.loading = false; })
       
       // Fetch Session State
-      .addCase(fetchSessionState.pending, (state) => { state.loading = true; })
+      .addCase(fetchSessionState.pending, (state) => { state.loading = false; }) // Don't show full screen loader for polls
       .addCase(fetchSessionState.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
         state.activeSession = ensureSessionArrays(action.payload);
         state.loading = false;
@@ -108,6 +110,14 @@ const sessionSlice = createSlice({
         if (state.activeSession) {
             state.activeSession.messages.push(action.payload);
         }
+      })
+      
+      // Raise/Lower Hand
+      .addCase(raiseHand.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
+        state.activeSession = ensureSessionArrays(action.payload);
+      })
+      .addCase(lowerHand.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
+        state.activeSession = ensureSessionArrays(action.payload);
       });
   },
 });
@@ -120,8 +130,6 @@ export const {
   removeStudentFromSession,
   addStudentToSession,
   updateStudentPresence,
-  raiseHand,
-  lowerHand,
   clearAllRaisedHands,
   sendReaction,
   clearReactions,

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Video, LogOut } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import { tickTimer, breakoutTimerTick } from '@/lib/redux/slices/sessionSlice';
+import { tickTimer, breakoutTimerTick, fetchSessionState } from '@/lib/redux/slices/sessionSlice';
 import TimerDisplay from './TimerDisplay';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +61,20 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
 
       return () => clearInterval(interval);
   }, [activeSession?.breakoutTimer, dispatch]);
+
+  // Polling for real-time session updates
+  useEffect(() => {
+    if (!activeSession?.id) return;
+
+    const pollSessionState = () => {
+        dispatch(fetchSessionState(activeSession.id));
+    };
+
+    const intervalId = setInterval(pollSessionState, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(intervalId);
+  }, [activeSession?.id, dispatch]);
+
 
   const handleStartScreenShare = async () => {
     if (screenStream) {
