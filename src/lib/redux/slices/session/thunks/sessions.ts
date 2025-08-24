@@ -20,7 +20,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
     const host = state.auth.user;
     const selectedClass = state.session.classes.find((c: ClassRoom) => c.id.toString() === classId);
 
-    if (!host || !selectedClass) return rejectWithValue('Host or class data not found');
+    if (!host || !selectedClass) return rejectValue('Host or class data not found');
 
     const participants: SessionParticipant[] = selectedClass.students
       .filter((s: SessionParticipant) => participantIds.includes(s.id))
@@ -127,7 +127,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
   state: { session: { meetingCandidates: SessionParticipant[] }, auth: { user: SafeUser | null } };
 }>(
   'session/startMeeting',
-  async ({ title, participantIds }, { rejectWithValue, getState }) => {
+  async ({ title, participantIds }, { rejectValue, getState, dispatch }) => {
     const state = getState();
     const host = state.auth.user;
     const allCandidates = state.session.meetingCandidates;
@@ -183,7 +183,21 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
         const errorData = await response.json();
         return rejectWithValue(errorData.message || 'Failed to start meeting on server');
       }
-      return await response.json();
+       const newSession: ActiveSession = await response.json();
+
+      // Dispatch notifications for meetings too
+      participantIds.forEach(participantId => {
+        if(participantId !== host.id) {
+          dispatch(addNotification({
+              type: 'session_invite',
+              title: `Invitation à la réunion: ${title}`,
+              message: `${host.name} vous invite à rejoindre la réunion.`,
+              actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
+          }));
+        }
+      });
+      
+      return newSession;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
