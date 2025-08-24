@@ -5,7 +5,7 @@
 // like Redis, a database (e.g., Prisma with PostgreSQL), or a real-time service
 // like Firebase Realtime Database.
 
-import type { ActiveSession } from '@/lib/redux/slices/session/types';
+import type { ActiveSession, Poll, Quiz, Reaction, RewardAction, SessionParticipant } from '@/lib/redux/slices/session/types';
 
 // In-memory store for active sessions, keyed by session ID.
 const sessionStore = new Map<string, ActiveSession>();
@@ -28,12 +28,11 @@ class SessionServiceController {
   public endSession(sessionId: string): ActiveSession | undefined {
     const session = sessionStore.get(sessionId);
     if (session) {
-      session.status = 'ENDED';
-      session.endTime = new Date().toISOString();
-      // In a real scenario, you might move this to a different store or DB table
-      // for historical records. For now, we'll just update its status.
-      console.log(`🏁 [SessionService] Session ended: ${sessionId}`);
-      return session;
+      // In a real app, you would persist this final state to a database.
+      // For now, we'll just remove it from the active store.
+      sessionStore.delete(sessionId);
+      console.log(`🏁 [SessionService] Session ended and removed: ${sessionId}`);
+      return session; // Return the final state before deleting
     }
     return undefined;
   }
@@ -59,7 +58,23 @@ class SessionServiceController {
       console.log(`🤚 [SessionService] User ${userId} lowered hand in session ${sessionId}`);
     }
   }
+  
+  public addMessage(sessionId: string, message: any): void {
+    const session = this.getSession(sessionId);
+    if (session) {
+      session.messages.push(message);
+    }
+  }
 
+   public updateParticipant(sessionId: string, updatedParticipant: SessionParticipant): void {
+    const session = this.getSession(sessionId);
+    if (session) {
+      const index = session.participants.findIndex(p => p.id === updatedParticipant.id);
+      if (index !== -1) {
+        session.participants[index] = updatedParticipant;
+      }
+    }
+  }
 }
 
 // Singleton pattern for development to prevent re-initialization on hot reloads

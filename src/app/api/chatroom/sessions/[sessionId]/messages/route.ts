@@ -1,7 +1,9 @@
 // src/app/api/chatroom/sessions/[sessionId]/messages/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth-utils';
+import { SessionService } from '@/services/session-service';
+import type { ChatroomMessage } from '@/lib/redux/slices/session/types';
+import prisma from '@/lib/prisma';
 
 export async function POST(request: NextRequest, { params }: { params: { sessionId: string } }) {
   const sessionInfo = await getServerSession();
@@ -17,32 +19,39 @@ export async function POST(request: NextRequest, { params }: { params: { session
   }
 
   try {
-    // Check if the user is a participant of the session
-    const participant = await prisma.sessionParticipant.findUnique({
-      where: {
-        userId_chatroomSessionId: {
-          userId: sessionInfo.user.id,
-          chatroomSessionId: sessionId,
-        },
-      },
-    });
-
-    if (!participant) {
-      return NextResponse.json({ message: 'Vous ne faites pas partie de cette session' }, { status: 403 });
+    const session = SessionService.getSession(sessionId);
+    if (!session) {
+      return NextResponse.json({ message: 'Session non trouvée ou terminée' }, { status: 404 });
     }
 
-    const newMessage = await prisma.chatroomMessage.create({
-      data: {
-        content,
-        chatroomSessionId: sessionId,
-        authorId: sessionInfo.user.id,
-      },
-      include: {
-        author: {
-          select: { id: true, name: true, email: true, img: true, role: true },
+    // Check if the user is a participant of the session
+    const isParticipant = session.participants.some(p => p.id === sessionInfo.user.id);
+    if (!isParticipant) {
+      return NextResponse.json({ message: 'Vous ne faites pas partie de cette session' }, { status: 403 });
+    }
+    
+    const dbMessage = await prisma.chatroomMessage.create({
+        data: {
+            content: content,
+            authorId: sessionInfo.user.id,
+            chatroomSessionId: sessionId
         },
-      },
+        include: {
+            author: true
+        }
     });
+
+    const newMessage: ChatroomMessage = {
+      id: dbMessage.id.toString(),
+      content: dbMessage.content,
+      authorId: dbMessage.authorId,
+      chatroomSessionId: dbMessage.chatroomSessionId,
+      createdAt: dbMessage.createdAt.toISOString(),
+      author: dbMessage.author,
+    };
+    
+    // Add the message to the in-memory session state
+    SessionService.addMessage(sessionId, newMessage);
 
     return NextResponse.json(newMessage, { status: 201 });
   } catch (error) {
