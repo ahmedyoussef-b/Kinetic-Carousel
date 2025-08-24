@@ -1,17 +1,18 @@
 //src/components/chatroom/student/StudentDashboard.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { useLogoutMutation } from '@/lib/redux/api/authApi';
 import { removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice';
-import { selectCurrentUser, selectIsAuthenticated } from '@/lib/redux/slices/authSlice';
+import { selectCurrentUser, selectIsAuthenticated } from '@/lib/redux/features/auth/authSlice';
 import { Role, type SafeUser } from '@/types';
 import { StudentHeader } from './StudentHeader';
 import { InvitationList } from './InvitationList';
 import { NoInvitations } from './NoInvitations';
 import { NotificationList } from './NotificationList';
+import { useToast } from '@/hooks/use-toast';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -20,6 +21,9 @@ export default function StudentDashboard() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [logout, {isLoading: isLoggingOut}] = useLogoutMutation();
   const { notifications } = useAppSelector(state => state.notifications);
+  const prevInvitationsCount = useRef(0);
+  const { toast } = useToast();
+
 
   const pendingInvitations: (AppNotification & { actionUrl: string })[] = notifications.filter(
     (n: AppNotification): n is AppNotification & { actionUrl: string } => n.type === 'session_invite' && !!n.actionUrl && !n.read
@@ -31,9 +35,47 @@ export default function StudentDashboard() {
     }
   }, [isAuthenticated, user, router]);
 
-  const handleLogout = () => {
-    logout();
-    router.replace('/login');
+  // Effect for audio notification
+  useEffect(() => {
+    const playNotificationSound = () => {
+      // Use browser's Audio API to create a simple beep sound
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A high-pitched beep (A5 note)
+      gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3); // Play for 0.3 seconds
+    };
+      
+    if (pendingInvitations.length > prevInvitationsCount.current) {
+      playNotificationSound();
+    }
+    
+    // Update the ref with the current count for the next render
+    prevInvitationsCount.current = pendingInvitations.length;
+
+  }, [pendingInvitations]);
+
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      router.push('/login');
+    } catch (error) {
+       console.error('Failed to logout:', error);
+      toast({
+        title: 'Erreur de déconnexion',
+        description: 'Une erreur est survenue lors de la déconnexion.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleJoinSession = (invitation: AppNotification & { actionUrl: string }) => {
