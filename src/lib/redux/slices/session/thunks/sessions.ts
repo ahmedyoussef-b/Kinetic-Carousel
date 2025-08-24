@@ -15,7 +15,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
   state: { session: { classes: ClassRoom[] }, auth: { user: SafeUser | null } };
 }>(
   'session/startSession',
-  async ({ classId, className, participantIds, templateId }, { rejectWithValue, getState, dispatch }) => {
+  async ({ classId, className, participantIds, templateId }, { rejectValue, getState, dispatch }) => {
     const state = getState();
     const host = state.auth.user;
     const selectedClass = state.session.classes.find((c: ClassRoom) => c.id.toString() === classId);
@@ -100,14 +100,16 @@ export const startSession = createAsyncThunk<ActiveSession, {
       }
       const newSession: ActiveSession = await response.json();
       
-      // *** FIX: Dispatch notifications to selected students ***
+      // Dispatch notifications ONLY to selected students (not the host)
       participantIds.forEach(studentId => {
-          dispatch(addNotification({
-              type: 'session_invite',
-              title: `Invitation à la session: ${className}`,
-              message: `Le professeur ${host.name} vous invite à rejoindre la session.`,
-              actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
-          }));
+          if(studentId !== host.id) { // This condition prevents the host from getting the invite
+              dispatch(addNotification({
+                  type: 'session_invite',
+                  title: `Invitation à la session: ${className}`,
+                  message: `Le professeur ${host.name} vous invite à rejoindre la session.`,
+                  actionUrl: `/list/chatroom/session?sessionId=${newSession.id}`,
+              }));
+          }
       });
 
       return newSession;
