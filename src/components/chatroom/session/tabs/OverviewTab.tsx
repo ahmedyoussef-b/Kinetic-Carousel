@@ -109,6 +109,7 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
               {otherParticipants.map(p => (
                 <div key={p.id} className="w-48 flex-shrink-0">
                    <VideoTile
+                    key={p.id}
                     name={p.name}
                     isOnline={p.isOnline}
                     isTeacher={p.role === 'TEACHER' || p.role === 'ADMIN'}
