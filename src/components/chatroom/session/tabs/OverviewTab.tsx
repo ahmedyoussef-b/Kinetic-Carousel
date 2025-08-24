@@ -12,8 +12,14 @@ import { CSS } from '@dnd-kit/utilities';
 import BreakoutRoomsManagement from '../BreakoutRoomsManagement';
 import { SafeUser } from '@/types';
 import type { ActiveSession, SessionParticipant } from '@/lib/redux/slices/session/types';
+import React from 'react';
 
-const DraggableVideoTile = ({ participant, user, isHost }: { participant: SessionParticipant, user: SafeUser | null, isHost: boolean }) => {
+// Utilisation de React.memo pour optimiser le rendu
+const DraggableVideoTile = React.memo(({ participant, user, isHost }: { 
+  participant: SessionParticipant, 
+  user: SafeUser | null, 
+  isHost: boolean 
+}) => {
     const dispatch = useAppDispatch();
     const {
         attributes,
@@ -31,7 +37,6 @@ const DraggableVideoTile = ({ participant, user, isHost }: { participant: Sessio
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
             <VideoTile
-              key={participant.id}
               name={participant.id === user?.id ? `${participant.name} (Vous)`: participant.name}
               isOnline={participant.isOnline}
               isTeacher={participant.role === 'TEACHER' || participant.role === 'ADMIN'}
@@ -46,7 +51,9 @@ const DraggableVideoTile = ({ participant, user, isHost }: { participant: Sessio
             />
         </div>
     );
-}
+});
+
+DraggableVideoTile.displayName = 'DraggableVideoTile';
 
 interface OverviewTabProps {
   activeSession: ActiveSession;
@@ -58,14 +65,19 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
   const spotlightedParticipantId = useAppSelector(state => state.session.activeSession?.spotlightedParticipantId);
   const isHost = user?.role === 'TEACHER' || user?.role === 'ADMIN';
 
+  // FIX: Filter out duplicate participants to prevent React key warnings
+  const uniqueParticipants = activeSession.participants.filter((participant, index, array) => 
+    array.findIndex(p => p.id === participant.id) === index
+  );
+
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
 
     if (over && active.id !== over.id) {
-        const oldIndex = activeSession.participants.findIndex(p => p.id === active.id);
-        const newIndex = activeSession.participants.findIndex(p => p.id === over.id);
+        const oldIndex = uniqueParticipants.findIndex(p => p.id === active.id);
+        const newIndex = uniqueParticipants.findIndex(p => p.id === over.id);
         dispatch(moveParticipant({ fromIndex: oldIndex, toIndex: newIndex }));
     }
   }
@@ -76,8 +88,8 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
   }
 
   if (spotlightedParticipantId) {
-    const spotlightedParticipant = activeSession.participants.find(p => p.id === spotlightedParticipantId);
-    const otherParticipants = activeSession.participants.filter(p => p.id !== spotlightedParticipantId);
+    const spotlightedParticipant = uniqueParticipants.find(p => p.id === spotlightedParticipantId);
+    const otherParticipants = uniqueParticipants.filter(p => p.id !== spotlightedParticipantId);
 
     return (
       <div className="flex flex-col h-full gap-4">
@@ -140,12 +152,17 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext 
-          items={activeSession.participants.map(p => p.id)}
+          items={uniqueParticipants.map(p => p.id)}
           strategy={rectSortingStrategy}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {activeSession.participants.map((participant) => (
-              <DraggableVideoTile key={participant.id} participant={participant} user={user} isHost={isHost} />
+            {uniqueParticipants.map((participant) => (
+              <DraggableVideoTile 
+                key={participant.id} 
+                participant={participant} 
+                user={user} 
+                isHost={isHost} 
+              />
             ))}
           </div>
         </SortableContext>
