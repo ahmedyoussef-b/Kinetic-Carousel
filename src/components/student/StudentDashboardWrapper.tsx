@@ -9,20 +9,21 @@ import { useRouter } from 'next/navigation';
 
 // Unified presence update function using sendBeacon for reliability
 const updatePresence = (status: 'online' | 'offline') => {
-  console.log(`📡 [StudentWrapper] Sending presence status: ${status} via Beacon.`);
-  // Use navigator.sendBeacon as it's more reliable for sending data on page unload.
-  // It works perfectly for sending data when the page is active as well.
-  if (navigator.sendBeacon) {
-    const data = new Blob([JSON.stringify({ status })], { type: 'application/json' });
-    navigator.sendBeacon('/api/presence/update', data);
-  } else {
-    // Fallback for older browsers
+  console.log(`📡 [StudentWrapper] Sending presence status: ${status}.`);
+  
+  // The beacon API is best for sending data on page unload, but it doesn't send cookies.
+  // The API requires a session, so we must use fetch with credentials.
+  // 'keepalive' flag is crucial for making sure the request is sent even when the page is closing.
+  try {
     fetch('/api/presence/update', {
         method: 'POST',
         body: JSON.stringify({ status }),
         headers: { 'Content-Type': 'application/json' },
-        keepalive: true
+        keepalive: true,
+        credentials: 'include' // FIX: Ensure cookies are sent with the request
     });
+  } catch (e) {
+      console.error("Presence update fetch failed:", e);
   }
 };
 

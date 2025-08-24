@@ -36,7 +36,7 @@ export default function ParticipantsPanel({ isHost }: ParticipantsPanelProps) {
           <div className="space-y-2">
           {participants.map((p: SessionParticipant) => (
   <div key={p.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
-    <div key={`info-${p.id}`} className="flex items-center gap-3"> {/* ← Ajout d'une key ici */}
+    <div  className="flex items-center gap-3"> {/* ← Ajout d'une key ici */}
       <div className={cn("w-2 h-2 rounded-full", p.isOnline ? 'bg-green-500' : 'bg-gray-400')} />
       <p className="font-medium text-sm">{p.name} {p.id === hostId && '(Hôte)'}</p>
     </div>

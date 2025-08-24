@@ -31,6 +31,7 @@ const DraggableVideoTile = ({ participant, user, isHost }: { participant: Sessio
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
             <VideoTile
+              key={participant.id}
               name={participant.id === user?.id ? `${participant.name} (Vous)`: participant.name}
               isOnline={participant.isOnline}
               isTeacher={participant.role === 'TEACHER' || participant.role === 'ADMIN'}
