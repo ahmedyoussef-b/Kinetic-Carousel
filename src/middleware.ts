@@ -3,46 +3,15 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { Role } from '@/types';
 import { routeAccessMap } from '@/lib/settings';
-import { SESSION_COOKIE_NAME } from './lib/constants';
+import { getServerSession } from './lib/auth-utils';
 
-interface JwtPayload {
-  userId: string;
-  role: Role;
-  iat: number;
-  exp: number;
-}
-
-// Function to decode JWT without external libraries
-function decodeJwt(token: string): JwtPayload | null {
-    try {
-        const base64Url = token.split('.')[1];
-        if (!base64Url) return null;
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        return JSON.parse(jsonPayload);
-    } catch (error) {
-        console.error("Error decoding JWT:", error);
-        return null;
-    }
-}
-
-
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   console.log(`🚦 [Middleware] Processing request for: ${pathname}`);
 
-  const sessionToken = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-  let userRole: Role | undefined;
+  const session = await getServerSession();
+  const userRole = session?.user?.role;
 
-  if (sessionToken) {
-    const decodedToken = decodeJwt(sessionToken);
-    if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
-      userRole = decodedToken.role;
-    }
-  }
   console.log(`[Middleware] Session role found: ${userRole}`);
   
   const loginUrl = new URL('/login', req.url);
@@ -71,7 +40,7 @@ export function middleware(req: NextRequest) {
   // User is NOT logged in
   else {
     const isProtectedRoute = Object.keys(routeAccessMap).some(route => new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname));
-    const isPublicRoute = ['/login', '/register', '/accueil'].includes(pathname);
+    const isPublicRoute = ['/login', '/register', '/accueil', '/'].includes(pathname);
 
     // If trying to access a protected route without being logged in, redirect to login
     if (isProtectedRoute && !isPublicRoute) {
