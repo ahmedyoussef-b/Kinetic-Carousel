@@ -1,6 +1,4 @@
-
 // src/app/(dashboard)/student/page.tsx
-
 import { getServerSession } from "@/lib/auth-utils";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -9,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import StudentWeeklyAttendanceChart from "@/components/attendance/StudentWeeklyAttendanceChart";
+import StudentDashboardWrapper from "@/components/student/StudentDashboardWrapper"; // Import the wrapper
 
 import type { Lesson, WizardData, ClassWithGrade, TeacherWithDetails, Subject, Classroom } from '@/types';
 import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
@@ -69,26 +68,28 @@ const StudentPage = async () => {
 
 
   return (
-    <div className="flex-1 p-4 flex flex-col gap-4">
-      <div className="flex flex-col md:flex-row gap-4">
-        <StudentWeeklyAttendanceChart studentId={student.id} />
+    <StudentDashboardWrapper>
+      <div className="flex-1 p-4 flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <StudentWeeklyAttendanceChart studentId={student.id} />
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Mon Emploi du Temps</CardTitle>
+            <CardDescription>
+              Aperçu de votre emploi du temps hebdomadaire.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TimetableDisplay 
+              wizardData={studentWizardData} 
+              viewMode={"student"} 
+              selectedViewId={student.id}
+            />
+          </CardContent>
+        </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Mon Emploi du Temps</CardTitle>
-          <CardDescription>
-            Aperçu de votre emploi du temps hebdomadaire.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TimetableDisplay 
-            wizardData={studentWizardData} 
-            viewMode={"student"} 
-            selectedViewId={student.id}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    </StudentDashboardWrapper>
   );
 };
 

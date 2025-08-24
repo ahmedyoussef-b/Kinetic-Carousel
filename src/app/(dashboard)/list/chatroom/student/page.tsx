@@ -17,16 +17,6 @@ import { NotificationList } from '@/components/chatroom/student/NotificationList
 import { Spinner } from '@/components/ui/spinner';
 
 
-// Unified presence update function using sendBeacon for reliability
-const updatePresence = (status: 'online' | 'offline') => {
-  console.log(`📡 [StudentView] Sending presence status: ${status} via Beacon.`);
-  const data = JSON.stringify({ status });
-  // Use navigator.sendBeacon as it's more reliable for sending data on page unload.
-  // It works perfectly for sending data when the page is active as well.
-  navigator.sendBeacon('/api/presence/update', data);
-};
-
-
 export default function StudentChatroomPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -50,33 +40,9 @@ export default function StudentChatroomPage() {
     }
   }, [isAuthenticated, user, router, isAuthLoading]);
   
-  // Effect to handle user presence
-  useEffect(() => {
-    if (user?.role === Role.STUDENT) {
-        console.log("👋 [StudentView] Student detected. Setting up presence management.");
-        // Set user to online when component mounts
-        updatePresence('online');
-
-        const handleBeforeUnload = () => {
-            console.log("🚪 [StudentView] Page unloading. Sending 'offline' status.");
-            updatePresence('offline');
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        // Set user to offline when component unmounts (e.g., navigating away in a SPA context)
-        return () => {
-            console.log("🛑 [StudentView] Component unmounting. Sending 'offline' status.");
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-            updatePresence('offline');
-        };
-    }
-  }, [user]);
-
-
   const handleLogout = async () => {
     try {
-      updatePresence('offline'); // Ensure offline status is set before logging out
+      // The presence update is now handled by the wrapper component's cleanup function
       await logout().unwrap();
       router.push('/login');
     } catch (error) {
