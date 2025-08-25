@@ -12,9 +12,9 @@ import { Loader2, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import FormError from '@/components/forms/FormError';
 import { loginSchema } from '@/lib/formValidationSchemas';
+import SocialSignInButtons from './SocialSignInButtons';
 
 type LoginFormValues = z.infer<typeof loginSchema>;
-import SocialSignInButtons from './SocialSignInButtons';
 
 
 export default function LoginForm() {
