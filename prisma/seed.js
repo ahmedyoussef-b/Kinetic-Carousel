@@ -67,7 +67,7 @@ async function main() {
   await cleanupDatabase();
 
   console.log('🌱 Début du peuplement de la base de données...');
-  const hashedPassword = await bcrypt.hash('12345678', 10);
+  const hashedPassword = await bcrypt.hash('password123', 10);
 
   // --- Create Admin ---
   console.log('👤 Création de l\'administrateur...');
@@ -175,7 +175,7 @@ async function main() {
 
     // Create 10 students for this class
     for (let i = 1; i <= 10; i++) {
-        const studentName = `Eleve_${level}A_${i}`;
+        const studentName = `eleve_${level}a_${i}`;
         const studentUser = await prisma.user.create({
             data: {
                 email: `${studentName.toLowerCase()}@example.com`,
