@@ -6,6 +6,7 @@ import { SESSION_COOKIE_NAME } from './constants';
 import { getAuth } from 'firebase-admin/auth';
 import { initializeFirebaseAdmin } from './firebase-admin';
 import type { SafeUser } from '@/types';
+import prisma from './prisma';
 
 /**
  * Retrieves the server-side session by verifying the Firebase session cookie.
@@ -13,44 +14,42 @@ import type { SafeUser } from '@/types';
  * @returns A promise that resolves to the session payload (containing the user) or null if invalid.
  */
 export async function getServerSession(): Promise<{ user: SafeUser } | null> {
-  console.log('--- 🍪 [Serveur V2] Tentative de récupération de la session ---');
+  console.log('--- 🍪 [Serveur] Tentative de récupération de la session ---');
   const cookieStore = cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!sessionCookie) {
-    console.log('🚫 [Serveur V2] Pas de jeton de session trouvé dans les cookies.');
+    console.log('🚫 [Serveur] Pas de jeton de session trouvé dans les cookies.');
     return null;
   }
   
-  console.log('✅ [Serveur V2] Jeton trouvé, tentative de vérification avec Firebase Admin...');
+  console.log('✅ [Serveur] Jeton trouvé, tentative de vérification...');
   try {
-    // Initialize Firebase Admin SDK
     initializeFirebaseAdmin();
     
-    // Verify the session cookie with Firebase Admin
     const decodedToken = await getAuth().verifySessionCookie(sessionCookie, true);
+    console.log('🔍 [Serveur] Jeton décodé:', decodedToken);
+
+    // After verifying the token, we still fetch the user from our DB
+    // to ensure the role and other details are up-to-date with our system.
+    const userFromDb = await prisma.user.findUnique({
+      where: { id: decodedToken.uid },
+    });
+
+    if (!userFromDb) {
+      console.error(`🚫 [Serveur] Utilisateur avec UID ${decodedToken.uid} non trouvé dans la DB.`);
+      cookieStore.delete(SESSION_COOKIE_NAME);
+      return null;
+    }
     
-    console.log('🔍 [Serveur V2] Jeton Firebase décodé:', decodedToken);
+    console.log(`✅ [Serveur] Utilisateur trouvé dans la DB: ${userFromDb.email}`);
 
-    // The decoded token from Firebase contains all the necessary user info.
-    // We can construct the SafeUser object directly from it.
-    const user: SafeUser = {
-      id: decodedToken.uid,
-      email: decodedToken.email || '',
-      name: decodedToken.name || null,
-      img: decodedToken.picture || null,
-      role: (decodedToken.role as any) || 'VISITOR', // Default role if not set
-      // Add other fields from your SafeUser type as needed, extracting from decodedToken
-      active: true, // Assume active if token is valid
-      firstName: '', // These can be fetched from your DB if needed
-      lastName: '',
-      twoFactorEnabled: decodedToken.two_factor_enabled || false
-    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...safeUser } = userFromDb;
 
-    return { user };
+    return { user: safeUser };
   } catch (error) {
-    console.error('❌ [Serveur V2] Jeton de session Firebase invalide ou expiré:', error);
-    // Clear the invalid cookie
+    console.error('❌ [Serveur] Jeton de session invalide ou expiré:', error);
     cookieStore.delete(SESSION_COOKIE_NAME);
     return null;
   }

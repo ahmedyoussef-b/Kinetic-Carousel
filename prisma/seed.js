@@ -1,7 +1,7 @@
-
 // prisma/seed.js
 const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+const { getAuth } = require('firebase-admin/auth');
+const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin');
 
 const prisma = new PrismaClient();
 
@@ -67,15 +67,31 @@ async function main() {
   await cleanupDatabase();
 
   console.log('🌱 Début du peuplement de la base de données...');
-  const hashedPassword = await bcrypt.hash('password123', 10);
+  initializeFirebaseAdmin();
+  const auth = getAuth();
 
-  // --- Create Admin ---
-  console.log('👤 Création de l\'administrateur...');
-  const admin1 = await prisma.user.create({
-    data: {
-      email: 'admin@example.com',
+  // --- Get Firebase Users (must be created in Firebase Console first) ---
+  const adminEmail = 'admin@example.com';
+  const parentEmail = 'parent@example.com';
+
+  let adminUser, parentUser;
+  try {
+    adminUser = await auth.getUserByEmail(adminEmail);
+    parentUser = await auth.getUserByEmail(parentEmail);
+  } catch (error) {
+    console.error(`❌ Erreur: Impossible de trouver les utilisateurs Firebase. Assurez-vous que "${adminEmail}" et "${parentEmail}" existent dans Firebase Authentication.`);
+    process.exit(1);
+  }
+  
+  // --- Create/Update Local User Profiles ---
+  console.log('👤 Synchronisation des utilisateurs locaux...');
+  const admin1 = await prisma.user.upsert({
+    where: { id: adminUser.uid },
+    update: {},
+    create: {
+      id: adminUser.uid,
+      email: adminEmail,
       username: 'admin',
-      password: hashedPassword,
       name: 'Admin Principal',
       role: 'ADMIN',
       active: true,
@@ -84,15 +100,14 @@ async function main() {
     }
   });
   await prisma.admin.create({ data: { userId: admin1.id, name: 'Admin', surname: 'Principal' } });
-  console.log('✅ Administrateur créé.');
 
-  // --- Create Parent ---
-  console.log('👤 Création du parent...');
-  const parentUser = await prisma.user.create({
-    data: {
-      email: 'parent@example.com',
+  const parentLocalUser = await prisma.user.upsert({
+    where: { id: parentUser.uid },
+    update: {},
+    create: {
+      id: parentUser.uid,
+      email: parentEmail,
       username: 'parent',
-      password: hashedPassword,
       name: 'Parent Exemple',
       role: 'PARENT',
       active: true,
@@ -102,14 +117,14 @@ async function main() {
   });
   const parent = await prisma.parent.create({
     data: {
-      userId: parentUser.id,
+      userId: parentLocalUser.id,
       name: 'Parent',
       surname: 'Exemple',
       phone: '123456789',
       address: '123 Rue Exemple'
     }
   });
-  console.log('✅ Parent créé.');
+  console.log('✅ Utilisateurs principaux synchronisés.');
 
   // --- Create Subjects ---
   console.log('📚 Création des matières...');
@@ -123,11 +138,16 @@ async function main() {
   const teachers = [];
   for (const subject of createdSubjects) {
       const teacherName = `Prof_${subject.name.replace(/\s+/g, '')}`;
+      const teacherEmail = `${teacherName.toLowerCase()}@example.com`;
+      
+      // We create a disabled user in Firebase to reserve the email and get a UID
+      const fbTeacher = await auth.createUser({ email: teacherEmail, disabled: true });
+
       const teacherUser = await prisma.user.create({
           data: {
-              email: `${teacherName.toLowerCase()}@example.com`,
+              id: fbTeacher.uid,
+              email: teacherEmail,
               username: teacherName.toLowerCase(),
-              password: hashedPassword,
               name: `${teacherName} Principal`,
               role: 'TEACHER',
               active: true,
@@ -176,11 +196,15 @@ async function main() {
     // Create 10 students for this class
     for (let i = 1; i <= 10; i++) {
         const studentName = `eleve_${level}a_${i}`;
+        const studentEmail = `${studentName.toLowerCase()}@example.com`;
+
+        const fbStudent = await auth.createUser({ email: studentEmail, disabled: true });
+        
         const studentUser = await prisma.user.create({
             data: {
-                email: `${studentName.toLowerCase()}@example.com`,
+                id: fbStudent.uid,
+                email: studentEmail,
                 username: studentName.toLowerCase(),
-                password: hashedPassword,
                 name: `Élève ${i} ${level}A`,
                 role: 'STUDENT',
                 active: true,
@@ -195,7 +219,7 @@ async function main() {
                 surname: `${i} ${level}A`,
                 classId: newClass.id,
                 gradeId: grade.id,
-                parentId: parent.id ,// Assign all students to the single parent
+                parentId: parent.id,
                 address: '123 Rue Exemple',
                 phone: '123456789',
                 birthday: new Date(),

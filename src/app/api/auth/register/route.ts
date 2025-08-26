@@ -1,25 +1,26 @@
 // src/app/api/auth/register/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 import { Prisma, Role } from '@prisma/client';
 import { registerSchema } from '@/lib/formValidationSchemas';
 import type { SafeUser } from '@/types';
-
-const HASH_ROUNDS = 10;
+import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
+import { getAuth } from 'firebase-admin/auth';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const validation = registerSchema.safeParse(body);
+    const { idToken, role, name } = body;
 
-    if (!validation.success) {
-      return NextResponse.json({ message: "Données d'inscription invalides.", errors: validation.error.errors }, { status: 400 });
+    if (!idToken || !role || !name) {
+        return NextResponse.json({ message: "Données d'inscription incomplètes." }, { status: 400 });
     }
 
-    const { email, password, role, name } = validation.data;
+    initializeFirebaseAdmin();
+    const auth = getAuth();
+    const decodedToken = await auth.verifyIdToken(idToken);
     
-    // Default name if not provided
+    const { uid, email } = decodedToken;
     const finalName = name || (role === Role.TEACHER ? 'Nouvel Enseignant' : 'Nouveau Parent');
     const [firstName, ...lastNameParts] = finalName.split(' ');
     const lastName = lastNameParts.join(' ') || '';
@@ -28,15 +29,13 @@ export async function POST(req: NextRequest) {
     if (existingUser) {
       return NextResponse.json({ message: "Un utilisateur avec cet email existe déjà." }, { status: 409 });
     }
-    
-    const hashedPassword = await bcrypt.hash(password, HASH_ROUNDS);
 
     const newUser = await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
             data: {
-                email,
-                username: email, // Default username to email
-                password: hashedPassword,
+                id: uid, // Use Firebase UID as the primary key
+                email: email!,
+                username: email!, // Default username to email
                 role,
                 name: finalName,
                 firstName: firstName,
@@ -47,26 +46,17 @@ export async function POST(req: NextRequest) {
 
         // Create the corresponding role profile
         if (role === Role.TEACHER) {
-            await tx.teacher.create({
-                data: {
-                    userId: user.id,
-                    name: firstName,
-                    surname: lastName,
-                }
-            });
+            await tx.teacher.create({ data: { userId: user.id, name: firstName, surname: lastName } });
         } else if (role === Role.PARENT) {
-            await tx.parent.create({
-                data: {
-                    userId: user.id,
-                    name: firstName,
-                    surname: lastName,
-                }
-            });
+            await tx.parent.create({ data: { userId: user.id, name: firstName, surname: lastName } });
         }
         
         return user;
     });
     
+    // Set custom claim for role
+    await auth.setCustomUserClaims(uid, { role });
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...safeUser } = newUser;
 

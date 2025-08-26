@@ -11,6 +11,11 @@ export interface AuthResponse {
   tempToken?: string;
 }
 
+export interface SocialAuthResponse {
+    user: SafeUser;
+    isNewUser: boolean;
+}
+
 export interface LogoutResponse {
     message: string;
 }
@@ -30,6 +35,16 @@ export interface RegisterRequest {
   name: string;
 }
 
+export interface SocialLoginRequest {
+    idToken: string;
+}
+
+export interface Verify2FARequest {
+    tempToken: string;
+    code: string;
+}
+
+
 // --- API Definition ---
 
 export const authApi = createApi({
@@ -43,8 +58,6 @@ export const authApi = createApi({
         method: 'POST',
         body: credentials,
       }),
-      // The onQueryStarted for login now primarily handles server-side session cookie creation.
-      // Client-side state is managed by onAuthStateChanged listener in a provider.
       invalidatesTags: ['Session'],
     }),
     register: builder.mutation<AuthResponse, RegisterRequest>({
@@ -53,6 +66,22 @@ export const authApi = createApi({
         method: 'POST',
         body: userInfo,
       }),
+    }),
+    socialLogin: builder.mutation<SocialAuthResponse, SocialLoginRequest>({
+        query: (credentials) => ({
+            url: 'social-login',
+            method: 'POST',
+            body: credentials,
+        }),
+        invalidatesTags: ['Session'],
+    }),
+    verify2FA: builder.mutation<AuthResponse, Verify2FARequest>({
+      query: (body) => ({
+        url: 'verify-2fa',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Session'],
     }),
     getSession: builder.query<SessionResponse, void>({
       query: () => 'session',
@@ -96,4 +125,6 @@ export const {
   useRegisterMutation,
   useGetSessionQuery,
   useLogoutMutation,
+  useSocialLoginMutation,
+  useVerify2FAMutation,
 } = authApi;

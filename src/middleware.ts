@@ -28,7 +28,7 @@ export async function middleware(req: NextRequest) {
     const dashboardUrl = new URL(`/${userRole.toLowerCase()}`, req.url);
     
     // S'il est sur une page publique/d'authentification, le rediriger vers son tableau de bord
-    if (['/login', '/register', '/accueil'].includes(pathname)) {
+    if (['/login', '/register', '/accueil', '/forgot-password', '/reset-password'].some(p => pathname.startsWith(p))) {
         console.log(`[Middleware] User is logged in. Redirecting from ${pathname} to their dashboard.`);
         return NextResponse.redirect(dashboardUrl);
     }
@@ -48,7 +48,7 @@ export async function middleware(req: NextRequest) {
     const isProtectedRoute = Object.keys(routeAccessMap).some(route => 
         new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname)
     );
-    const isPublicAuthRoute = ['/login', '/register', '/accueil', '/forgot-password', '/reset-password'].includes(pathname);
+    const isPublicAuthRoute = ['/login', '/register', '/accueil', '/forgot-password', '/reset-password'].some(p => pathname.startsWith(p));
 
     // S'il essaie d'accéder à une route protégée sans être connecté, le rediriger vers la page de connexion
     if (isProtectedRoute && !isPublicAuthRoute) {
