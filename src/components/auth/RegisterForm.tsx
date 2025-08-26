@@ -11,14 +11,18 @@ import { Loader2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import FormError from '@/components/forms/FormError';
 import { Role } from '@/types';
+import { useState } from 'react';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { initializeFirebaseApp } from '@/lib/firebase';
 
 type RegisterFormValues = RegisterSchema;
 
 export default function RegisterForm() {
-  console.log("🎨 [RegisterForm] Le composant est en cours de rendu.");
   const router = useRouter();
   const { toast } = useToast();
-  const [registerUser, { isLoading }] = useRegisterMutation();
+  const [registerApi, { isLoading: isApiLoading }] = useRegisterMutation();
+  const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
+  const isLoading = isApiLoading || isFirebaseLoading;
 
   const {
     register,
@@ -34,22 +38,31 @@ export default function RegisterForm() {
   const role = watch('role');
 
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
-    console.log("➡️ [RegisterForm] Le formulaire est soumis avec les données:", { email: data.email, role: data.role });
+    setIsFirebaseLoading(true);
     try {
-      await registerUser(data).unwrap();
-      console.log("✅ [RegisterForm] Inscription réussie. Redirection...");
+      const app = initializeFirebaseApp();
+      const auth = getAuth(app);
+      
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const idToken = await userCredential.user.getIdToken();
+
+      await registerApi({ idToken, role: data.role, name: data.name }).unwrap();
+      
       toast({
         title: 'Compte créé !',
         description: "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.",
       });
       router.push('/login');
     } catch (error: any) {
-      console.error("❌ [RegisterForm] Échec de l'inscription :", error.data?.message);
+      console.error("Registration Error:", error);
+      const errorMessage = error.data?.message || (error.code === 'auth/email-already-in-use' ? 'Cette adresse e-mail est déjà utilisée.' : "Une erreur inattendue s'est produite.");
       toast({
         variant: 'destructive',
         title: 'Erreur lors de l\'inscription',
-        description: error.data?.message || "Une erreur inattendue s'est produite.",
+        description: errorMessage,
       });
+    } finally {
+      setIsFirebaseLoading(false);
     }
   };
 

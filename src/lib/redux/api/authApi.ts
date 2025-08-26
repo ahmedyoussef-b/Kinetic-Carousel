@@ -2,25 +2,14 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { setUser, logout as logoutAction } from '../features/auth/authSlice';
 import type { SafeUser, Role } from '@/types/index';
-import type { 
-    LoginSchema, 
-    RegisterSchema,
-    ProfileUpdateSchema
-} from '@/types/schemas';
 
 // --- Response Types ---
-
 export interface AuthResponse {
-  message?: string; // Optional message for some responses
-  user: SafeUser;
+  status: 'success' | 'requires-2fa';
+  message: string;
+  user?: SafeUser;
+  tempToken?: string;
 }
-
-export interface TwoFactorResponse {
-    message: string;
-    tempToken: string; // A temporary token to be used for the 2FA verification step
-}
-
-export type LoginResponse = AuthResponse | TwoFactorResponse;
 
 export interface LogoutResponse {
     message: string;
@@ -30,27 +19,16 @@ export interface SessionResponse {
   user: SafeUser | null; 
 }
 
-
 // --- Request Types ---
-
-export interface SocialLoginRequest {
+export interface LoginRequest {
   idToken: string;
 }
 
-export interface ForgotPasswordRequest {
-    email: string;
+export interface RegisterRequest {
+  idToken: string;
+  role: Role;
+  name: string;
 }
-
-export interface ResetPasswordRequest {
-    token: string;
-    password: string;
-}
-
-export interface Verify2FARequest {
-    tempToken: string;
-    code: string;
-}
-
 
 // --- API Definition ---
 
@@ -59,99 +37,35 @@ export const authApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/auth/' }),
   tagTypes: ['Session'],
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginSchema>({
+    login: builder.mutation<AuthResponse, LoginRequest>({
       query: (credentials) => ({
         url: 'login',
         method: 'POST',
         body: credentials,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        console.log("▶️ [authApi] onQueryStarted for login mutation.");
-        try {
-            const { data } = await queryFulfilled;
-            console.log("✅ [authApi] Login queryFulfilled. Data:", data);
-            if ('user' in data) { // Check if it's AuthResponse
-                dispatch(setUser(data.user));
-                 // Invalidate the session tag to force a re-fetch of the session state
-                dispatch(authApi.util.invalidateTags(['Session']));
-            }
-        } catch (error) {
-            console.error("❌ [authApi] Login queryFulfilled failed.", error);
-        }
-      },
+      // The onQueryStarted for login now primarily handles server-side session cookie creation.
+      // Client-side state is managed by onAuthStateChanged listener in a provider.
+      invalidatesTags: ['Session'],
     }),
-    register: builder.mutation<AuthResponse, RegisterSchema>({
+    register: builder.mutation<AuthResponse, RegisterRequest>({
       query: (userInfo) => ({
         url: 'register',
         method: 'POST',
         body: userInfo,
       }),
     }),
-    socialLogin: builder.mutation<AuthResponse, SocialLoginRequest>({
-        query: ({ idToken }) => ({
-            url: 'social-login',
-            method: 'POST',
-            body: { idToken },
-        }),
-        async onQueryStarted(args, { dispatch, queryFulfilled }) {
-            try {
-                const { data } = await queryFulfilled;
-                dispatch(setUser(data.user));
-            } catch (error) {
-                // Handle error
-            }
-        },
-    }),
-    forgotPassword: builder.mutation<{ message: string }, ForgotPasswordRequest>({
-        query: (body) => ({
-            url: 'forgot-password',
-            method: 'POST',
-            body,
-        }),
-    }),
-    resetPassword: builder.mutation<{ message: string }, ResetPasswordRequest>({
-        query: (body) => ({
-            url: 'reset-password',
-            method: 'POST',
-            body,
-        }),
-    }),
-    verify2FA: builder.mutation<AuthResponse, Verify2FARequest>({
-        query: (body) => ({
-            url: 'verify-2fa',
-            method: 'POST',
-            body,
-        }),
-        async onQueryStarted(args, { dispatch, queryFulfilled }) {
-            try {
-                const { data } = await queryFulfilled;
-                dispatch(setUser(data.user));
-                // Invalidate the session tag to force a re-fetch of the session state
-                dispatch(authApi.util.invalidateTags(['Session']));
-            } catch (error) {
-                // Handle error
-            }
-        }
-    }),
     getSession: builder.query<SessionResponse, void>({
       query: () => 'session',
       providesTags: (result) => (result ? [{ type: 'Session', id: 'CURRENT' }] : []),
        async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        console.log("▶️ [authApi] onQueryStarted for getSession query.");
         try {
           const { data } = await queryFulfilled;
-          console.log("✅ [authApi] getSession queryFulfilled. Data:", data);
           if (data?.user) {
             dispatch(setUser(data.user));
           } else {
-             // If no user is returned, it means the session is invalid or expired.
-             // Dispatch logout to clear client-side auth state.
-             console.log("ℹ️ [authApi] getSession found no active user. Logging out client-side.");
              dispatch(logoutAction());
           }
         } catch (error) {
-          console.error("❌ [authApi] getSession queryFulfilled failed.", error);
-          // If the query fails (e.g., network error, invalid token), also log out client-side.
           dispatch(logoutAction());
         }
       },
@@ -180,10 +94,6 @@ export const authApi = createApi({
 export const {
   useLoginMutation,
   useRegisterMutation,
-  useSocialLoginMutation,
-  useForgotPasswordMutation,
-  useResetPasswordMutation,
-  useVerify2FAMutation,
   useGetSessionQuery,
   useLogoutMutation,
 } = authApi;

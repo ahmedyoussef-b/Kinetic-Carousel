@@ -10,8 +10,10 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Mail } from 'lucide-react';
 import Link from 'next/link';
-import { useForgotPasswordMutation } from '@/lib/redux/api/authApi';
 import FormError from '@/components/forms/FormError';
+import { useState } from 'react';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { initializeFirebaseApp } from '@/lib/firebase';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: 'Veuillez entrer une adresse e-mail valide.' }),
@@ -20,7 +22,8 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordForm() {
-  const [forgotPassword, { isLoading, isSuccess }] = useForgotPasswordMutation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const {
     register,
@@ -31,18 +34,27 @@ export default function ForgotPasswordForm() {
   });
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
+    setIsLoading(true);
     try {
-      await forgotPassword(data).unwrap();
+      const app = initializeFirebaseApp();
+      const auth = getAuth(app);
+      await sendPasswordResetEmail(auth, data.email);
+      setIsSuccess(true);
       toast({
         title: 'E-mail envoyé',
-        description: 'Si un compte existe, un lien de réinitialisation a été envoyé.',
+        description: 'Si un compte existe pour cette adresse, un lien de réinitialisation a été envoyé.',
       });
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: error.data?.message || "Une erreur s'est produite.",
+      console.error("Forgot Password Error:", error);
+      // Firebase errors don't reveal if an email exists, which is good for security.
+      // So we show a generic success message even on error.
+      setIsSuccess(true);
+       toast({
+        title: 'E-mail envoyé',
+        description: 'Si un compte existe pour cette adresse, un lien de réinitialisation a été envoyé.',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 

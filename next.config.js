@@ -51,6 +51,9 @@ const nextConfig = {
     ],
   },
   webpack: (config, { isServer, dev }) => {
+    // Enable WebAssembly experiments
+    config.experiments = { ...config.experiments, asyncWebAssembly: true };
+    
     // Fix for HMR in Gitpod and other similar environments
     if (dev && !isServer) {
       config.watchOptions.poll = 300;

@@ -1,26 +1,29 @@
 // src/components/auth/LoginForm.tsx
 'use client';
 
-import { useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useLoginMutation } from '@/lib/redux/api/authApi';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import FormError from '@/components/forms/FormError';
 import { loginSchema } from '@/lib/formValidationSchemas';
 import SocialSignInButtons from './SocialSignInButtons';
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { useLoginMutation } from '@/lib/redux/api/authApi';
+import { initializeFirebaseApp } from '@/lib/firebase';
+import { useState } from 'react';
 
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const [login, { isLoading, isSuccess, isError, data: loginSuccessData, error: loginErrorData }] = useLoginMutation();
+  const [loginApi, { isLoading: isApiLoading }] = useLoginMutation();
+  const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
+  const isLoading = isApiLoading || isFirebaseLoading;
   
   const {
     register,
@@ -30,27 +33,36 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  useEffect(() => {
-    if (isSuccess && loginSuccessData) {
-        toast({
-          title: "Connexion réussie!",
-          description: "Vous allez être redirigé vers votre tableau de bord."
-        });
-        // Redirect to the accueil page, which will then handle role-based redirection.
-        window.location.href = '/accueil';
-    }
-    if (isError) {
-      const apiError = loginErrorData as any;
+  const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
+    setIsFirebaseLoading(true);
+    try {
+      const app = initializeFirebaseApp();
+      const auth = getAuth(app);
+      
+      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      const idToken = await userCredential.user.getIdToken();
+
+      await loginApi({ idToken }).unwrap();
+      
+      toast({
+        title: "Connexion réussie!",
+        description: "Vous allez être redirigé vers votre tableau de bord."
+      });
+      
+      // Force a full page reload to allow the middleware to redirect correctly
+      window.location.href = '/';
+
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      const errorMessage = error.data?.message || (error.code === 'auth/invalid-credential' ? 'Email ou mot de passe incorrect.' : "Une erreur est survenue.");
       toast({
         variant: "destructive",
         title: "Échec de la connexion",
-        description: apiError?.data?.message || "Veuillez vérifier vos identifiants."
+        description: errorMessage,
       });
+    } finally {
+      setIsFirebaseLoading(false);
     }
-  }, [isSuccess, isError, loginSuccessData, loginErrorData, router, toast]);
-
-  const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
-    await login(data);
   };
 
   return (

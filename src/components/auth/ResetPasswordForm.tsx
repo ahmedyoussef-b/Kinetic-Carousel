@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, KeyRound } from 'lucide-react';
 import Link from 'next/link';
-import { useResetPasswordMutation } from '@/lib/redux/api/authApi';
 import { useRouter } from 'next/navigation';
 import FormError from '@/components/forms/FormError';
+import { useState } from 'react';
+import { getAuth, confirmPasswordReset } from 'firebase/auth';
+import { initializeFirebaseApp } from '@/lib/firebase';
 
 const resetPasswordSchema = z
   .object({
@@ -31,7 +33,8 @@ interface ResetPasswordFormProps {
 }
 
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
-  const [resetPassword, { isLoading, isSuccess }] = useResetPasswordMutation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
 
   const {
@@ -43,19 +46,29 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   });
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
+    setIsLoading(true);
     try {
-      await resetPassword({ token, password: data.password }).unwrap();
+      const app = initializeFirebaseApp();
+      const auth = getAuth(app);
+      await confirmPasswordReset(auth, token, data.password);
+      setIsSuccess(true);
       toast({
         title: 'Mot de passe réinitialisé',
         description: 'Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.',
       });
       router.push('/login');
     } catch (error: any) {
+      console.error("Reset Password Error:", error);
+      const errorMessage = error.code === 'auth/invalid-action-code' 
+        ? "Le lien de réinitialisation est invalide ou a expiré." 
+        : "Une erreur est survenue.";
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error.data?.message || "Une erreur s'est produite.",
+        description: errorMessage,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
   

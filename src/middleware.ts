@@ -48,7 +48,7 @@ export async function middleware(req: NextRequest) {
     const isProtectedRoute = Object.keys(routeAccessMap).some(route => 
         new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname)
     );
-    const isPublicAuthRoute = ['/login', '/register', '/accueil'].includes(pathname);
+    const isPublicAuthRoute = ['/login', '/register', '/accueil', '/forgot-password', '/reset-password'].includes(pathname);
 
     // S'il essaie d'accéder à une route protégée sans être connecté, le rediriger vers la page de connexion
     if (isProtectedRoute && !isPublicAuthRoute) {
