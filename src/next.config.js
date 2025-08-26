@@ -6,7 +6,6 @@ const nextConfig = {
   experimental: {
     /* Kept for other potential experimental features */
     serverComponentsExternalPackages: ["@opentelemetry/instrumentation"],
-    asyncWebAssembly: true,
   },
   // The 'allowedDevOrigins' key must be at the top level, not inside 'experimental'.
   // This is required for the Cloud Workstations environment.

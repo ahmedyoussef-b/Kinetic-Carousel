@@ -21,6 +21,7 @@ function initializeFirebaseAdmin() {
 
 
 export async function POST(req: NextRequest) {
+  console.log("--- 🚀 API: Tentative d'inscription ---");
   try {
     const body = await req.json();
     const { idToken, role, name } = body;
@@ -31,7 +32,9 @@ export async function POST(req: NextRequest) {
 
     const adminInstance = initializeFirebaseAdmin();
     const auth = adminInstance.auth();
+    console.log("🔍 [API/Register] Vérification du token ID Firebase...");
     const decodedToken = await auth.verifyIdToken(idToken);
+    console.log(`✅ [API/Register] Token ID vérifié pour UID: ${decodedToken.uid}`);
     
     const { uid, email } = decodedToken;
     const finalName = name || (role === Role.TEACHER ? 'Nouvel Enseignant' : 'Nouveau Parent');
@@ -40,9 +43,11 @@ export async function POST(req: NextRequest) {
 
     const existingUser = await prisma.user.findFirst({ where: { email } });
     if (existingUser) {
+      console.warn(`[API/Register] Tentative d'inscription avec un email existant: ${email}`);
       return NextResponse.json({ message: "Un utilisateur avec cet email existe déjà." }, { status: 409 });
     }
 
+    console.log(`[API/Register] Création d'un nouvel utilisateur dans la base de données pour ${email} avec le rôle ${role}...`);
     const newUser = await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
             data: {
@@ -66,9 +71,12 @@ export async function POST(req: NextRequest) {
         
         return user;
     });
+    console.log(`[API/Register] Utilisateur et profil de rôle créés. ID utilisateur: ${newUser.id}`);
     
     // Set custom claim for role
+    console.log(`[API/Register] Définition des revendications personnalisées Firebase pour le rôle...`);
     await auth.setCustomUserClaims(uid, { role });
+    console.log(`✅ [API/Register] Inscription réussie pour ${email}.`);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...safeUser } = newUser;
@@ -76,7 +84,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ user: safeUser as SafeUser }, { status: 201 });
 
   } catch (error) {
-    console.error("Erreur lors de l'inscription:", error);
+    console.error("❌ [API/Register] Erreur lors de l'inscription:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return NextResponse.json({ message: "Un utilisateur avec cet email ou nom d'utilisateur existe déjà." }, { status: 409 });
     }

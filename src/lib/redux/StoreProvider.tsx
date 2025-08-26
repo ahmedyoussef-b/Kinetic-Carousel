@@ -7,13 +7,15 @@ import { useGetSessionQuery } from './api/authApi'
 import { useEffect } from 'react'
 import { setAuthLoading } from './features/auth/authSlice'
 
-function AuthInitializer({ children }: { children: React.ReactNode }) {
+function AuthInitializer({ children }: { children: React.React.Node }) {
     // This hook ensures that on initial load, we make a request to check the session.
     // The onQueryStarted listener in the authApi will then dispatch setUser if a session exists.
+    console.log("⚛️ [StoreProvider] AuthInitializer est en cours de rendu. Déclenchement de useGetSessionQuery.");
     const { isLoading, isUninitialized } = useGetSessionQuery();
 
     // Manually manage the top-level loading state in the auth slice.
     useEffect(() => {
+        console.log(`⚛️ [StoreProvider] useEffect détecte un changement de chargement. isLoading: ${isLoading}, isUninitialized: ${isUninitialized}`);
         store.dispatch(setAuthLoading(isLoading || isUninitialized));
     }, [isLoading, isUninitialized]);
     
@@ -25,7 +27,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 export function StoreProvider({
   children,
 }: {
-  children: React.ReactNode
+  children: React.React.Node
 }) {
   return (
     <Provider store={store}>

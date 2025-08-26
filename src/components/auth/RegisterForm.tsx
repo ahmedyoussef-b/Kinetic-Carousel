@@ -38,15 +38,20 @@ export default function RegisterForm() {
   const role = watch('role');
 
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+    console.log("📝 [RegisterForm] Tentative d'inscription soumise pour:", data.email);
     setIsFirebaseLoading(true);
     try {
       const app = initializeFirebaseApp();
       const auth = getAuth(app);
       
+      console.log("🔥 [RegisterForm] Création de l'utilisateur dans Firebase Auth...");
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      console.log("✅ [RegisterForm] Utilisateur Firebase créé. Obtention du token ID...");
       const idToken = await userCredential.user.getIdToken();
 
+      console.log("📡 [RegisterForm] Envoi des informations à notre API backend pour créer le profil...");
       await registerApi({ idToken, role: data.role, name: data.name }).unwrap();
+      console.log("✅ [RegisterForm] Profil créé avec succès dans notre base de données.");
       
       toast({
         title: 'Compte créé !',
@@ -54,7 +59,7 @@ export default function RegisterForm() {
       });
       router.push('/login');
     } catch (error: any) {
-      console.error("Registration Error:", error);
+      console.error("❌ [RegisterForm] Erreur lors de l'inscription:", error);
       const errorMessage = error.data?.message || (error.code === 'auth/email-already-in-use' ? 'Cette adresse e-mail est déjà utilisée.' : "Une erreur inattendue s'est produite.");
       toast({
         variant: 'destructive',

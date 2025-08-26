@@ -87,14 +87,18 @@ export const authApi = createApi({
       query: () => 'session',
       providesTags: (result) => (result ? [{ type: 'Session', id: 'CURRENT' }] : []),
        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        console.log('📡 [AuthAPI] onQueryStarted pour getSession. En attente de la réponse...');
         try {
           const { data } = await queryFulfilled;
           if (data?.user) {
+            console.log('✅ [AuthAPI] Session trouvée. Dispatch de setUser:', data.user);
             dispatch(setUser(data.user));
           } else {
+             console.log('🚫 [AuthAPI] Aucune session active. Dispatch de logoutAction.');
              dispatch(logoutAction());
           }
         } catch (error) {
+          console.error('❌ [AuthAPI] Échec de la récupération de la session. Dispatch de logoutAction.', error);
           dispatch(logoutAction());
         }
       },
@@ -105,6 +109,7 @@ export const authApi = createApi({
         method: 'POST',
       }),
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        console.log('🚪 [AuthAPI] onQueryStarted pour logout.');
         try {
             await queryFulfilled;
             dispatch(logoutAction());
