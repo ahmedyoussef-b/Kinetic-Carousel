@@ -1,14 +1,19 @@
+'use server';
 // src/lib/firebase-admin.ts
-// This file is no longer used for initialization to prevent client-side bundling issues.
-// The initialization logic has been moved directly into server-side scripts that need it, like `prisma/seed.js`.
 import admin from 'firebase-admin';
 
-export function getInitializedFirebaseAdmin() {
+/**
+ * A singleton pattern to initialize Firebase Admin SDK.
+ * Ensures that the SDK is initialized only once.
+ * This file is marked with "use server" to prevent it from being bundled into client-side code.
+ */
+export function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     console.log("🔥 [Firebase Admin] Initializing Admin SDK...");
     const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
 
     if (!serviceAccount) {
+      console.error("🔥 [Firebase Admin] ❌ FIREBASE_ADMIN_SDK_CONFIG is not set.");
       throw new Error('Firebase Admin SDK config is not set in environment variables.');
     }
 

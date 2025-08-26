@@ -54,14 +54,6 @@ const nextConfig = {
     if (dev && !isServer) {
       config.watchOptions.poll = 300;
     }
-    
-    // Polyfill for 'process/browser' to prevent errors with 'node:process'
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        process: require.resolve('process/browser'),
-      };
-    }
 
     // Fix for HMR websocket connection issue
     config.module.rules.push({

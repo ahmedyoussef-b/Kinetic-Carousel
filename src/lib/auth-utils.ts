@@ -2,25 +2,9 @@
 
 import { cookies } from 'next/headers';
 import { SESSION_COOKIE_NAME } from './constants';
-import admin from 'firebase-admin';
+import { initializeFirebaseAdmin } from './firebase-admin'; // Use the new server-only module
 import type { SafeUser } from '@/types';
 import prisma from './prisma';
-
-// Helper function to initialize Firebase Admin SDK, ensuring it's a singleton.
-function initializeFirebaseAdmin() {
-  if (!admin.apps.length) {
-    console.log("🔥 [Auth Utils] Initializing Firebase Admin SDK...");
-    const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
-    if (!serviceAccount) {
-      throw new Error('Firebase Admin SDK config is not set in environment variables.');
-    }
-    admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(serviceAccount)),
-    });
-  }
-  return admin;
-}
-
 
 /**
  * Retrieves the server-side session by verifying the Firebase session cookie.
@@ -39,9 +23,9 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
   
   console.log('✅ [Serveur] Jeton trouvé, tentative de vérification...');
   try {
-    const adminInstance = initializeFirebaseAdmin();
+    const admin = initializeFirebaseAdmin();
     
-    const decodedToken = await adminInstance.auth().verifySessionCookie(sessionCookie, true);
+    const decodedToken = await admin.auth().verifySessionCookie(sessionCookie, true);
     console.log('🔍 [Serveur] Jeton décodé:', decodedToken);
 
     // After verifying the token, we still fetch the user from our DB
