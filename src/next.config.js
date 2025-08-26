@@ -87,7 +87,7 @@ const nextConfig = {
         'handlebars': 'handlebars/dist/cjs/handlebars',
     };
 
-    // Ignore node:process module in client-side builds
+    // Ignore node:process module in client-side builds by providing a browser polyfill
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
