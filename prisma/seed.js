@@ -1,7 +1,6 @@
 // prisma/seed.js
 const { PrismaClient } = require('@prisma/client');
-const { getAuth } = require('firebase-admin/auth');
-const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin');
+const admin = require('firebase-admin');
 
 const prisma = new PrismaClient();
 
@@ -30,6 +29,21 @@ const optionalSubjectsData = [
     { name: 'Italien', weeklyHours: 2, coefficient: 1, isOptional: true },
     { name: 'Espagnol', weeklyHours: 2, coefficient: 1, isOptional: true },
 ];
+
+// --- FIREBASE ADMIN INITIALIZATION ---
+function initializeFirebaseAdmin() {
+  if (!admin.apps.length) {
+    console.log("🔥 [Seed Script] Initializing Firebase Admin SDK...");
+    const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
+    if (!serviceAccount) {
+      throw new Error('FIREBASE_ADMIN_SDK_CONFIG env var not set.');
+    }
+    admin.initializeApp({
+      credential: admin.credential.cert(JSON.parse(serviceAccount)),
+    });
+    console.log("🔥 [Seed Script] ✅ Admin SDK initialized.");
+  }
+}
 
 
 // --- HELPER FUNCTIONS ---
@@ -68,7 +82,7 @@ async function main() {
 
   console.log('🌱 Début du peuplement de la base de données...');
   initializeFirebaseAdmin();
-  const auth = getAuth();
+  const auth = admin.auth();
 
   // --- Get Firebase Users (must be created in Firebase Console first) ---
   const adminEmail = 'admin@example.com';

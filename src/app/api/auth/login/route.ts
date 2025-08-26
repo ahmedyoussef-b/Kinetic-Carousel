@@ -1,10 +1,23 @@
 // src/app/api/auth/login/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
-import { getAuth } from 'firebase-admin/auth';
+import admin from 'firebase-admin';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Role } from '@/types';
+
+// Helper function to initialize Firebase Admin SDK, ensuring it's a singleton.
+function initializeFirebaseAdmin() {
+  if (!admin.apps.length) {
+    const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
+    if (!serviceAccount) {
+      throw new Error('Firebase Admin SDK config is not set in environment variables.');
+    }
+    admin.initializeApp({
+      credential: admin.credential.cert(JSON.parse(serviceAccount)),
+    });
+  }
+  return admin;
+}
 
 export async function POST(req: NextRequest) {
     console.log("--- 🚀 API: Firebase Login Attempt ---");
@@ -16,8 +29,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "ID token is required." }, { status: 400 });
         }
         
-        initializeFirebaseAdmin();
-        const auth = getAuth();
+        const adminInstance = initializeFirebaseAdmin();
+        const auth = adminInstance.auth();
 
         // Firebase Admin SDK will verify the ID token. If invalid, it throws an error.
         const decodedToken = await auth.verifyIdToken(idToken);

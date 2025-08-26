@@ -2,10 +2,23 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Prisma, Role } from '@prisma/client';
-import { registerSchema } from '@/lib/formValidationSchemas';
 import type { SafeUser } from '@/types';
-import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
-import { getAuth } from 'firebase-admin/auth';
+import admin from 'firebase-admin';
+
+// Helper function to initialize Firebase Admin SDK, ensuring it's a singleton.
+function initializeFirebaseAdmin() {
+  if (!admin.apps.length) {
+    const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
+    if (!serviceAccount) {
+      throw new Error('Firebase Admin SDK config is not set in environment variables.');
+    }
+    admin.initializeApp({
+      credential: admin.credential.cert(JSON.parse(serviceAccount)),
+    });
+  }
+  return admin;
+}
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,8 +29,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "Données d'inscription incomplètes." }, { status: 400 });
     }
 
-    initializeFirebaseAdmin();
-    const auth = getAuth();
+    const adminInstance = initializeFirebaseAdmin();
+    const auth = adminInstance.auth();
     const decodedToken = await auth.verifyIdToken(idToken);
     
     const { uid, email } = decodedToken;
