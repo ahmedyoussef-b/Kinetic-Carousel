@@ -5,6 +5,7 @@ const nextConfig = {
   experimental: {
     /* Kept for other potential experimental features */
     serverComponentsExternalPackages: ["@opentelemetry/instrumentation"],
+    asyncWebAssembly: true,
   },
   // The 'allowedDevOrigins' key must be at the top level, not inside 'experimental'.
   // This is required for the Cloud Workstations environment.
@@ -85,6 +86,14 @@ const nextConfig = {
         'handlebars/runtime': 'handlebars/dist/cjs/handlebars.runtime',
         'handlebars': 'handlebars/dist/cjs/handlebars',
     };
+
+    // Ignore node:process module in client-side builds
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        "node:process": false,
+      };
+    }
 
     return config;
   },
