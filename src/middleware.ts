@@ -1,57 +1,47 @@
 // src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { Role } from '@/types';
-import { routeAccessMap } from '@/lib/settings';
 import { SESSION_COOKIE_NAME } from './lib/constants';
+
+// 1. Spécifiez ici les chemins publics
+const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  console.log(`🚦 [Middleware] Processing request for: ${pathname}`);
+  console.log(`🚦 [Middleware] Traitement de la requête pour : ${pathname}`);
 
+  // 2. Si le chemin est public, ne rien faire
+  if (publicPaths.some(path => pathname.startsWith(path)) && pathname.length === 1 || publicPaths.includes(pathname)) {
+    console.log(`[Middleware] Route publique détectée pour ${pathname}, passage au suivant.`);
+    return NextResponse.next();
+  }
+
+  // 3. Pour toutes les autres routes, vérifier l'authentification
   const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME);
   const isAuthenticated = !!sessionCookie;
-  const loginUrl = new URL('/login', req.url);
 
-  // --- Protected Route Logic ---
-  // If user is not authenticated
   if (!isAuthenticated) {
-    const isProtectedRoute = Object.keys(routeAccessMap).some(route => 
-        new RegExp(`^${route.replace(':path*', '.*')}$`).test(pathname)
-    );
-    const isPublicAuthRoute = ['/login', '/register', '/forgot-password', '/reset-password'].some(p => pathname.startsWith(p));
-    
-    // Allow access to the root page (new public homepage)
-    if (pathname === '/') {
-       return NextResponse.next();
-    }
-
-    // If trying to access a protected route, redirect to login
-    if (isProtectedRoute && !isPublicAuthRoute) {
-        console.log(`[Middleware] Unauthorized access to ${pathname}, redirecting to login.`);
-        return NextResponse.redirect(loginUrl);
-    }
+    console.log(`[Middleware] Accès non autorisé à la route protégée ${pathname}, redirection vers la connexion.`);
+    const loginUrl = new URL('/login', req.url);
+    // Optionnel : ajouter l'URL de redirection pour une meilleure expérience utilisateur après la connexion
+    loginUrl.searchParams.set('redirect_to', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // If user is authenticated and tries to access auth pages, redirect them away
-  // This will be handled by the logic on the root page ('/')
-  if (isAuthenticated && ['/login', '/register', '/forgot-password', '/reset-password'].some(p => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL('/', req.url));
-  }
-  
-  console.log(`[Middleware] Allowing request to ${pathname}.`);
+  // 4. Si l'utilisateur est authentifié, autoriser l'accès
+  console.log(`[Middleware] Accès autorisé à la route protégée ${pathname}.`);
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - any other static assets in /public
+     * Faire correspondre tous les chemins de requête sauf ceux qui commencent par :
+     * - api (routes API)
+     * - _next/static (fichiers statiques)
+     * - _next/image (fichiers d'optimisation d'image)
+     * - favicon.ico (fichier favicon)
+     * - tout autre actif statique dans /public
      */
     '/((?!api|_next/static|_next/image|.*\\..*).*)',
   ],
