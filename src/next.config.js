@@ -1,4 +1,5 @@
 
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
@@ -92,6 +93,7 @@ const nextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         "process/browser": require.resolve("process/browser"),
+        "node:process": require.resolve("process/browser")
       };
     }
 
