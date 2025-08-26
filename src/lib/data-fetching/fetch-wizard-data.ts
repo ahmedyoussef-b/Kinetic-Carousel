@@ -45,9 +45,10 @@ const parseJsonFields = (draft: any) => {
     };
 
     parsedData.school = { ...defaultSchoolConfig, ...(parsedData.schoolConfig || {}) };
+    // Map rooms to classrooms for consistency
     parsedData.classrooms = parsedData.rooms || [];
     delete parsedData.schoolConfig; // Remove the redundant field
-    delete parsedData.rooms; // Remove the old rooms field to avoid conflicts
+    delete parsedData.rooms;
 
     return parsedData;
 };
@@ -66,19 +67,14 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
                 lessonRequirements: true,
                 teacherConstraints: true,
                 subjectRequirements: true,
-                teacherAssignments: { include: { classAssignments: { include: { class: true } } } },
+                teacherAssignments: true,
             },
         });
 
         if (activeDraft) {
             console.log("✅ [Data-Fetching] Active draft found, returning parsed draft data.");
             const parsedDraft = parseJsonFields(activeDraft);
-            const teacherAssignmentsWithClassIds = parsedDraft.teacherAssignments.map((a: any) => ({
-                ...a,
-                classIds: a.classAssignments.map((ca: any) => ca.classId),
-            }));
-
-            // Make sure students are fetched and added to the draft data
+            
             const students = await prisma.student.findMany({ include: { optionalSubjects: true } });
 
             // Correctly format teachers to include _count
@@ -108,7 +104,7 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
                 lessonRequirements: parsedDraft.lessonRequirements || [],
                 teacherConstraints: parsedDraft.teacherConstraints || [],
                 subjectRequirements: parsedDraft.subjectRequirements || [],
-                teacherAssignments: teacherAssignmentsWithClassIds || [],
+                teacherAssignments: parsedDraft.teacherAssignments || [],
                 schedule: parsedDraft.lessons || [],
             });
         }
@@ -117,7 +113,6 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
     // 2. If no active draft, or no user, fetch from the "live" tables
     console.log("ℹ️ [Data-Fetching] No active draft found. Fetching live data from DB.");
     const [
-      school,
       classes,
       subjects,
       teachersFromDb,
@@ -126,7 +121,6 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
       students,
       lessons
     ] = await Promise.all([
-      prisma.school.findFirst(),
       prisma.class.findMany({ include: { grade: true, _count: { select: { students: true, lessons: true } } } }),
       prisma.subject.findMany({orderBy: {name: 'asc'}}),
       prisma.teacher.findMany({ include: { user: true, subjects: true, lessons: { select: { classId: true }, distinct: ['classId'] } } }),
@@ -151,8 +145,7 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
     }));
 
     const defaultSchoolConfig: SchoolData = {
-      id: school?.id ? Number(school.id) : undefined,
-      name: school?.name || "Collège Riadh 5",
+      name: "Collège Riadh 5",
       startTime: '08:00',
       endTime: '18:00',
       sessionDuration: 60,
