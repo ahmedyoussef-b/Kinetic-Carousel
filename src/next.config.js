@@ -3,10 +3,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  experimental: {
-    asyncWebAssembly: true,
-  },
-  // The 'allowedDevOrigins' key must be at the top level, not inside 'experimental'.
   // This is required for the Cloud Workstations environment.
   allowedDevOrigins: ["*.cloudworkstations.dev"],
   typescript: {
@@ -51,12 +47,20 @@ const nextConfig = {
     ],
   },
   webpack: (config, { isServer, dev }) => {
-    // Enable WebAssembly experiments
+    // Enable WebAssembly experiments, which are required for some dependencies.
     config.experiments = { ...config.experiments, asyncWebAssembly: true, topLevelAwait: true };
     
     // Fix for HMR in Gitpod and other similar environments
     if (dev && !isServer) {
       config.watchOptions.poll = 300;
+    }
+    
+    // Polyfill for 'process/browser' to prevent errors with 'node:process'
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        process: require.resolve('process/browser'),
+      };
     }
 
     // Fix for HMR websocket connection issue
@@ -85,15 +89,6 @@ const nextConfig = {
         'handlebars/runtime': 'handlebars/dist/cjs/handlebars.runtime',
         'handlebars': 'handlebars/dist/cjs/handlebars',
     };
-
-    // Ignore node:process module in client-side builds by providing a browser polyfill
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        "process/browser": require.resolve("process/browser"),
-        "node:process": require.resolve("process/browser")
-      };
-    }
 
     return config;
   },
