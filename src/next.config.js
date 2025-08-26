@@ -3,10 +3,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  experimental: {
-    /* Kept for other potential experimental features */
-    asyncWebAssembly: true,
-  },
   // The 'allowedDevOrigins' key must be at the top level, not inside 'experimental'.
   // This is required for the Cloud Workstations environment.
   allowedDevOrigins: ["*.cloudworkstations.dev"],
@@ -53,7 +49,7 @@ const nextConfig = {
   },
   webpack: (config, { isServer, dev }) => {
     // Enable WebAssembly experiments
-    config.experiments = { ...config.experiments, asyncWebAssembly: true };
+    config.experiments = { ...config.experiments, asyncWebAssembly: true, topLevelAwait: true };
     
     // Fix for HMR in Gitpod and other similar environments
     if (dev && !isServer) {
