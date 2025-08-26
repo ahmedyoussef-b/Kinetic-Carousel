@@ -59,8 +59,8 @@ export default function LoginForm() {
       window.location.href = '/';
 
     } catch (error: any) {
-      console.error("❌ [LoginForm] Erreur de connexion:", error);
-      const errorMessage = error.data?.message || (error.code === 'auth/invalid-credential' ? 'Email ou mot de passe incorrect.' : "Une erreur est survenue.");
+      console.error("❌ [LoginForm] Erreur de connexion:", JSON.stringify(error, null, 2));
+      const errorMessage = error.data?.message || (error.code === 'auth/invalid-credential' ? 'Email ou mot de passe incorrect.' : "Une erreur inattendue est survenue. Veuillez réessayer.");
       toast({
         variant: "destructive",
         title: "Échec de la connexion",

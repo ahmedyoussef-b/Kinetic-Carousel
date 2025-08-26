@@ -36,7 +36,11 @@ export default function SocialSignInButtons() {
 
         } catch (error: any) {
             console.error("Google Sign-In Error:", error);
-            const errorMessage = error.data?.message || "La connexion via Google a échoué. Veuillez réessayer.";
+            let errorMessage = error.data?.message || "La connexion via Google a échoué. Veuillez réessayer.";
+
+            if (error.code === 'auth/popup-blocked') {
+                errorMessage = "Popup bloqué: Veuillez autoriser les popups pour ce site pour vous connecter avec Google.";
+            }
             toast({
                 variant: 'destructive',
                 title: 'Erreur de connexion',
