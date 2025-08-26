@@ -3,6 +3,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
+  experimental: {
+    asyncWebAssembly: true,
+  },
   // The 'allowedDevOrigins' key must be at the top level, not inside 'experimental'.
   // This is required for the Cloud Workstations environment.
   allowedDevOrigins: ["*.cloudworkstations.dev"],
