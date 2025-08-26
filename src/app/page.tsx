@@ -13,13 +13,15 @@ export default function RootPage() {
   const isLoading = useAppSelector(selectIsAuthLoading);
 
   useEffect(() => {
+    // This effect will run on the client side after hydration.
+    // The middleware should have already redirected, but this is a fallback.
     if (!isLoading) {
       if (user?.role) {
-        console.log(`[RootPage] User authenticated with role ${user.role}. Redirecting to dashboard.`);
+        console.log(`[RootPage] User authenticated. Redirecting to /${user.role.toLowerCase()}`);
         router.replace(`/${user.role.toLowerCase()}`);
       } else {
-        console.log('[RootPage] User not authenticated. Redirecting to login.');
-        router.replace('/login');
+        console.log('[RootPage] User not authenticated. Redirecting to /accueil.');
+        router.replace('/accueil');
       }
     }
   }, [user, isLoading, router]);

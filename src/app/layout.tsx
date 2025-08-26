@@ -9,17 +9,15 @@ const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
 })
-
+ 
 const belleza = Belleza({
   subsets: ['latin'],
-  display: 'swap',
   weight: '400',
   variable: '--font-belleza',
 })
-
+ 
 const alegreya = Alegreya({
   subsets: ['latin'],
-  display: 'swap',
   variable: '--font-alegreya',
 })
 
@@ -38,8 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning className={`${inter.variable} ${belleza.variable} ${alegreya.variable}`}>
-     
-      <body className=" bg-background font-sans antialiased">
+      <body className="bg-background font-sans antialiased">
         <Providers>
           {children}
         </Providers>
