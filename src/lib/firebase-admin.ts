@@ -7,7 +7,7 @@ import admin from 'firebase-admin';
  * Ensures that the SDK is initialized only once.
  * This file is marked with "use server" to prevent it from being bundled into client-side code.
  */
-export function initializeFirebaseAdmin() {
+export async function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     console.log("🔥 [Firebase Admin] Initializing Admin SDK...");
     const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
