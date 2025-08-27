@@ -13,6 +13,7 @@ import { selectCurrentUser, selectIsAuthLoading } from '@/lib/redux/features/aut
 import { useRouter } from 'next/navigation';
  
 export default function RootPage() {
+  console.log("👋 [AccueilPage] Le composant de la page d'accueil est rendu.");
   const [greeting, setGreeting] = useState('');
   const [name, setName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -24,8 +25,11 @@ export default function RootPage() {
 
   // Redirect logged-in users to their dashboard
   useEffect(() => {
+    console.log(`🔄 [AccueilPage] useEffect de redirection. Chargement: ${isAuthLoading}, Utilisateur: ${!!currentUser?.role}`);
     if (!isAuthLoading && currentUser?.role) {
-      router.replace(`/${currentUser.role.toLowerCase()}`);
+      const dashboardPath = `/${currentUser.role.toLowerCase()}`;
+      console.log(`✅ [AccueilPage] Utilisateur connecté (${currentUser.role}). Redirection vers ${dashboardPath}...`);
+      router.replace(dashboardPath);
     }
   }, [currentUser, isAuthLoading, router]);
 
