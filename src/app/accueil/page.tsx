@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { generateGreeting } from '@/ai/flows/greetingFlow';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, User, LogIn } from 'lucide-react';
 import Link from 'next/link';
