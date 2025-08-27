@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { SESSION_COOKIE_NAME } from './constants';
-import { initializeFirebaseAdmin } from './firebase-admin'; // Use the new server-only module
+import { initializeFirebaseAdmin } from './firebase-admin';
 import type { SafeUser } from '@/types';
 import prisma from './prisma';
 
@@ -48,6 +48,7 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
     return { user: safeUser };
   } catch (error) {
     console.error('❌ [Serveur] Jeton de session invalide ou expiré:', error);
+    // Supprime le cookie invalide pour éviter des vérifications inutiles
     cookieStore.delete(SESSION_COOKIE_NAME);
     return null;
   }
