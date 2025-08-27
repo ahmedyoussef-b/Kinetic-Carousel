@@ -1,11 +1,9 @@
-'use server';
 // src/lib/firebase-admin.ts
 import admin from 'firebase-admin';
 
 /**
  * A singleton pattern to initialize Firebase Admin SDK.
  * Ensures that the SDK is initialized only once.
- * This file is marked with "use server" to prevent it from being bundled into client-side code.
  */
 export async function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
@@ -36,4 +34,5 @@ export async function initializeFirebaseAdmin() {
   return admin;
 }
 
+// Export adminAuth directly for convenience, ensuring initialization has been called elsewhere.
 export const adminAuth = admin.apps.length ? admin.auth() : undefined;
