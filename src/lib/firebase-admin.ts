@@ -13,8 +13,8 @@ export async function initializeFirebaseAdmin() {
     const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
 
     if (!serviceAccount) {
-      console.error("🔥 [Firebase Admin] ❌ FIREBASE_ADMIN_SDK_CONFIG is not set.");
-      throw new Error('Firebase Admin SDK config is not set in environment variables.');
+      console.error("🔥 [Firebase Admin] ❌ FIREBASE_ADMIN_SDK_CONFIG n'est pas définie dans les variables d'environnement.");
+      throw new Error('La configuration du SDK Admin Firebase n\'est pas définie dans les variables d\'environnement.');
     }
 
     try {
@@ -23,8 +23,8 @@ export async function initializeFirebaseAdmin() {
       });
       console.log("🔥 [Firebase Admin] ✅ Admin SDK initialized successfully.");
     } catch (error: any) {
-      console.error("🔥 [Firebase Admin] ❌ Error initializing Admin SDK:", error.message);
-      throw new Error("Could not initialize Firebase Admin SDK: " + error.message);
+      console.error("🔥 [Firebase Admin] ❌ Erreur lors de l'initialisation du SDK Admin:", error.message);
+      throw new Error("Impossible d'initialiser le SDK Admin Firebase : " + error.message);
     }
   }
   return admin;
