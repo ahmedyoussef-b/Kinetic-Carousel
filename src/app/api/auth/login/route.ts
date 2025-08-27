@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
+import type { SafeUser } from '@/types';
 
 export async function POST(req: NextRequest) {
     console.log("--- 🚀 API: Tentative de connexion /api/auth/login ---");
@@ -28,13 +29,9 @@ export async function POST(req: NextRequest) {
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         console.log(`✅ [API/Login] Jeton vérifié pour UID: ${decodedToken.uid}, Email: ${decodedToken.email}`);
         
-        // --- TEMPORARY BYPASS OF PRISMA ---
-        // The following section is temporarily commented out to debug the Prisma/libssl issue.
-        /*
         console.log(`👤 [API/Login] Recherche de l'utilisateur ${decodedToken.uid} dans la base de données Prisma...`);
         const user = await prisma.user.findUnique({
             where: { id: decodedToken.uid },
-            select: { role: true, active: true }
         });
         
         if (!user) {
@@ -47,8 +44,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Your account has been deactivated." }, { status: 403 });
         }
         console.log(`✅ [API/Login] Utilisateur trouvé et actif. Rôle : ${user.role}`);
-        */
-        // --- END OF TEMPORARY BYPASS ---
         
         // --- Création du Cookie de Session ---
         // Durée de la session : 5 jours.
@@ -56,17 +51,13 @@ export async function POST(req: NextRequest) {
         console.log("🍪 [API/Login] Création du cookie de session...");
         const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
-        // ✅ RETOURNER UNE RÉPONSE SIMPLE SANS PRISMA
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...safeUser } = user;
+
         const response = NextResponse.json({ 
             status: 'success', 
-            message: 'Authentification réussie (sans base de données)',
-            // We simulate a user object to satisfy the frontend's expectations for now
-            user: {
-                id: decodedToken.uid,
-                email: decodedToken.email,
-                name: decodedToken.name,
-                role: 'ADMIN' // Simulate ADMIN role for testing
-            }
+            message: 'Authentification réussie',
+            user: safeUser as SafeUser
         }, { status: 200 });
 
         console.log("✅ [API/Login] Cookie de session créé. Envoi de la réponse au client.");
@@ -83,10 +74,9 @@ export async function POST(req: NextRequest) {
         return response;
 
     } catch (error: any) {
-        console.error("❌ [API/Login] Erreur d'authentification Firebase:", error.message);
+        console.error("❌ [API/Login] Erreur d'authentification:", error.message);
         console.error('Error details:', JSON.stringify(error, null, 2));
         
         return NextResponse.json({ message: 'Authentication failed.', error: error.message }, { status: 401 });
     }
-
-    
+}
