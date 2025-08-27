@@ -47,7 +47,7 @@ export default function LoginForm() {
       const idToken = await userCredential.user.getIdToken();
 
       console.log("📡 [LoginForm] Envoi du token ID à notre API backend via la mutation RTK...");
-      await loginApi({ idToken }).unwrap();
+      const result = await loginApi({ idToken }).unwrap();
       
       console.log("✅ [LoginForm] Notre API a validé la session avec succès.");
       toast({
@@ -55,8 +55,9 @@ export default function LoginForm() {
         description: "Vous allez être redirigé vers votre tableau de bord."
       });
       
-      console.log("🔄 [LoginForm] Rechargement de la page pour appliquer la redirection du middleware.");
-      window.location.href = '/';
+      // La redirection est désormais gérée par l'état global et les pages
+      // au lieu d'un rechargement forcé.
+      router.push('/');
 
     } catch (error: any) {
       console.error("❌ [LoginForm] Erreur de connexion:", JSON.stringify(error, null, 2));

@@ -59,6 +59,19 @@ export const authApi = createApi({
         body: credentials,
       }),
       invalidatesTags: ['Session'],
+      // The onQueryStarted for login will now handle setting the user state
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        console.log('📡 [AuthAPI] onQueryStarted pour login. En attente de la réponse...');
+        try {
+          const { data } = await queryFulfilled;
+          if (data.user) {
+            console.log('✅ [AuthAPI] Connexion réussie. Dispatch de setUser:', data.user);
+            dispatch(setUser(data.user));
+          }
+        } catch (error) {
+          console.error('❌ [AuthAPI] Échec de la mutation de connexion.', JSON.stringify(error));
+        }
+      },
     }),
     register: builder.mutation<AuthResponse, RegisterRequest>({
       query: (userInfo) => ({
