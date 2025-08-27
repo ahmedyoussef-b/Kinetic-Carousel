@@ -7,25 +7,33 @@ import admin from 'firebase-admin';
  * Ensures that the SDK is initialized only once.
  * This file is marked with "use server" to prevent it from being bundled into client-side code.
  */
-export async function initializeFirebaseAdmin() {
+export function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     console.log("🔥 [Firebase Admin] Initializing Admin SDK...");
-    const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
+    
+    const adminConfig = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Replace escaped newlines with actual newlines
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    };
 
-    if (!serviceAccount) {
-      console.error("🔥 [Firebase Admin] ❌ FIREBASE_ADMIN_SDK_CONFIG n'est pas définie dans les variables d'environnement.");
-      throw new Error('La configuration du SDK Admin Firebase n\'est pas définie dans les variables d\'environnement.');
+    if (!adminConfig.projectId || !adminConfig.clientEmail || !adminConfig.privateKey) {
+        console.error("🔥 [Firebase Admin] ❌ Missing Firebase Admin SDK configuration. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY environment variables.");
+        throw new Error('Firebase Admin SDK configuration is incomplete.');
     }
 
     try {
       admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(serviceAccount)),
+        credential: admin.credential.cert(adminConfig),
       });
       console.log("🔥 [Firebase Admin] ✅ Admin SDK initialized successfully.");
     } catch (error: any) {
-      console.error("🔥 [Firebase Admin] ❌ Erreur lors de l'initialisation du SDK Admin:", error.message);
-      throw new Error("Impossible d'initialiser le SDK Admin Firebase : " + error.message);
+      console.error("🔥 [Firebase Admin] ❌ Error initializing Admin SDK:", error.message);
+      throw new Error("Could not initialize Firebase Admin SDK: " + error.message);
     }
   }
   return admin;
 }
+
+export const adminAuth = initializeFirebaseAdmin().auth();

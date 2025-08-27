@@ -15,9 +15,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "ID token is required." }, { status: 400 });
         }
         
+        console.log("🔑 [API/Login] Jeton reçu:", idToken?.substring(0, 50) + '...');
+        console.log('🛠️ [API/Login]  Configuration Admin:', {
+          hasAdmin: !!adminAuth,
+          projectId: process.env.FIREBASE_PROJECT_ID
+        });
+
         console.log("🔍 [API/Login] Vérification du jeton ID Firebase...");
         const decodedToken = await adminAuth.verifyIdToken(idToken);
-        console.log(`✅ [API/Login] Jeton vérifié pour UID: ${decodedToken.uid}`);
+        console.log(`✅ [API/Login] Jeton vérifié pour UID: ${decodedToken.uid}, Email: ${decodedToken.email}`);
         
         // --- Logique personnalisée : Synchronisation avec la DB locale ---
         console.log(`👤 [API/Login] Recherche de l'utilisateur ${decodedToken.uid} dans la base de données Prisma...`);
@@ -60,10 +66,8 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("❌ [API/Login] Erreur d'authentification Firebase:", error.message);
-        // Cet log est très important pour le débogage. Si la clé de service est mauvaise, l'erreur apparaîtra ici.
-        if (error.code === 'auth/argument-error') {
-            console.error("🔥 [API/Login] ERREUR CRITIQUE: L'initialisation du SDK Admin a probablement échoué. Vérifiez vos crédentials de service Firebase.");
-        }
-        return NextResponse.json({ message: 'Authentication failed.', error: 'Firebase authentication failed' }, { status: 401 });
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        
+        return NextResponse.json({ message: 'Authentication failed.', error: error.message }, { status: 401 });
     }
 }
