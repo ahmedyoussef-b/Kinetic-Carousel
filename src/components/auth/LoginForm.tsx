@@ -19,6 +19,7 @@ import { useState } from 'react';
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
+  console.log("⚛️ [LoginForm] Le composant de connexion est rendu.");
   const router = useRouter();
   const { toast } = useToast();
   const [loginApi, { isLoading: isApiLoading }] = useLoginMutation();
@@ -45,7 +46,7 @@ export default function LoginForm() {
       console.log("✅ [LoginForm] Succès de la connexion Firebase. Obtention du token ID...");
       const idToken = await userCredential.user.getIdToken();
 
-      console.log("📡 [LoginForm] Envoi du token ID à notre API backend...");
+      console.log("📡 [LoginForm] Envoi du token ID à notre API backend via la mutation RTK...");
       await loginApi({ idToken }).unwrap();
       
       console.log("✅ [LoginForm] Notre API a validé la session avec succès.");
@@ -54,7 +55,6 @@ export default function LoginForm() {
         description: "Vous allez être redirigé vers votre tableau de bord."
       });
       
-      // Force a full page reload to allow the middleware to redirect correctly
       console.log("🔄 [LoginForm] Rechargement de la page pour appliquer la redirection du middleware.");
       window.location.href = '/';
 
