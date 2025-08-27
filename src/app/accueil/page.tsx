@@ -1,4 +1,4 @@
-// src/app/page.tsx
+// src/app/accueil/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,7 +16,7 @@ export default function RootPage() {
   const [greeting, setGreeting] = useState('');
   const [name, setName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
-  const [isLoadingGreeting, setIsLoadingGreeting] = useState(true);
+  const [isLoadingGreeting, setIsLoadingGreeting] = useState(false);
   const { toast } = useToast();
   const currentUser = useAppSelector(selectCurrentUser);
   const isAuthLoading = useAppSelector(selectIsAuthLoading);
@@ -50,21 +50,9 @@ export default function RootPage() {
       return 'Bonsoir';
     };
 
-    const fetchGreeting = async () => {
-      setIsLoadingGreeting(true);
-      const baseGreeting = getBaseGreeting();
-      
-      try {
-        const personalizedGreeting = await generateGreeting({ name: name || 'Visiteur', baseGreeting });
-        setGreeting(personalizedGreeting);
-      } catch (error) {
-        console.error("Failed to fetch personalized greeting:", error);
-        setGreeting(`${baseGreeting}, ${name || 'Visiteur'} !`);
-      }
-      setIsLoadingGreeting(false);
-    };
+    const baseGreeting = getBaseGreeting();
+    setGreeting(`${baseGreeting}, ${name || 'Visiteur'} !`);
 
-    fetchGreeting();
   }, [name, isAuthLoading, currentUser]);
 
   const handleNameSave = () => {
