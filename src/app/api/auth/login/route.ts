@@ -1,7 +1,6 @@
 // src/app/api/auth/login/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
-import prisma from '@/lib/prisma';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import type { SafeUser } from '@/types';
 import { Role } from '@/types';
@@ -25,9 +24,6 @@ export async function POST(req: NextRequest) {
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         console.log(`✅ [API/Login] Jeton vérifié pour UID: ${decodedToken.uid}, Email: ${decodedToken.email}`);
         
-        // --- CONTOURNEMENT PRISMA ---
-        // Au lieu de chercher dans la base de données, nous créons un utilisateur fictif
-        // basé sur les informations du jeton et en assumant un rôle par défaut.
         console.warn("⚠️ [API/Login] Contournement de Prisma. Création d'un utilisateur de session fictif.");
         const safeUser: SafeUser = {
             id: decodedToken.uid,
@@ -36,7 +32,7 @@ export async function POST(req: NextRequest) {
             firstName: decodedToken.name?.split(' ')[0] || 'Utilisateur',
             lastName: decodedToken.name?.split(' ')[1] || '',
             username: decodedToken.email || `user_${decodedToken.uid}`,
-            role: (decodedToken.role as Role) || Role.ADMIN, // Assigner le rôle ADMIN par défaut pour le test
+            role: (decodedToken.role as Role) || Role.ADMIN,
             active: true,
             img: decodedToken.picture || null,
             createdAt: new Date(),
@@ -45,7 +41,6 @@ export async function POST(req: NextRequest) {
         };
         console.log(`✅ [API/Login] Utilisateur fictif créé. Rôle : ${safeUser.role}`);
         
-        // --- Création du Cookie de Session ---
         const expiresIn = 60 * 60 * 24 * 5 * 1000;
         console.log("🍪 [API/Login] Création du cookie de session...");
         const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
