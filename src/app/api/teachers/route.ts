@@ -61,11 +61,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Données d'entrée invalides", errors: validation.error.flatten().fieldErrors }, { status: 400 });
     }
     
-    const {
-      username, email, password, name, surname, phone, address, img,
-      bloodType, birthday, sex, subjects: subjectIds = []
-    } = validation.data;
-    
     // With Firebase Auth, user creation is handled separately (e.g., in /api/auth/register).
     // This endpoint should not create a user with a password.
     // It should expect a userId from an existing Firebase user.

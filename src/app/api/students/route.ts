@@ -14,30 +14,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid input', errors: validation.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    const {
-      username,
-      email,
-      password, // Password is required for Firebase user creation by the client
-      name,
-      surname,
-      phone,
-      address,
-      img,
-      bloodType,
-      birthday,
-      sex,
-      gradeId,
-      classId,
-      parentId,
-    } = validation.data;
-
-    // With Firebase Auth, the user creation is handled on the client via the 'register' endpoint.
-    // This endpoint should ideally only create the student *profile* and link it to an existing user ID.
-    // The current logic is flawed because it tries to create a user with a password in our DB.
-    
-    // For now, I'll return an error indicating this flow is incorrect.
-    // The student should be created through the main registration flow.
-    return NextResponse.json({ message: "La création d'étudiants via cette route n'est pas supportée avec l'authentification Firebase. Le profil doit être créé lors de l'inscription ou par un admin." }, { status: 400 });
+    // With Firebase Auth, user creation is handled separately (e.g., in /api/auth/register).
+    // This endpoint should not create a user with a password.
+    // Returning an error to indicate this flow is incorrect.
+    return NextResponse.json({ message: "La création d'étudiants via cette route n'est pas supportée avec l'authentification Firebase. Le profil doit être créé par un administrateur." }, { status: 400 });
 
   } catch (error) {
     console.error('Error creating student:', error);
