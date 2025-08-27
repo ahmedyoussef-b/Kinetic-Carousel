@@ -2,11 +2,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import prisma from '@/lib/prisma';
-import { adminAuth } from '@/lib/firebase-admin';
+import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
     console.log("--- 🚀 API: Tentative de connexion /api/auth/login ---");
     try {
+        const admin = await initializeFirebaseAdmin();
+        const adminAuth = admin.auth();
+
         const body = await req.json();
         const { idToken } = body;
 

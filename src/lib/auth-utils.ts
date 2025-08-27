@@ -23,7 +23,7 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
   
   console.log('✅ [Serveur] Jeton trouvé, tentative de vérification...');
   try {
-    const admin = initializeFirebaseAdmin();
+    const admin = await initializeFirebaseAdmin();
     
     const decodedToken = await admin.auth().verifySessionCookie(sessionCookie, true);
     console.log('🔍 [Serveur] Jeton décodé:', decodedToken);
