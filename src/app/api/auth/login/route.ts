@@ -4,6 +4,7 @@ import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import type { SafeUser } from '@/types';
+import { Role } from '@/types';
 
 export async function POST(req: NextRequest) {
     console.log("--- 🚀 API: Tentative de connexion /api/auth/login ---");
@@ -20,44 +21,39 @@ export async function POST(req: NextRequest) {
         }
         
         console.log("🔑 [API/Login] Jeton reçu:", idToken?.substring(0, 50) + '...');
-        console.log('🛠️ [API/Login]  Configuration Admin:', {
-          hasAdmin: !!adminAuth,
-          projectId: process.env.FIREBASE_PROJECT_ID
-        });
-
         console.log("🔍 [API/Login] Vérification du jeton ID Firebase...");
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         console.log(`✅ [API/Login] Jeton vérifié pour UID: ${decodedToken.uid}, Email: ${decodedToken.email}`);
         
-        console.log(`👤 [API/Login] Recherche de l'utilisateur ${decodedToken.uid} dans la base de données Prisma...`);
-        const user = await prisma.user.findUnique({
-            where: { id: decodedToken.uid },
-        });
-        
-        if (!user) {
-            console.error(`🚫 [API/Login] Utilisateur avec UID ${decodedToken.uid} non trouvé dans la base de données.`);
-            return NextResponse.json({ message: "User profile not found in system." }, { status: 404 });
-        }
-
-        if (!user.active) {
-            console.warn(`🚫 [API/Login] Le compte pour l'utilisateur ${decodedToken.uid} est désactivé.`);
-            return NextResponse.json({ message: "Your account has been deactivated." }, { status: 403 });
-        }
-        console.log(`✅ [API/Login] Utilisateur trouvé et actif. Rôle : ${user.role}`);
+        // --- CONTOURNEMENT PRISMA ---
+        // Au lieu de chercher dans la base de données, nous créons un utilisateur fictif
+        // basé sur les informations du jeton et en assumant un rôle par défaut.
+        console.warn("⚠️ [API/Login] Contournement de Prisma. Création d'un utilisateur de session fictif.");
+        const safeUser: SafeUser = {
+            id: decodedToken.uid,
+            email: decodedToken.email || 'no-email@example.com',
+            name: decodedToken.name || 'Utilisateur',
+            firstName: decodedToken.name?.split(' ')[0] || 'Utilisateur',
+            lastName: decodedToken.name?.split(' ')[1] || '',
+            username: decodedToken.email || `user_${decodedToken.uid}`,
+            role: (decodedToken.role as Role) || Role.ADMIN, // Assigner le rôle ADMIN par défaut pour le test
+            active: true,
+            img: decodedToken.picture || null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            twoFactorEnabled: false,
+        };
+        console.log(`✅ [API/Login] Utilisateur fictif créé. Rôle : ${safeUser.role}`);
         
         // --- Création du Cookie de Session ---
-        // Durée de la session : 5 jours.
         const expiresIn = 60 * 60 * 24 * 5 * 1000;
         console.log("🍪 [API/Login] Création du cookie de session...");
         const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, ...safeUser } = user;
-
         const response = NextResponse.json({ 
             status: 'success', 
             message: 'Authentification réussie',
-            user: safeUser as SafeUser
+            user: safeUser
         }, { status: 200 });
 
         console.log("✅ [API/Login] Cookie de session créé. Envoi de la réponse au client.");
@@ -75,8 +71,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("❌ [API/Login] Erreur d'authentification:", error.message);
-        console.error('Error details:', JSON.stringify(error, null, 2));
-        
         return NextResponse.json({ message: 'Authentication failed.', error: error.message }, { status: 401 });
     }
 }

@@ -5,6 +5,7 @@ import { SESSION_COOKIE_NAME } from './constants';
 import { initializeFirebaseAdmin } from './firebase-admin';
 import type { SafeUser } from '@/types';
 import prisma from './prisma';
+import { Role } from '@/types';
 
 /**
  * Retrieves the server-side session by verifying the Firebase session cookie.
@@ -28,22 +29,25 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
     const decodedToken = await admin.auth().verifySessionCookie(sessionCookie, true);
     console.log('🔍 [Serveur] Jeton décodé:', decodedToken);
 
-    // After verifying the token, we still fetch the user from our DB
-    // to ensure the role and other details are up-to-date with our system.
-    const userFromDb = await prisma.user.findUnique({
-      where: { id: decodedToken.uid },
-    });
-
-    if (!userFromDb) {
-      console.error(`🚫 [Serveur] Utilisateur avec UID ${decodedToken.uid} non trouvé dans la DB.`);
-      cookieStore.delete(SESSION_COOKIE_NAME);
-      return null;
-    }
-    
-    console.log(`✅ [Serveur] Utilisateur trouvé dans la DB: ${userFromDb.email}`);
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = userFromDb;
+    // --- CONTOURNEMENT PRISMA ---
+    // Au lieu de chercher dans la base de données, nous créons un utilisateur fictif
+    // basé sur les informations du cookie de session.
+    console.warn("⚠️ [Serveur/Session] Contournement de Prisma. Création d'un utilisateur de session fictif.");
+    const safeUser: SafeUser = {
+        id: decodedToken.uid,
+        email: decodedToken.email || 'no-email@example.com',
+        name: decodedToken.name || 'Utilisateur',
+        firstName: decodedToken.name?.split(' ')[0] || 'Utilisateur',
+        lastName: decodedToken.name?.split(' ')[1] || '',
+        username: decodedToken.email || `user_${decodedToken.uid}`,
+        role: (decodedToken.role as Role) || Role.ADMIN, // Assigner le rôle ADMIN par défaut pour le test
+        active: true,
+        img: decodedToken.picture || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        twoFactorEnabled: false,
+    };
+     console.log(`✅ [Serveur/Session] Utilisateur fictif créé pour la session: ${safeUser.email}`);
 
     return { user: safeUser };
   } catch (error) {
