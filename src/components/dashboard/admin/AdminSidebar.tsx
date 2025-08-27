@@ -1,5 +1,4 @@
 // src/components/dashboard/admin/AdminSidebar.tsx
-import prisma from "@/lib/prisma";
 import Announcements from "@/components/Announcements";
 import EventCalendarContainer from "@/components/EventCalendarContainer";
 
@@ -9,13 +8,10 @@ interface AdminSidebarProps {
 
 // Data fetching is now co-located with the component that uses it.
 async function getSidebarData() {
-    const [announcements, events] = await prisma.$transaction([
-        prisma.announcement.findMany({ 
-            orderBy: { date: "desc" },
-            include: { class: { select: { name: true } } } 
-        }),
-        prisma.event.findMany({ orderBy: { startTime: 'asc' }})
-    ]);
+    // PRISMA BYPASS: Return empty arrays to prevent crashes due to libssl error.
+    console.warn("PRISMA BYPASS in AdminSidebar: Returning empty data for announcements and events.");
+    const announcements: any[] = [];
+    const events: any[] = [];
     
     // Data is serialized here before being passed to client components if necessary
     return {
