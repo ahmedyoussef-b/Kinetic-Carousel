@@ -1,17 +1,15 @@
 // src/app/page.tsx
-import React from 'react';
-
-export default function SimplePage() {
+export default function HomePage() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background font-sans">
-      <main className="text-center p-8">
-        <h1 className="text-5xl font-bold text-primary mb-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-center">
+      <div className="max-w-2xl">
+        <h1 className="text-5xl font-bold tracking-tight text-primary sm:text-6xl">
           Welcome to SimplePage
         </h1>
-        <p className="text-lg text-foreground max-w-xl">
-          This is a simple, elegant page built with Next.js and Tailwind CSS. The purpose is to demonstrate a clean and responsive layout with a calming color palette.
+        <p className="mt-6 text-lg leading-8 text-foreground">
+          This is a simple, elegant page built with Next.js and Tailwind CSS. The purpose is to demonstrate a clean and responsive layout with a calming color palette of soft sky blue and serene light blue tones.
         </p>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
