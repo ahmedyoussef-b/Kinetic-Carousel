@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { studentSchema } from '@/lib/formValidationSchemas'; // Assuming you might want to reuse parts of it
-import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 
 // GET a single student by ID
@@ -46,14 +45,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   try {
     const body = await request.json();
 
-    // Validate with a partial schema if needed, or ensure all fields are optional in your main schema for updates
-    // For simplicity, we'll assume body contains valid fields for Student and potentially User models
-    // It's better to use a specific update schema (e.g., studentUpdateSchema)
-
     const {
       username,
       email,
-      password, // Optional for update
+      // password is removed
       name,
       surname,
       phone,
@@ -65,17 +60,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       gradeId,
       classId,
       parentId,
-      // any other student-specific fields
     } = body;
 
     // Prepare data for User and Student models
     const userData: Prisma.UserUpdateInput = {};
     if (username) userData.username = username;
     if (email) userData.email = email;
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      userData.password = hashedPassword;
-    }
     if (img !== undefined) userData.img = img; // User model also has img
 
     const studentData: Prisma.StudentUpdateInput = {};

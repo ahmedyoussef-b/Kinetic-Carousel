@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Prisma, Role } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 // GET a single parent
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -39,12 +38,20 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
     const { id } = params;
     try {
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: 'Invalid parent ID' }, { status: 400 });
+        }
+
         const body = await request.json();
-        const { username, email, password, name, surname, phone, address, img } = body;
+        const { username, email, name, surname, phone, address, img } = body;
 
         const parentToUpdate = await prisma.parent.findUnique({ where: { id }, select: { userId: true } });
         if (!parentToUpdate) {
             return NextResponse.json({ message: 'Parent non trouvé pour la mise à jour' }, { status: 404 });
+        }
+
+        if (!parentToUpdate.userId) {
+            return NextResponse.json({ message: 'User not found for parent' }, { status: 404 });
         }
         
         // Transaction to update User and Parent
@@ -52,12 +59,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
             const userData: Prisma.UserUpdateInput = {};
             if (username) userData.username = username;
             if (email) userData.email = email;
-            if (password) userData.password = await bcrypt.hash(password, 10);
             if (name && surname) userData.name = `${name} ${surname}`;
             
             if (Object.keys(userData).length > 0) {
                 await tx.user.update({
-                    where: { id: parentToUpdate.userId },
+                    where: { id: parentToUpdate.userId as string },
                     data: userData,
                 });
             }
@@ -93,6 +99,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 // DELETE a parent
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
+  if (!id || typeof id !== 'string') {
+      return NextResponse.json({ message: 'Invalid parent ID' }, { status: 400 });
+  }
+
   try {
     // Check if the parent is linked to any students
     const studentCount = await prisma.student.count({
@@ -119,16 +129,16 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       await tx.parent.delete({ where: { id } });
 
       // Check if the associated user has other roles (admin, teacher, student)
-      const adminProfile = await tx.admin.findFirst({ where: { userId: parent.userId } });
-      const teacherProfile = await tx.teacher.findFirst({ where: { userId: parent.userId } });
-      const studentProfile = await tx.student.findFirst({ where: { userId: parent.userId } });
+      const adminProfile = await tx.admin.findFirst({ where: { userId: parent.userId! } });
+      const teacherProfile = await tx.teacher.findFirst({ where: { userId: parent.userId! } });
+      const studentProfile = await tx.student.findFirst({ where: { userId: parent.userId! } });
       
       const hasOtherRoles = !!adminProfile || !!teacherProfile || !!studentProfile;
 
       // If the user has no other roles, we can delete the user record entirely.
       if (!hasOtherRoles) {
         await tx.user.delete({
-          where: { id: parent.userId }
+          where: { id: parent.userId! }
         });
       }
     });

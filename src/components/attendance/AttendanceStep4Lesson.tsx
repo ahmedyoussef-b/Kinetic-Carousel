@@ -4,7 +4,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Day, Subject } from '@/types';
 
-type LessonData = { id: number; classId: number; day: Day, startTime: Date, subject: Pick<Subject, 'id' | 'name'> };
+export type LessonData = { id: number; classId: number | null; day: Day, startTime: Date, subject: Pick<Subject, 'id' | 'name'> };
+
 
 interface AttendanceStep4LessonProps {
   lessons: LessonData[];

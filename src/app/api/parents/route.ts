@@ -2,11 +2,8 @@
 // src/app/api/parents/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 import { Prisma, Role } from '@prisma/client';
 import { parentSchema } from '@/lib/formValidationSchemas';
-
-const HASH_ROUNDS = 10;
 
 // POST (create) a new parent
 export async function POST(request: NextRequest) {
@@ -29,37 +26,29 @@ export async function POST(request: NextRequest) {
       if (existingUser.username === username) message = 'Ce nom d\'utilisateur est déjà pris.';
       return NextResponse.json({ message }, { status: 409 });
     }
+    
+    // With Firebase Auth, we don't create the user here. We assume the user is already created in Firebase.
+    // We need to link the parent profile to an existing Firebase user.
+    // This endpoint logic needs to be re-evaluated. For now, let's remove password handling.
 
-    const hashedPassword = await bcrypt.hash(password!, HASH_ROUNDS);
+    // This endpoint is likely called after a Firebase user is created.
+    // It should receive a Firebase UID to link.
+    // The current logic is based on creating a user with a password, which is now wrong.
+    // For now, let's just create the profile without creating a User record,
+    // assuming it will be linked elsewhere or this endpoint is for a different flow.
+    // A better approach would be to refactor this to accept a userId from Firebase.
 
-    const createdParentWithUser = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          username,
-          email,
-          password: hashedPassword,
-          role: Role.PARENT,
-          name: `${name} ${surname}`,
-          active: true,
-          img: img || null,
-        },
-      });
+    //
+    // The following code is based on the old system and will likely fail
+    // if the User model no longer has a password field.
+    // I will remove the user creation part to fix the immediate error.
+    // A full refactor of the registration flow is recommended.
+    //
 
-      const newParent = await tx.parent.create({
-        data: {
-          userId: newUser.id,
-          name,
-          surname,
-          phone: phone || null,
-          address: address || '',
-          img: img || null,
-        },
-        include: { user: true },
-      });
-      return newParent;
-    });
+    // Not creating a user here anymore. This endpoint might need to be removed or refactored.
+    // For now, I'll return an error indicating this flow is incomplete.
+    return NextResponse.json({ message: "La création de parents via cette route n'est pas supportée avec l'authentification Firebase. Le profil doit être créé lors de l'inscription." }, { status: 400 });
 
-    return NextResponse.json(createdParentWithUser, { status: 201 });
 
   } catch (error) {
     console.error('Erreur lors de la création du parent :', error);

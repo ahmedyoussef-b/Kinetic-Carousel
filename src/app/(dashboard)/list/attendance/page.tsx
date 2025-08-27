@@ -3,6 +3,19 @@ import prisma from "@/lib/prisma";
 import { Day } from "@prisma/client";
 
 const AttendancePage = async () => {
+  type LessonData = {
+    id: number;
+    classId: number | null;
+    name: string;
+    day: Day;
+    startTime: Date;
+    endTime: Date;
+    subjectId: number;
+    teacherId: string;
+    classroomId: number | null;
+    subject: { id: number; name: string; };
+  };
+
   const classes = await prisma.class.findMany({
     select: {
       id: true,
@@ -19,7 +32,7 @@ const AttendancePage = async () => {
   });
 
   // Fetch lessons with subject details included
-  const lessons = await prisma.lesson.findMany({
+  const lessons: LessonData[] = await prisma.lesson.findMany({
     select: { 
       id: true,
       classId: true,

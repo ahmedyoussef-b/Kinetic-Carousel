@@ -2,11 +2,8 @@
 // src/app/api/teachers/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 import { Prisma, Role } from '@prisma/client';
 import type { TeacherWithDetails } from '@/types';
-
-const HASH_ROUNDS = 10;
 
 // GET a single teacher by ID
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -85,14 +82,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const userData: Prisma.UserUpdateInput = {};
         if (username) userData.username = username;
         if (email) userData.email = email;
-        if (password && password.trim() !== '') {
-            try {
-                userData.password = await bcrypt.hash(password, HASH_ROUNDS);
-            } catch (hashError) {
-                console.error("Erreur de hachage du mot de passe:", hashError);
-                throw new Error("Erreur lors du hachage du mot de passe.");
-            }
-        }
+        // Password is managed by Firebase Auth
         if (name && surname) userData.name = `${name} ${surname}`;
         if (img !== undefined) userData.img = img;
 

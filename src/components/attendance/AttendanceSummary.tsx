@@ -6,7 +6,7 @@ import { Day, Subject } from '@/types';
 
 type StudentData = { id: string; name: string; surname: string };
 type ClassData = { id: number; name: string; students?: StudentData[] };
-type LessonData = { id: number; classId: number; day: Day, startTime: Date, subject: Pick<Subject, 'id' | 'name'> };
+type LessonData = { id: number; classId: number | null; day: Day, startTime: Date, subject: Pick<Subject, 'id' | 'name'> };
 
 interface AttendanceSummaryProps {
   student: StudentData | undefined;

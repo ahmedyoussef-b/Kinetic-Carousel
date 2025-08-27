@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 
 type LessonListItem = Omit<Lesson, 'startTime' | 'endTime' | 'createdAt' | 'updatedAt'> & {
   subject: Pick<Subject, 'name'>;
-  class: Pick<Class, 'name'>;
+  class: Pick<Class, 'name'> | null;
   teacher: Pick<Teacher, 'name' | 'surname'>;
   startTime: string;
   endTime: string;
@@ -44,7 +44,7 @@ const LessonListPage = async ({
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-muted/50 transition-colors"
     >
       <td className="flex items-center gap-4 p-4">{item.subject.name}</td>
-      <td>{item.class.name}</td>
+      <td>{item.class?.name}</td>
       <td className="hidden md:table-cell">
         {item.teacher.name + " " + item.teacher.surname}
       </td>

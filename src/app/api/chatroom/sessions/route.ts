@@ -2,7 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth-utils';
-import { ActiveSession } from '@/lib/redux/slices/session/types';
+import { ActiveSession, SessionType } from '@/lib/redux/slices/session/types';
 import { SessionService } from '@/services/session-service';
 
 export async function POST(request: NextRequest) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const activeSession: ActiveSession = {
         id: newDbSession.id,
         hostId: newDbSession.hostId,
-        sessionType: newDbSession.type,
+        sessionType: newDbSession.type as SessionType,
         classId: newDbSession.classId ? String(newDbSession.classId) : '',
         className: newDbSession.title,
         participants: participants,

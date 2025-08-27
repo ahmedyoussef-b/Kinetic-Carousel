@@ -147,7 +147,7 @@ export const fetchResults = async ({
     return {
       id: item.id,
       score: item.score,
-      className: assessment.lesson.class.name,
+      className: assessment.lesson.class?.name,
       assessmentDate: new Date(assessmentDate),
       type: isExam ? 'Examen' : 'Devoir' as const, 
       examId: item.exam?.id ?? null, 
@@ -159,7 +159,7 @@ export const fetchResults = async ({
       teacherName: assessment.lesson.teacher.name,
       teacherSurname: assessment.lesson.teacher.surname,
     };
-  }).filter((item): item is ResultListDisplayItem => item !== null);
+  }).filter((item) => item !== null) as ResultListDisplayItem[];
 
   return {
     data,

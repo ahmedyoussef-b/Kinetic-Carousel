@@ -2,24 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth-utils';
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 import { Prisma, Role } from '@prisma/client';
 import { profileUpdateSchema } from '@/lib/formValidationSchemas';
-import jwt from 'jsonwebtoken';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_ACCESS_TOKEN_EXPIRATION_TIME = '1h';
 
 export async function PUT(request: NextRequest) {
   const session = await getServerSession();
-  if (!session?.user.id || !session?.user.role) {
+  if (!session?.user?.id || !session?.user?.role) {
     return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
-  }
-  
-  if (!JWT_SECRET) {
-      console.error("❌ [API/profile] JWT_SECRET is not defined.");
-      return NextResponse.json({ message: "Erreur de configuration du serveur." }, { status: 500 });
   }
 
   try {
@@ -53,9 +43,8 @@ export async function PUT(request: NextRequest) {
         userData.username = username;
       }
       
-      if (password && password.trim() !== '') {
-        userData.password = await bcrypt.hash(password, 10);
-      }
+      // Password is managed by Firebase Auth, so we don't update it here.
+      // The client should handle password reset flow via Firebase SDKs.
       
       if (name && surname) {
         userData.name = `${name} ${surname}`;
@@ -108,33 +97,13 @@ export async function PUT(request: NextRequest) {
       }
       return finalUser;
     });
+    
+    const safeUser = updatedUser; // The user object from DB is already safe
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = updatedUser;
-
-    // Re-issue JWT with new data
-    const tokenPayload = {
-        userId: safeUser.id,
-        role: safeUser.role,
-        email: safeUser.email,
-        name: safeUser.name,
-        img: safeUser.img
-    };
-
-    const newToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_ACCESS_TOKEN_EXPIRATION_TIME });
+    // Re-issue session cookie is not needed here as Firebase handles the session.
+    // We just return the updated user data.
     const response = NextResponse.json({ message: "Profil mis à jour avec succès", user: safeUser }, { status: 200 });
     
-    // Set the new token in the cookie
-    response.cookies.set({
-      name: SESSION_COOKIE_NAME,
-      value: newToken,
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 60 * 60 * 24, // 1 day
-      path: '/',
-    });
-
     return response;
 
   } catch (error) {

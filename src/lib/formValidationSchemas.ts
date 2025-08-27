@@ -71,6 +71,7 @@ export const teacherSchema = z.object({
   sex: z.nativeEnum(UserSex).optional().nullable(),
   subjects: z.array(z.string()).optional(),
 }).refine(data => {
+  // Password is required only for new user creation (type='create')
   if (!data.id && (!data.password || data.password.trim() === '')) {
     return false;
   }
@@ -86,15 +87,15 @@ export const studentSchema = z.object({
     .string()
     .min(3, { message: "Le nom d'utilisateur doit contenir au moins 3 caractères !" })
     .max(20, { message: "Le nom d'utilisateur doit contenir au plus 20 caractères !" }),
-  password: z // Made optional only for update. For create, it's required by the form logic.
+  password: z
     .string()
     .min(8, { message: "Le mot de passe doit contenir au moins 8 caractères !" })
-    .optional().or(z.literal('')), // Allow empty string for password update to mean "no change"
+    .optional().or(z.literal('')),
   name: z.string().min(1, { message: "Le prénom est requis !" }),
   surname: z.string().min(1, { message: "Le nom de famille est requis !" }),
   email: z
     .string()
-    .email({ message: "Adresse e-mail invalide !" }), // Email is required for user creation
+    .email({ message: "Adresse e-mail invalide !" }),
   phone: z.string().optional().or(z.literal("")).nullable(),
   address: z.string().min(1, { message: "L'adresse est requise !" }),
   img: z.string().nullable().optional(),
@@ -238,7 +239,7 @@ export const profileUpdateSchema = z.object({
   surname: z.string().min(1, { message: "Le nom de famille est requis !" }).optional(),
   username: z.string().min(3, "Le nom d'utilisateur doit faire au moins 3 caractères.").optional(),
   email: z.string().email("Adresse e-mail invalide.").optional(),
-  password: z.string().min(8, "Le mot de passe doit faire au moins 8 caractères.").optional().or(z.literal('')), // Optional, but validated if present
+  password: z.string().min(8, "Le nouveau mot de passe doit faire au moins 8 caractères.").optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')).nullable(),
   address: z.string().optional().nullable(),
   img: z.string().url().optional().nullable(),

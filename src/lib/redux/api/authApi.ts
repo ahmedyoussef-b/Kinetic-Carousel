@@ -98,7 +98,7 @@ export const authApi = createApi({
              dispatch(logoutAction());
           }
         } catch (error) {
-          console.error('❌ [AuthAPI] Échec de la récupération de la session. Dispatch de logoutAction.', error);
+          console.error('❌ [AuthAPI] Échec de la récupération de la session. Dispatch de logoutAction.', JSON.stringify(error));
           dispatch(logoutAction());
         }
       },

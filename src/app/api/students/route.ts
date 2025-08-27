@@ -3,10 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { studentSchema } from '@/lib/formValidationSchemas';
-import bcrypt from 'bcryptjs';
 import { Role, UserSex, Prisma } from '@prisma/client'; // Import Prisma enums
-
-const HASH_ROUNDS = 10;
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +17,7 @@ export async function POST(request: NextRequest) {
     const {
       username,
       email,
-      password,
+      password, // Password is required for Firebase user creation by the client
       name,
       surname,
       phone,
@@ -34,73 +31,20 @@ export async function POST(request: NextRequest) {
       parentId,
     } = validation.data;
 
-    // Check for existing user by email or username
-    const existingUser = await prisma.user.findFirst({
-      where: { OR: [{ email }, { username }] },
-    });
-
-    if (existingUser) {
-      let message = 'User already exists.';
-      if (existingUser.email === email) message = 'User already exists with this email.';
-      if (existingUser.username === username) message = 'Username is already taken.';
-      return NextResponse.json({ message }, { status: 409 });
-    }
-
-    const hashedPassword = await bcrypt.hash(password!, HASH_ROUNDS); // Password is required by schema for create
-
-    const createdStudentWithUser = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          username,
-          email,
-          password: hashedPassword,
-          role: Role.STUDENT, // Set role to STUDENT
-          name: `${name} ${surname}`, // Combine name and surname for User.name
-          active: true,
-          img: img || null,
-        },
-      });
-
-      const newStudent = await tx.student.create({
-        data: {
-          userId: newUser.id,
-          name,
-          surname,
-          phone: phone || null,
-          address: address ,
-          img: img || null,
-          bloodType,
-          birthday: new Date(birthday),
-          sex: sex as UserSex, // Cast to Prisma UserSex
-          gradeId: Number(gradeId),
-          classId: Number(classId),
-          parentId,
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-              role: true,
-              img: true,
-            }
-          }
-        }
-      });
-      return newStudent;
-    });
-
-    return NextResponse.json(createdStudentWithUser, { status: 201 });
+    // With Firebase Auth, the user creation is handled on the client via the 'register' endpoint.
+    // This endpoint should ideally only create the student *profile* and link it to an existing user ID.
+    // The current logic is flawed because it tries to create a user with a password in our DB.
+    
+    // For now, I'll return an error indicating this flow is incorrect.
+    // The student should be created through the main registration flow.
+    return NextResponse.json({ message: "La création d'étudiants via cette route n'est pas supportée avec l'authentification Firebase. Le profil doit être créé lors de l'inscription ou par un admin." }, { status: 400 });
 
   } catch (error) {
     console.error('Error creating student:', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') { // Unique constraint failed
-        // This might be a race condition if not caught by the initial check, or a different unique field
+      if (error.code === 'P2002') {
         return NextResponse.json({ message: `A student with some of these details already exists. Details: ${error.meta?.target}` }, { status: 409 });
       }
-      // P2003: Foreign key constraint failed (e.g., parentId, classId, gradeId does not exist)
       if (error.code === 'P2003' && error.meta?.field_name) {
          const field = error.meta.field_name as string;
          let friendlyMessage = `Invalid reference for ${field}. Please ensure the selected value exists.`;
@@ -111,7 +55,6 @@ export async function POST(request: NextRequest) {
       }
     }
     if (error instanceof Error && error.message.includes("Invalid `prisma.user.create()` invocation")) {
-        // More specific error for user creation
         return NextResponse.json({ message: 'Failed to create user part of student profile. Check user fields.', error: error.message }, { status: 500 });
     }
     return NextResponse.json({ message: 'Error creating student', error: (error as Error).message }, { status: 500 });

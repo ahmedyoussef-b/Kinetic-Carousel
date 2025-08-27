@@ -31,7 +31,8 @@ export async function GET() {
     }) as PrismaTeacherWithUser[];
 
     const participants: SessionParticipant[] = teachers.map((t) => ({
-      id: t.userId, // Use the USER's ID for the session participant
+ id: t.userId, // Use the USER's ID for the session participant
+      userId: t.userId, // Add userId property
       name: `${t.name} ${t.surname}`,
       email: t.user?.email || 'N/A',
       img: t.user?.img || t.img,

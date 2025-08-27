@@ -2,13 +2,10 @@
 // src/app/api/teachers/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 import { Prisma, Role } from '@prisma/client';
 import { teacherSchema } from '@/lib/formValidationSchemas';
 import type { TeacherWithDetails } from '@/types';
 import type { User, Subject, Class, Teacher, Lesson } from '@prisma/client'; // Import necessary types
-
-const HASH_ROUNDS = 10;
 
 // Define a type that matches the Prisma query result structure
 type TeacherWithPrismaRelations = Teacher & {
@@ -69,83 +66,11 @@ export async function POST(request: NextRequest) {
       bloodType, birthday, sex, subjects: subjectIds = []
     } = validation.data;
     
-    // Explicit password check for new user creation
-    if (!password || password.trim() === "") {
-        return NextResponse.json({ message: "Le mot de passe est requis pour créer un nouvel enseignant." }, { status: 400 });
-    }
-
-    const existingUser = await prisma.user.findFirst({
-      where: { OR: [{ email }, { username }] },
-    });
-
-    if (existingUser) {
-      let message = "Un utilisateur existe déjà.";
-      if (existingUser.email === email) message = "Un utilisateur existe déjà avec cet email.";
-      if (existingUser.username === username) message = "Ce nom d'utilisateur est déjà pris.";
-      return NextResponse.json({ message }, { status: 409 });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, HASH_ROUNDS);
-    
-    const newTeacherData = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          username,
-          email,
-          password: hashedPassword,
-          role: Role.TEACHER,
-          name: `${name} ${surname}`,
-          active: true,
-          img: img || null,
-        },
-      });
-
-      const numericSubjectIds = subjectIds.map(id => Number(id)).filter(id => !isNaN(id));
-
-      const newTeacher = await tx.teacher.create({
-        data: {
-          userId: newUser.id,
-          name,
-          surname,
-          phone: phone || null,
-          address: address || null,
-          img: img || null,
-          bloodType: bloodType || null,
-          birthday: birthday ? new Date(birthday) : null,
-          sex: sex || null,
-          subjects: {
-            connect: numericSubjectIds.map(id => ({ id })),
-          },
-        },
-        include: {
-            subjects: true,
-            user: true,
-        }
-      });
-      
-      const { password: _, ...safeUser } = newUser;
-
-      return {
-          ...newTeacher,
-          user: safeUser,
-      };
-    });
-
-    if (!newTeacherData) {
-        throw new Error("La création de l'enseignant a échoué après la transaction.");
-    }
-
-    const responseData: TeacherWithDetails = {
-        ...newTeacherData,
-        classes: [], // New teacher has no classes yet
-        _count: {
-            subjects: newTeacherData.subjects.length,
-            classes: 0, 
-            lessons: 0
-        }
-    };
-    
-    return NextResponse.json(responseData, { status: 201 });
+    // With Firebase Auth, user creation is handled separately (e.g., in /api/auth/register).
+    // This endpoint should not create a user with a password.
+    // It should expect a userId from an existing Firebase user.
+    // For now, returning an error to indicate the incorrect flow.
+    return NextResponse.json({ message: "La création d'enseignants via cette route n'est pas supportée avec l'authentification Firebase. Le profil doit être créé lors de l'inscription." }, { status: 400 });
 
   } catch (error) {
     console.error("❌ POST /api/teachers: An error occurred in the handler:", error);

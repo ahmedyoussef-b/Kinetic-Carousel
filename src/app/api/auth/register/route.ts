@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         if (role === Role.TEACHER) {
             await tx.teacher.create({ data: { userId: user.id, name: firstName, surname: lastName } });
         } else if (role === Role.PARENT) {
-            await tx.parent.create({ data: { userId: user.id, name: firstName, surname: lastName } });
+            await tx.parent.create({ data: { userId: user.id, name: firstName, surname: lastName, address: '' } });
         }
         
         return user;
@@ -79,7 +79,8 @@ export async function POST(req: NextRequest) {
     console.log(`✅ [API/Register] Inscription réussie pour ${email}.`);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = newUser;
+    const safeUser = { id: newUser.id, name: newUser.name, firstName: newUser.firstName, lastName: newUser.lastName, username: newUser.username, email: newUser.email, img: newUser.img, role: newUser.role, active: newUser.active, createdAt: newUser.createdAt, updatedAt: newUser.updatedAt, twoFactorEnabled: newUser.twoFactorEnabled, twoFactorCode: newUser.twoFactorCode, twoFactorCodeExpires: newUser.twoFactorCodeExpires };
+
 
     return NextResponse.json({ user: safeUser as SafeUser }, { status: 201 });
 

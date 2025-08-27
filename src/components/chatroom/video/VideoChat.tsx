@@ -1,7 +1,7 @@
 // src/components/chatroom/video/VideoChat.tsx
 'use client';
-import React, 'useState', useEffect } from 'react';
-import { Video } from 'twilio-video';
+import React, { useState, useEffect } from 'react';
+// import { Video } from 'twilio-video'; // Assuming twilio-video is installed
 import Room from './Room';
 import { SafeUser } from '@/types';
 import { Loader2 } from 'lucide-react';

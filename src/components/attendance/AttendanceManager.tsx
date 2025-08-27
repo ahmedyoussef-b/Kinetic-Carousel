@@ -16,7 +16,7 @@ import AttendanceStep1Class from './AttendanceStep1Class';
 
 export type StudentData = { id: string; name: string; surname: string };
 export type ClassData = { id: number; name: string; students?: StudentData[] };
-export type LessonData = { id: number; classId: number; day: Day, startTime: Date, subject: Pick<Subject, 'id' | 'name'> };
+export type LessonData = { id: number; classId: number | null; day: Day, startTime: Date, subject: Pick<Subject, 'id' | 'name'> };
 
 interface AttendanceManagerProps {
   classes: ClassData[];
@@ -45,7 +45,7 @@ export default function AttendanceManager({ classes, lessons }: AttendanceManage
     const dayOfWeek = dayMapping[selectedDate.getDay()];
     if (!dayOfWeek) return [];
     return lessons
-      .filter(l => l.classId.toString() === selectedClassId && l.day === dayOfWeek)
+      .filter(l => l.classId !== null && l.classId.toString() === selectedClassId && l.day === dayOfWeek)
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   }, [selectedClassId, selectedDate, lessons]);
 

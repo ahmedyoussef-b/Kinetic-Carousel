@@ -43,7 +43,7 @@ export type ResultListDisplayItem = {
   teacherName: string;
   teacherSurname: string;
   score: number;
-  className: string;
+  className: string | null | undefined;
   assessmentDate: Date;
   type: 'Examen' | 'Devoir';
   examId: number | null; 
