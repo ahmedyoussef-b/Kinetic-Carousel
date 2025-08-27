@@ -74,6 +74,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("❌ Firebase Login API Error:", error.message);
-        return NextResponse.json({ message: 'Authentication failed.', error: error.message }, { status: 401 });
+        return NextResponse.json({ message: 'Authentication failed.', error: 'Firebase authentication failed' }, { status: 401 });
     }
 }
