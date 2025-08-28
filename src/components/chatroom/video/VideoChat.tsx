@@ -16,8 +16,8 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
 
     useEffect(() => {
         // Ensure user and user.id are available before fetching the token
-        if (!user?.id) {
-            console.warn("VideoChat: Tentative de récupération du jeton sans ID utilisateur.");
+        if (!user?.id || !roomName) {
+            console.warn("VideoChat: Tentative de récupération du jeton sans ID utilisateur ou nom de salle.");
             return;
         }
 
@@ -28,7 +28,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ roomName }), // Pass roomName in the body
+                    body: JSON.stringify({ roomName, identity: user.id }), // Pass identity and roomName in the body
                 });
 
                 if (!response.ok) {
