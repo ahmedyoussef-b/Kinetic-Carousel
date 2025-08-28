@@ -8,15 +8,18 @@ const { VideoGrant } = AccessToken;
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
-    if (!session?.user) {
+    if (!session?.user?.id) { // Check for user.id specifically
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
     }
 
-    const { room, identity } = await req.json();
+    const { room } = await req.json();
 
-    if (!room || !identity) {
-        return NextResponse.json({ message: 'Identité et nom de la salle requis' }, { status: 400 });
+    if (!room) {
+        return NextResponse.json({ message: 'Le nom de la salle est requis' }, { status: 400 });
     }
+
+    // Use the secure user ID from the server-side session as the identity
+    const identity = session.user.id;
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const apiKey = process.env.TWILIO_API_KEY_SID;

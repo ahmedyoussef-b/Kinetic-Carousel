@@ -1,7 +1,6 @@
 // src/components/chatroom/video/VideoChat.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
-// import { Video } from 'twilio-video'; // Assuming twilio-video is installed
 import Room from './Room';
 import { SafeUser } from '@/types';
 import { Loader2 } from 'lucide-react';
@@ -14,7 +13,6 @@ interface VideoChatProps {
 
 const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
     const [token, setToken] = useState<string | null>(null);
-    const [connecting, setConnecting] = useState(false);
 
     useEffect(() => {
         const getToken = async () => {
@@ -25,11 +23,14 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        identity: user.name || user.email, // Use user's name or email as identity
                         room: roomName,
+                        // Identity is now handled by the server, no need to send it.
                     }),
-                    credentials: 'include', // FIX: Add credentials to the request
+                    credentials: 'include',
                 });
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch token: ${response.statusText}`);
+                }
                 const data = await response.json();
                 setToken(data.token);
             } catch (error) {
@@ -38,7 +39,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
         };
 
         getToken();
-    }, [roomName, user.name, user.email]);
+    }, [roomName, user.id]); // Depend on user.id to ensure user is loaded
 
     if (!token) {
         return (
