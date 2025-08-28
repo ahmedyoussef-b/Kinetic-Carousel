@@ -92,9 +92,9 @@ export default function BreakoutRoomsManagement() {
                                     {roomParticipants.map((participant: SessionParticipant) => (
                                         <div key={participant.id} className="flex items-center gap-2 text-sm p-1 bg-muted/50 rounded-md">
                                             <Avatar className="h-6 w-6 text-xs">
-                                                <AvatarFallback>{participant.name?.charAt(0)}</AvatarFallback>
+                                                <AvatarFallback>{participant.name?.charAt(0) ?? 'U'}</AvatarFallback>
                                             </Avatar>
-                                            <span className="truncate">{participant.name}</span>
+                                            <span className="truncate">{participant.name ?? 'Participant Inconnu'}</span>
                                         </div>
                                     ))}
                                 </CardContent>
