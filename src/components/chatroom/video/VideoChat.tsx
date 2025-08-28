@@ -15,6 +15,12 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
     const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
+        // Ensure user and user.id are available before fetching the token
+        if (!user?.id) {
+            console.warn("VideoChat: Tentative de récupération du jeton sans ID utilisateur.");
+            return;
+        }
+
         const getToken = async () => {
             try {
                 const response = await fetch('/api/video/token', {
@@ -22,12 +28,13 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ room: roomName }), // Explicitly send roomName
-                    credentials: 'include',
+                    body: JSON.stringify({ room: roomName, identity: user.id }), // Pass identity explicitly
                 });
+
                 if (!response.ok) {
                     throw new Error(`Failed to fetch token: ${response.statusText}`);
                 }
+
                 const data = await response.json();
                 setToken(data.token);
             } catch (error) {
