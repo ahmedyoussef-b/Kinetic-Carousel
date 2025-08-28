@@ -51,7 +51,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                 <Card>
                     <CardContent className="p-8 flex items-center">
                         <Loader2 className="mr-2 h-8 w-8 animate-spin" />
-                        <span>Ça reste blockée</span>
+                        <span>Connexion à la classe virtuelle...</span>
                     </CardContent>
                 </Card>
             </div>
