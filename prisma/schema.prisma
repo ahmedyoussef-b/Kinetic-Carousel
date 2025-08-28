@@ -142,7 +142,7 @@ model Subject {
 
 model Classroom {
   id           Int      @id @default(autoincrement())
-  name         String
+  name         String   @unique
   abbreviation String?
   capacity     Int
   building     String?

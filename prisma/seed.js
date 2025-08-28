@@ -24,26 +24,18 @@ const subjectsData = [
     { name: 'Éducation Sportive', weeklyHours: 2, coefficient: 1, isOptional: false },
 ];
 
-const optionalSubjectsData = [
-    { name: 'Allemand', weeklyHours: 2, coefficient: 1, isOptional: true },
-    { name: 'Italien', weeklyHours: 2, coefficient: 1, isOptional: true },
-    { name: 'Espagnol', weeklyHours: 2, coefficient: 1, isOptional: true },
-];
-
-// --- FIREBASE ADMIN INITIALIZATION ---
 // --- FIREBASE ADMIN INITIALIZATION ---
 function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     console.log("🔥 [Seed Script] Initializing Firebase Admin SDK...");
     
-    // Utilisez les variables d'environnement EXISTANTES
     const serviceAccount = {
       type: "service_account",
       project_id: process.env.FIREBASE_PROJECT_ID,
-      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID, // Optionnel
-      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'), // IMPORTANT: convertir les \n
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
       client_email: process.env.FIREBASE_CLIENT_EMAIL,
-      client_id: process.env.FIREBASE_CLIENT_ID, // Optionnel
+      client_id: process.env.FIREBASE_CLIENT_ID,
       auth_uri: "https://accounts.google.com/o/oauth2/auth",
       token_uri: "https://oauth2.googleapis.com/token",
       auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
@@ -66,31 +58,52 @@ function initializeFirebaseAdmin() {
 async function cleanupDatabase() {
     console.log('🧹 Nettoyage de la base de données...');
 
-    // Delete in reverse order of dependency
-    await prisma.chatroomMessage.deleteMany().catch(e => console.log('Pas de messages de chatroom à supprimer, on continue.'));
-    await prisma.sessionParticipant.deleteMany().catch(e => console.log('Pas de participants de session à supprimer, on continue.'));
-    await prisma.chatroomSession.deleteMany().catch(e => console.log('Pas de sessions de chatroom à supprimer, on continue.'));
-    await prisma.result.deleteMany().catch(e => console.log('Pas de résultats à supprimer, on continue.'));
-    await prisma.assignment.deleteMany().catch(e => console.log('Pas de devoirs à supprimer, on continue.'));
-    await prisma.exam.deleteMany().catch(e => console.log('Pas d\'examens à supprimer, on continue.'));
-    await prisma.attendance.deleteMany().catch(e => console.log('Pas de présences à supprimer, on continue.'));
-    await prisma.lesson.deleteMany().catch(e => console.log('Pas de leçons à supprimer, on continue.'));
-    await prisma.announcement.deleteMany().catch(e => console.log('Pas d\'annonces à supprimer, on continue.'));
-    await prisma.event.deleteMany().catch(e => console.log('Pas d\'événements à supprimer, on continue.'));
-    await prisma.optionalSubjectGroup.deleteMany().catch(e => console.log('Pas de groupes de matières optionnelles à supprimer, on continue.'));
-    await prisma.student.deleteMany().catch(e => console.log('Pas d\'étudiants à supprimer, on continue.'));
-    await prisma.parent.deleteMany().catch(e => console.log('Pas de parents à supprimer, on continue.'));
-    await prisma.teacher.deleteMany().catch(e => console.log('Pas d\'enseignants à supprimer, on continue.'));
-    await prisma.admin.deleteMany().catch(e => console.log('Pas d\'admins à supprimer, on continue.'));
-    await prisma.class.deleteMany().catch(e => console.log('Pas de classes à supprimer, on continue.'));
-    await prisma.grade.deleteMany().catch(e => console.log('Pas de niveaux à supprimer, on continue.'));
-    await prisma.subject.deleteMany().catch(e => console.log('Pas de matières à supprimer, on continue.'));
-    await prisma.classroom.deleteMany().catch(e => console.log('Pas de salles à supprimer, on continue.'));
-    await prisma.user.deleteMany().catch(e => console.log('Pas d\'utilisateurs à supprimer, on continue.'));
+    // Delete in reverse order of dependency to avoid foreign key constraints
+    await prisma.chatroomMessage.deleteMany().catch(e => console.log('Pas de messages à supprimer.'));
+    await prisma.sessionParticipant.deleteMany().catch(e => console.log('Pas de participants de session à supprimer.'));
+    await prisma.chatroomSession.deleteMany().catch(e => console.log('Pas de sessions de chatroom à supprimer.'));
+    await prisma.result.deleteMany().catch(e => console.log('Pas de résultats à supprimer.'));
+    await prisma.assignment.deleteMany().catch(e => console.log('Pas de devoirs à supprimer.'));
+    await prisma.exam.deleteMany().catch(e => console.log('Pas d\'examens à supprimer.'));
+    await prisma.attendance.deleteMany().catch(e => console.log('Pas de présences à supprimer.'));
+    await prisma.lesson.deleteMany().catch(e => console.log('Pas de leçons à supprimer.'));
+    await prisma.announcement.deleteMany().catch(e => console.log('Pas d\'annonces à supprimer.'));
+    await prisma.event.deleteMany().catch(e => console.log('Pas d\'événements à supprimer.'));
+    await prisma.optionalSubjectGroup.deleteMany().catch(e => console.log('Pas de groupes de matières optionnelles à supprimer.'));
+    await prisma.student.deleteMany().catch(e => console.log('Pas d\'étudiants à supprimer.'));
+    await prisma.parent.deleteMany().catch(e => console.log('Pas de parents à supprimer.'));
+    await prisma.teacher.deleteMany().catch(e => console.log('Pas d\'enseignants à supprimer.'));
+    await prisma.admin.deleteMany().catch(e => console.log('Pas d\'admins à supprimer.'));
+    await prisma.class.deleteMany().catch(e => console.log('Pas de classes à supprimer.'));
+    await prisma.grade.deleteMany().catch(e => console.log('Pas de niveaux à supprimer.'));
+    await prisma.subject.deleteMany().catch(e => console.log('Pas de matières à supprimer.'));
+    await prisma.classroom.deleteMany().catch(e => console.log('Pas de salles à supprimer.'));
+    await prisma.user.deleteMany().catch(e => console.log('Pas d\'utilisateurs à supprimer.'));
     
     console.log('✅ Nettoyage terminé.');
 }
 
+async function getOrCreateFirebaseUser(auth, email, password) {
+  try {
+    const userRecord = await auth.getUserByEmail(email);
+    console.log(`   -> Utilisateur Firebase trouvé: ${email} (UID: ${userRecord.uid})`);
+    if (userRecord.disabled) {
+        console.log(`   -> Utilisateur Firebase est désactivé. Activation...`);
+        await auth.updateUser(userRecord.uid, { disabled: false });
+    }
+    return userRecord;
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      console.log(`   -> Utilisateur Firebase non trouvé pour ${email}. Création...`);
+      return auth.createUser({
+        email: email,
+        password: password,
+        disabled: false
+      });
+    }
+    throw error;
+  }
+}
 
 async function main() {
   await cleanupDatabase();
@@ -99,27 +112,18 @@ async function main() {
   initializeFirebaseAdmin();
   const auth = admin.auth();
 
-  // --- Get Firebase Users (must be created in Firebase Console first) ---
-  const adminEmail = 'admin@example.com';
-  const parentEmail = 'parent@example.com';
-
-  let adminUser, parentUser;
-  try {
-    adminUser = await auth.getUserByEmail(adminEmail);
-    parentUser = await auth.getUserByEmail(parentEmail);
-  } catch (error) {
-    console.error(`❌ Erreur: Impossible de trouver les utilisateurs Firebase. Assurez-vous que "${adminEmail}" et "${parentEmail}" existent dans Firebase Authentication.`);
-    process.exit(1);
-  }
+  // --- Get/Create Firebase Admin/Parent Users ---
+  console.log('👤 Synchronisation des utilisateurs principaux (Admin, Parent)...');
+  const adminUser = await getOrCreateFirebaseUser(auth, 'admin@example.com', 'password123');
+  const parentUser = await getOrCreateFirebaseUser(auth, 'parent@example.com', 'password123');
   
   // --- Create/Update Local User Profiles ---
-  console.log('👤 Synchronisation des utilisateurs locaux...');
   const admin1 = await prisma.user.upsert({
     where: { id: adminUser.uid },
     update: {},
     create: {
       id: adminUser.uid,
-      email: adminEmail,
+      email: adminUser.email,
       username: 'admin',
       name: 'Admin Principal',
       role: 'ADMIN',
@@ -128,14 +132,14 @@ async function main() {
       lastName: 'Principal',
     }
   });
-  await prisma.admin.create({ data: { userId: admin1.id, name: 'Admin', surname: 'Principal' } });
+  await prisma.admin.upsert({ where: { userId: admin1.id }, update: {}, create: { userId: admin1.id, name: 'Admin', surname: 'Principal' } });
 
   const parentLocalUser = await prisma.user.upsert({
     where: { id: parentUser.uid },
     update: {},
     create: {
       id: parentUser.uid,
-      email: parentEmail,
+      email: parentUser.email,
       username: 'parent',
       name: 'Parent Exemple',
       role: 'PARENT',
@@ -144,8 +148,10 @@ async function main() {
       lastName: 'Exemple',
     }
   });
-  const parent = await prisma.parent.create({
-    data: {
+  const parent = await prisma.parent.upsert({
+    where: { userId: parentLocalUser.id },
+    update: {},
+    create: {
       userId: parentLocalUser.id,
       name: 'Parent',
       surname: 'Exemple',
@@ -162,34 +168,33 @@ async function main() {
   );
   console.log(`✅ ${createdSubjects.length} matières créées.`);
 
-  // --- Create Teachers (1 per subject) ---
-  console.log('🧑‍🏫 Création des professeurs (1 par matière)...');
+  // --- Create Teachers ---
+  console.log('🧑‍🏫 Création des professeurs...');
   const teachers = [];
   for (const subject of createdSubjects) {
       const teacherName = `Prof_${subject.name.replace(/\s+/g, '')}`;
       const teacherEmail = `${teacherName.toLowerCase()}@example.com`;
       
-      // We create a user in Firebase Auth, enabled and with a default password
-      const fbTeacher = await auth.createUser({
-        email: teacherEmail,
-        password: 'password123',
-        disabled: false
-      });
+      const fbTeacher = await getOrCreateFirebaseUser(auth, teacherEmail, 'password123');
 
-      const teacherUser = await prisma.user.create({
-          data: {
+      const teacherUser = await prisma.user.upsert({
+          where: { id: fbTeacher.uid },
+          update: {},
+          create: {
               id: fbTeacher.uid,
               email: teacherEmail,
               username: teacherName.toLowerCase(),
-              name: `${teacherName} Principal`,
+              name: `Prof ${subject.name}`,
               role: 'TEACHER',
               active: true,
               firstName: 'Prof',
               lastName: subject.name,
           }
       });
-      const teacher = await prisma.teacher.create({
-          data: {
+      const teacher = await prisma.teacher.upsert({
+          where: { userId: teacherUser.id },
+          update: {},
+          create: {
               userId: teacherUser.id,
               name: 'Prof',
               surname: subject.name,
@@ -198,47 +203,29 @@ async function main() {
       });
       teachers.push(teacher);
   }
-  console.log(`✅ ${teachers.length} professeurs créés et assignés.`);
+  console.log(`✅ ${teachers.length} professeurs créés ou mis à jour.`);
   
   // --- Create Grades, Classes, and Students ---
-  const createdClasses = [];
-  const createdGrades = [];
-  const allStudents = [];
-
   for (let level = 1; level <= 4; level++) {
-    console.log(`🏫 Création du niveau ${level}...`);
-    const grade = await prisma.grade.upsert({
-      where: { level },
-      update: {},
-      create: { level },
-    });
-    createdGrades.push(grade);
+    console.log(`🏫 Traitement du niveau ${level}...`);
+    const grade = await prisma.grade.upsert({ where: { level }, update: {}, create: { level } });
 
     const className = `${level}ème A`;
     const newClass = await prisma.class.create({
-      data: {
-        name: className,
-        abbreviation: `${level}A`,
-        capacity: 10,
-        gradeId: grade.id,
-      }
+      data: { name: className, abbreviation: `${level}A`, capacity: 10, gradeId: grade.id }
     });
-    createdClasses.push(newClass);
     console.log(`  - Classe créée : ${className}`);
 
-    // Create 10 students for this class
     for (let i = 1; i <= 10; i++) {
         const studentName = `eleve_${level}a_${i}`;
         const studentEmail = `${studentName.toLowerCase()}@example.com`;
 
-        const fbStudent = await auth.createUser({
-          email: studentEmail,
-          password: 'password123',
-          disabled: false
-        });
+        const fbStudent = await getOrCreateFirebaseUser(auth, studentEmail, 'password123');
         
-        const studentUser = await prisma.user.create({
-            data: {
+        const studentUser = await prisma.user.upsert({
+            where: { id: fbStudent.uid },
+            update: {},
+            create: {
                 id: fbStudent.uid,
                 email: studentEmail,
                 username: studentName.toLowerCase(),
@@ -249,8 +236,10 @@ async function main() {
                 lastName: `${i} ${level}A`,
             }
         });
-        const student = await prisma.student.create({
-            data: {
+        await prisma.student.upsert({
+            where: { userId: studentUser.id },
+            update: {},
+            create: {
                 userId: studentUser.id,
                 name: 'Élève',
                 surname: `${i} ${level}A`,
@@ -264,28 +253,25 @@ async function main() {
                 bloodType: 'A+',
             }
         });
-        allStudents.push(student);
     }
-     console.log(`✅ Niveau ${level} et sa classe de 10 élèves créés.`);
+     console.log(`✅ Niveau ${level} traité.`);
   }
 
   // --- Create classrooms ---
   console.log('🚪 Création des salles...');
   let totalRooms = 0;
-  // 10 general classrooms
   for (let i = 1; i <= 10; i++) {
-    await prisma.classroom.create({ data: { name: `Salle ${100 + i}`, capacity: 30 } });
+    await prisma.classroom.upsert({ where: {name: `Salle ${100 + i}`}, update: {}, create: { name: `Salle ${100 + i}`, capacity: 30 } });
     totalRooms++;
   }
-  // 1 lab for each type
-  await prisma.classroom.create({ data: { name: `Labo Physique`, capacity: 20 } }); totalRooms++;
-  await prisma.classroom.create({ data: { name: `Labo Technique`, capacity: 20 } }); totalRooms++;
-  await prisma.classroom.create({ data: { name: `Labo Sciences`, capacity: 20 } }); totalRooms++;
-  await prisma.classroom.create({ data: { name: `Gymnase`, capacity: 40 } }); totalRooms++;
+  await prisma.classroom.upsert({ where: {name: 'Labo Physique'}, update: {}, create: { name: 'Labo Physique', capacity: 20 } }); totalRooms++;
+  await prisma.classroom.upsert({ where: {name: 'Labo Technique'}, update: {}, create: { name: 'Labo Technique', capacity: 20 } }); totalRooms++;
+  await prisma.classroom.upsert({ where: {name: 'Labo Sciences'}, update: {}, create: { name: 'Labo Sciences', capacity: 20 } }); totalRooms++;
+  await prisma.classroom.upsert({ where: {name: 'Gymnase'}, update: {}, create: { name: 'Gymnase', capacity: 40 } }); totalRooms++;
   
-  console.log(`✅ ${totalRooms} salles et laboratoires créés.`);
+  console.log(`✅ ${totalRooms} salles et laboratoires créés ou mis à jour.`);
 
-  console.log('🎉 Peuplement de la base de données terminé avec succès ! (Données minimales)');
+  console.log('🎉 Peuplement de la base de données terminé avec succès !');
 }
 
 main()
