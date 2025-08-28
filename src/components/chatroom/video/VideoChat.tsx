@@ -22,10 +22,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        room: roomName,
-                        // Identity is now handled by the server, no need to send it.
-                    }),
+                    body: JSON.stringify({ room: roomName }), // Explicitly send roomName
                     credentials: 'include',
                 });
                 if (!response.ok) {
