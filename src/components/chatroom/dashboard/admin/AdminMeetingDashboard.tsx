@@ -12,7 +12,8 @@ import { fetchMeetingParticipants, startMeeting, setMeetingCandidates, updateStu
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
 import TeacherSelector from '@/components/chatroom/dashboard/admin/TeacherSelector';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
-import { Role, type SafeUser, type SessionParticipant } from '@/types';
+import { Role, type SafeUser } from '@/types';
+import type { SessionParticipant } from '@prisma/client';
 
 interface AdminMeetingDashboardProps {
     teachers: SessionParticipant[];
