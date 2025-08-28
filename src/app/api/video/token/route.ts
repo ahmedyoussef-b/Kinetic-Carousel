@@ -7,20 +7,25 @@ const { AccessToken } = Twilio.jwt;
 const { VideoGrant } = AccessToken;
 
 export async function POST(req: NextRequest) {
+    // La session est toujours vérifiée pour la sécurité de la route
     const session = await getServerSession();
     if (!session?.user?.id) {
         console.error("❌ [API/video/token] Accès non autorisé : aucune session utilisateur trouvée.");
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
     }
     
-    const { roomName } = await req.json();
+    const { identity, roomName } = await req.json();
 
-    if (!roomName) {
-        return NextResponse.json({ message: 'Le nom de la salle est requis' }, { status: 400 });
+    if (!identity || !roomName) {
+        return NextResponse.json({ message: 'L\'identité de l\'utilisateur et le nom de la salle sont requis' }, { status: 400 });
     }
     
-    // Utiliser l'ID de l'utilisateur de la session comme identité pour Twilio
-    const identity = session.user.id;
+    // S'assurer que l'utilisateur ne demande un jeton que pour lui-même
+    if (identity !== session.user.id) {
+        console.warn(`⚠️ [API/video/token] Tentative de création de jeton pour un autre utilisateur : demandé=${identity}, session=${session.user.id}`);
+        return NextResponse.json({ message: 'Non autorisé à créer un jeton pour un autre utilisateur' }, { status: 403 });
+    }
+
     console.log(`✅ [API/video/token] Génération du jeton pour l'identité: ${identity} et la salle: ${roomName}`);
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
