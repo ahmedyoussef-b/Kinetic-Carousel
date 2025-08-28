@@ -1,23 +1,24 @@
 // src/app/api/video/token/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import Twilio from 'twilio';
+import { getServerSession } from '@/lib/auth-utils';
 
 const { AccessToken } = Twilio.jwt;
 const { VideoGrant } = AccessToken;
 
 export async function POST(req: NextRequest) {
-    // The user's identity is now passed in the request body for explicitness.
-    // Server-side session validation should still be in place in a real app
-    // via middleware or by re-verifying a token here if needed.
-    const { room, identity } = await req.json();
+    const session = await getServerSession();
+    if (!session?.user?.id) {
+        return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
+    }
+    
+    const { roomName } = await req.json();
 
-    if (!room) {
+    if (!roomName) {
         return NextResponse.json({ message: 'Le nom de la salle est requis' }, { status: 400 });
     }
-
-    if (!identity) {
-        return NextResponse.json({ message: 'L\'identité de l\'utilisateur est requise' }, { status: 400 });
-    }
+    
+    const identity = session.user.id;
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const apiKey = process.env.TWILIO_API_KEY_SID;
@@ -30,7 +31,10 @@ export async function POST(req: NextRequest) {
     
     const accessToken = new AccessToken(accountSid, apiKey, apiSecret, { identity });
     
-    const videoGrant = new VideoGrant({ room });
+    const videoGrant = new VideoGrant({
+      room: roomName,
+    });
+
     accessToken.addGrant(videoGrant);
 
     return NextResponse.json({ token: accessToken.toJwt() });
