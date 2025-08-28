@@ -5,6 +5,7 @@ import { getServerSession } from '@/lib/auth-utils';
 import { SessionService } from '@/services/session-service';
 
 export async function GET(request: NextRequest, { params }: { params: { sessionId: string } }) {
+  // Pass the request object to getServerSession for correct session retrieval in API routes.
   const sessionInfo = await getServerSession();
   if (!sessionInfo?.user?.id) {
     return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
