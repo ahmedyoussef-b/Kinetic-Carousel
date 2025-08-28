@@ -44,15 +44,18 @@ export const participantReducers = {
   },
   addStudentToSession: (state: SessionState, action: PayloadAction<SessionParticipant>) => {
     if (state.activeSession) {
-      state.activeSession.participants.push({ 
-        ...action.payload, 
-        isInSession: true, 
-        hasRaisedHand: false,
-        points: action.payload.points || 0,
-        badges: action.payload.badges || [],
-        isMuted: false,
-        breakoutRoomId: null,
-      });
+        // Prevent adding duplicate participants
+        if (!state.activeSession.participants.some(p => p.id === action.payload.id)) {
+            state.activeSession.participants.push({
+                ...action.payload,
+                isInSession: true,
+                hasRaisedHand: false,
+                points: action.payload.points || 0,
+                badges: action.payload.badges || [],
+                isMuted: false,
+                breakoutRoomId: null,
+            });
+        }
     }
   },
   updateStudentPresence: (state: SessionState, action: PayloadAction<{ onlineUserIds: string[] }>) => {
