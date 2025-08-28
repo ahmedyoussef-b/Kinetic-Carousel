@@ -28,6 +28,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                         identity: user.name || user.email, // Use user's name or email as identity
                         room: roomName,
                     }),
+                    credentials: 'include', // FIX: Add credentials to the request
                 });
                 const data = await response.json();
                 setToken(data.token);
@@ -43,7 +44,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
         return (
             <div className="flex items-center justify-center h-full">
                 <Card>
-                    <CardContent className="p-8">
+                    <CardContent className="p-8 flex items-center">
                         <Loader2 className="mr-2 h-8 w-8 animate-spin" />
                         <span>Connexion à la classe virtuelle...</span>
                     </CardContent>
