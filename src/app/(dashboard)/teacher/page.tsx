@@ -8,13 +8,19 @@ import type { WizardData } from '@/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useAppSelector } from '@/hooks/redux-hooks';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import prisma from "@/lib/prisma";
+import { getServerSession } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { Role } from "@prisma/client";
+import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
 
-interface TeacherPageProps {
+
+interface TeacherPageClientProps {
   teacherId: string;
   wizardData: WizardData;
 }
 
-const TeacherPageClient = ({ teacherId, wizardData }: TeacherPageProps) => {
+const TeacherPageClient = ({ teacherId, wizardData }: TeacherPageClientProps) => {
   const router = useRouter();
   const user = useAppSelector(selectCurrentUser);
 
@@ -64,12 +70,6 @@ const TeacherPageClient = ({ teacherId, wizardData }: TeacherPageProps) => {
 
 
 // Server component to fetch data and pass it to the client component
-import prisma from "@/lib/prisma";
-import { getServerSession } from "@/lib/auth-utils";
-import { redirect } from "next/navigation";
-import { Role } from "@prisma/client";
-import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
-
 export default async function TeacherPage() {
   console.log("🧑‍🏫 [TeacherPage] Rendu de la page d'accueil de l'enseignant. Vérification de la session.");
   const session = await getServerSession();
