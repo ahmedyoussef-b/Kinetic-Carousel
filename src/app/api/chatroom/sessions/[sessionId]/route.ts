@@ -6,7 +6,7 @@ import { SessionService } from '@/services/session-service';
 
 export async function GET(request: NextRequest, { params }: { params: { sessionId: string } }) {
   const sessionInfo = await getServerSession();
-  if (!sessionInfo?.user.id) {
+  if (!sessionInfo?.user?.id) {
     return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
   }
 
