@@ -28,7 +28,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ room: roomName, identity: user.id }), // Pass identity explicitly
+                    body: JSON.stringify({ roomName }), // Pass roomName in the body
                 });
 
                 if (!response.ok) {
@@ -51,7 +51,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                 <Card>
                     <CardContent className="p-8 flex items-center">
                         <Loader2 className="mr-2 h-8 w-8 animate-spin" />
-                        <span>Connexion à la classe virtuelle...</span>
+                        <span>Ça reste blockée</span>
                     </CardContent>
                 </Card>
             </div>
