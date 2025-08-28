@@ -24,6 +24,15 @@ class SessionServiceController {
   public getSession(sessionId: string): ActiveSession | undefined {
     return sessionStore.get(sessionId);
   }
+  
+  public findSessionIdForParticipant(userId: string): string | null {
+    for (const [sessionId, session] of sessionStore.entries()) {
+      if (session.participants.some(p => p.id === userId)) {
+        return sessionId;
+      }
+    }
+    return null;
+  }
 
   public endSession(sessionId: string): ActiveSession | undefined {
     const session = sessionStore.get(sessionId);

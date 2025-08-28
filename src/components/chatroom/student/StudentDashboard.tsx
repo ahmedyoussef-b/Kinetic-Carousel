@@ -13,6 +13,7 @@ import { InvitationList } from './InvitationList';
 import { NoInvitations } from './NoInvitations';
 import { NotificationList } from './NotificationList';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -34,6 +35,26 @@ export default function StudentDashboard() {
       router.replace('/');
     }
   }, [isAuthenticated, user, router]);
+
+  // Effect to check for an active session on load
+  useEffect(() => {
+    const checkForActiveSession = async () => {
+      try {
+        const response = await fetch('/api/chatroom/sessions/active-for-student');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.activeSessionId) {
+            console.log(`[StudentDashboard] Session active ${data.activeSessionId} détectée. Redirection...`);
+            router.replace(`/list/chatroom/session?sessionId=${data.activeSessionId}`);
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification de la session active:", error);
+      }
+    };
+    checkForActiveSession();
+  }, [router]);
+
 
   // Effect for polling for new notifications from the server
   useEffect(() => {
@@ -110,7 +131,11 @@ export default function StudentDashboard() {
   };
   
   if (!user) {
-    return <div>Chargement...</div>;
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+    );
   }
 
   return (
