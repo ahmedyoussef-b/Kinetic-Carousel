@@ -1,3 +1,4 @@
+'use server';
 // src/app/api/chatroom/sessions/active-for-student/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { getServerSession } from '@/lib/auth-utils';
