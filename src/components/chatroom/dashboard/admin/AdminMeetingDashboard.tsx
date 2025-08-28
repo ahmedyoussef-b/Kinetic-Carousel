@@ -8,12 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Video, Users, Loader2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import { fetchMeetingParticipants, startMeeting, setMeetingCandidates, updateStudentPresence } from '@/lib/redux/slices/sessionSlice';
+import { startMeeting, setMeetingCandidates, updateStudentPresence } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
 import TeacherSelector from '@/components/chatroom/dashboard/admin/TeacherSelector';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { Role, type SafeUser } from '@/types';
-import type { SessionParticipant } from '@prisma/client';
+import type { SessionParticipant } from '@/lib/redux/slices/session/types';
 
 interface AdminMeetingDashboardProps {
     teachers: SessionParticipant[];
@@ -28,7 +28,6 @@ export default function AdminMeetingDashboard({ teachers }: AdminMeetingDashboar
   const [meetingTitle, setMeetingTitle] = useState("Réunion d'équipe");
 
   useEffect(() => {
-    // Hydrate Redux store with server-fetched teachers
     dispatch(setMeetingCandidates(teachers));
   }, [dispatch, teachers]);
 
