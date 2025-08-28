@@ -5,7 +5,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Video, Mic, MicOff, Hand, Crown, Trophy, Award, Star, UserCog, VideoOff } from 'lucide-react';
+import { Video, Mic, MicOff, Hand, Crown, Trophy, Award, Star, UserCog, VideoOff, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -96,13 +96,36 @@ export default function VideoTile({
     if (points >= 5) return <Award className="w-3 h-3 text-blue-500" />;
     return null;
   };
+  
+  const renderOverlay = () => {
+    if (isOnline) {
+      if (isCurrentUser && !hasCameraPermission) {
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 text-white p-2">
+            <VideoOff className="w-8 h-8 mx-auto mb-2" />
+            <p className="text-xs text-center">Caméra désactivée ou non autorisée</p>
+          </div>
+        )
+      }
+      return null; // No overlay if online and has camera (or not current user)
+    }
+    
+    // Offline overlay
+    return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 text-white p-2">
+            <WifiOff className="w-8 h-8 mx-auto mb-2" />
+            <p className="text-xs text-center font-semibold">Déconnecté</p>
+            <p className="text-xs text-center opacity-80">Je serai de retour</p>
+        </div>
+    )
+  }
 
   return (
     <Card className={cn(
         `relative overflow-hidden transition-all duration-300 shadow-lg cursor-grab w-full h-full`,
         hasRaisedHand && 'ring-2 ring-orange-500',
         isSpotlighted && 'ring-4 ring-yellow-400',
-        !isOnline && 'opacity-50 grayscale'
+        !isOnline && 'opacity-60'
     )}>
       <CardContent className="p-2 flex flex-col h-full">
         <div className="absolute top-2 right-2 flex gap-1 z-10">
@@ -114,23 +137,17 @@ export default function VideoTile({
         </div>
 
         <div className="aspect-video bg-gray-900 rounded-lg mb-2 flex items-center justify-center relative group/tile">
-            {isCurrentUser && !hasCameraPermission && (
-                <div className="text-center text-white p-2">
-                    <VideoOff className="w-8 h-8 mx-auto mb-2" />
-                    <p className="text-xs">Caméra désactivée</p>
-                </div>
-            )}
-             {(!isCurrentUser || (isCurrentUser && hasCameraPermission)) && (
+            {isCurrentUser && hasCameraPermission && (
                  <video
                     ref={videoRef}
                     className="w-full h-full object-cover rounded-lg"
                     autoPlay
                     playsInline
-                    muted={isCurrentUser || isMuted} // Mute self-view and others who are muted
+                    muted={true}
                 />
              )}
               {!isCurrentUser && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center">
                     <Avatar className="w-16 h-16">
                         <AvatarFallback className={cn(
                             'text-lg font-semibold',
@@ -141,6 +158,8 @@ export default function VideoTile({
                     </Avatar>
                 </div>
             )}
+            
+            {renderOverlay()}
           
           <div className="absolute bottom-1 left-1 flex gap-1">
             <Badge variant="secondary" className="p-1 bg-black/30 border-none text-white">
@@ -152,7 +171,7 @@ export default function VideoTile({
           </div>
 
           <div className={cn(
-              'absolute top-1.5 left-1.5 w-3 h-3 rounded-full border-2 border-gray-900',
+              'absolute top-1.5 left-1.5 w-3 h-3 rounded-full border-2 border-gray-900 z-10',
               isOnline ? 'bg-green-500' : 'bg-gray-400'
           )} />
 
