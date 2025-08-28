@@ -55,73 +55,69 @@ function initializeFirebaseAdmin() {
 
 // --- HELPER FUNCTIONS ---
 
-async function cleanupDatabase() {
-    console.log('🧹 Nettoyage de la base de données...');
+async function cleanupDatabase(auth) {
+    console.log('🧹 Nettoyage de la base de données Prisma...');
 
     // Delete in reverse order of dependency to avoid foreign key constraints
-    await prisma.chatroomMessage.deleteMany().catch(e => console.log('Pas de messages à supprimer.'));
-    await prisma.sessionParticipant.deleteMany().catch(e => console.log('Pas de participants de session à supprimer.'));
-    await prisma.chatroomSession.deleteMany().catch(e => console.log('Pas de sessions de chatroom à supprimer.'));
-    await prisma.result.deleteMany().catch(e => console.log('Pas de résultats à supprimer.'));
-    await prisma.assignment.deleteMany().catch(e => console.log('Pas de devoirs à supprimer.'));
-    await prisma.exam.deleteMany().catch(e => console.log('Pas d\'examens à supprimer.'));
-    await prisma.attendance.deleteMany().catch(e => console.log('Pas de présences à supprimer.'));
-    await prisma.lesson.deleteMany().catch(e => console.log('Pas de leçons à supprimer.'));
-    await prisma.announcement.deleteMany().catch(e => console.log('Pas d\'annonces à supprimer.'));
-    await prisma.event.deleteMany().catch(e => console.log('Pas d\'événements à supprimer.'));
-    await prisma.optionalSubjectGroup.deleteMany().catch(e => console.log('Pas de groupes de matières optionnelles à supprimer.'));
-    await prisma.student.deleteMany().catch(e => console.log('Pas d\'étudiants à supprimer.'));
-    await prisma.parent.deleteMany().catch(e => console.log('Pas de parents à supprimer.'));
-    await prisma.teacher.deleteMany().catch(e => console.log('Pas d\'enseignants à supprimer.'));
-    await prisma.admin.deleteMany().catch(e => console.log('Pas d\'admins à supprimer.'));
-    await prisma.class.deleteMany().catch(e => console.log('Pas de classes à supprimer.'));
-    await prisma.grade.deleteMany().catch(e => console.log('Pas de niveaux à supprimer.'));
-    await prisma.subject.deleteMany().catch(e => console.log('Pas de matières à supprimer.'));
-    await prisma.classroom.deleteMany().catch(e => console.log('Pas de salles à supprimer.'));
-    await prisma.user.deleteMany().catch(e => console.log('Pas d\'utilisateurs à supprimer.'));
+    const tableNames = [
+        'ChatroomMessage', 'SessionParticipant', 'ChatroomSession', 'Result',
+        'Assignment', 'Exam', 'Attendance', 'Lesson', 'Announcement', 'Event',
+        'OptionalSubjectGroup', 'Student', 'Parent', 'Teacher', 'Admin',
+        'Class', 'Grade', 'Subject', 'Classroom', 'User'
+    ];
+
+    for (const table of tableNames) {
+        try {
+            await prisma[table.charAt(0).toLowerCase() + table.slice(1)].deleteMany({});
+        } catch (e) {
+            console.log(`Pas de données à supprimer dans la table ${table}.`);
+        }
+    }
     
-    console.log('✅ Nettoyage terminé.');
+    console.log('✅ Nettoyage de la base de données Prisma terminé.');
+
+    console.log('🔥 Nettoyage des utilisateurs Firebase de test...');
+    try {
+        const listUsersResult = await auth.listUsers(1000);
+        const uidsToDelete = listUsersResult.users
+            .filter(user => user.email.endsWith('@example.com'))
+            .map(user => user.uid);
+        
+        if (uidsToDelete.length > 0) {
+            await auth.deleteUsers(uidsToDelete);
+            console.log(`🔥 ${uidsToDelete.length} utilisateurs Firebase de test supprimés.`);
+        } else {
+            console.log('🔥 Aucun utilisateur Firebase de test à supprimer.');
+        }
+    } catch (error) {
+        console.error('🔥 Erreur lors de la suppression des utilisateurs Firebase:', error);
+    }
+     console.log('✅ Nettoyage Firebase terminé.');
 }
 
-async function getOrCreateFirebaseUser(auth, email, password) {
-  try {
-    const userRecord = await auth.getUserByEmail(email);
-    console.log(`   -> Utilisateur Firebase trouvé: ${email} (UID: ${userRecord.uid})`);
-    if (userRecord.disabled) {
-        console.log(`   -> Utilisateur Firebase est désactivé. Activation...`);
-        await auth.updateUser(userRecord.uid, { disabled: false });
-    }
-    return userRecord;
-  } catch (error) {
-    if (error.code === 'auth/user-not-found') {
-      console.log(`   -> Utilisateur Firebase non trouvé pour ${email}. Création...`);
-      return auth.createUser({
-        email: email,
-        password: password,
+
+async function createFirebaseUser(auth, email, password, displayName) {
+    console.log(`   -> Création de l'utilisateur Firebase pour ${email}...`);
+    return auth.createUser({
+        email,
+        password,
+        displayName,
         disabled: false
-      });
-    }
-    throw error;
-  }
+    });
 }
+
 
 async function main() {
-  await cleanupDatabase();
-
   console.log('🌱 Début du peuplement de la base de données...');
   initializeFirebaseAdmin();
   const auth = admin.auth();
-
-  // --- Get/Create Firebase Admin/Parent Users ---
-  console.log('👤 Synchronisation des utilisateurs principaux (Admin, Parent)...');
-  const adminUser = await getOrCreateFirebaseUser(auth, 'admin@example.com', 'password123');
-  const parentUser = await getOrCreateFirebaseUser(auth, 'parent@example.com', 'password123');
   
-  // --- Create/Update Local User Profiles ---
-  const admin1 = await prisma.user.upsert({
-    where: { id: adminUser.uid },
-    update: {},
-    create: {
+  await cleanupDatabase(auth);
+
+  // --- Create Admin User ---
+  const adminUser = await createFirebaseUser(auth, 'admin@example.com', 'password123', 'Admin Principal');
+  const admin1 = await prisma.user.create({
+    data: {
       id: adminUser.uid,
       email: adminUser.email,
       username: 'admin',
@@ -132,12 +128,12 @@ async function main() {
       lastName: 'Principal',
     }
   });
-  await prisma.admin.upsert({ where: { userId: admin1.id }, update: {}, create: { userId: admin1.id, name: 'Admin', surname: 'Principal' } });
-
-  const parentLocalUser = await prisma.user.upsert({
-    where: { id: parentUser.uid },
-    update: {},
-    create: {
+  await prisma.admin.create({ data: { userId: admin1.id, name: 'Admin', surname: 'Principal' } });
+  
+  // --- Create Parent User ---
+  const parentUser = await createFirebaseUser(auth, 'parent@example.com', 'password123', 'Parent Exemple');
+  const parentLocalUser = await prisma.user.create({
+    data: {
       id: parentUser.uid,
       email: parentUser.email,
       username: 'parent',
@@ -148,10 +144,8 @@ async function main() {
       lastName: 'Exemple',
     }
   });
-  const parent = await prisma.parent.upsert({
-    where: { userId: parentLocalUser.id },
-    update: {},
-    create: {
+  const parent = await prisma.parent.create({
+    data: {
       userId: parentLocalUser.id,
       name: 'Parent',
       surname: 'Exemple',
@@ -159,7 +153,8 @@ async function main() {
       address: '123 Rue Exemple'
     }
   });
-  console.log('✅ Utilisateurs principaux synchronisés.');
+  console.log('✅ Utilisateurs principaux créés.');
+
 
   // --- Create Subjects ---
   console.log('📚 Création des matières...');
@@ -174,27 +169,24 @@ async function main() {
   for (const subject of createdSubjects) {
       const teacherName = `Prof_${subject.name.replace(/\s+/g, '')}`;
       const teacherEmail = `${teacherName.toLowerCase()}@example.com`;
+      const displayName = `Prof ${subject.name}`;
       
-      const fbTeacher = await getOrCreateFirebaseUser(auth, teacherEmail, 'password123');
+      const fbTeacher = await createFirebaseUser(auth, teacherEmail, 'password123', displayName);
 
-      const teacherUser = await prisma.user.upsert({
-          where: { id: fbTeacher.uid },
-          update: {},
-          create: {
+      const teacherUser = await prisma.user.create({
+          data: {
               id: fbTeacher.uid,
               email: teacherEmail,
               username: teacherName.toLowerCase(),
-              name: `Prof ${subject.name}`,
+              name: displayName,
               role: 'TEACHER',
               active: true,
               firstName: 'Prof',
               lastName: subject.name,
           }
       });
-      const teacher = await prisma.teacher.upsert({
-          where: { userId: teacherUser.id },
-          update: {},
-          create: {
+      const teacher = await prisma.teacher.create({
+          data: {
               userId: teacherUser.id,
               name: 'Prof',
               surname: subject.name,
@@ -203,12 +195,12 @@ async function main() {
       });
       teachers.push(teacher);
   }
-  console.log(`✅ ${teachers.length} professeurs créés ou mis à jour.`);
+  console.log(`✅ ${teachers.length} professeurs créés.`);
   
   // --- Create Grades, Classes, and Students ---
   for (let level = 1; level <= 4; level++) {
     console.log(`🏫 Traitement du niveau ${level}...`);
-    const grade = await prisma.grade.upsert({ where: { level }, update: {}, create: { level } });
+    const grade = await prisma.grade.create({ data: { level } });
 
     const className = `${level}ème A`;
     const newClass = await prisma.class.create({
@@ -219,27 +211,24 @@ async function main() {
     for (let i = 1; i <= 10; i++) {
         const studentName = `eleve_${level}a_${i}`;
         const studentEmail = `${studentName.toLowerCase()}@example.com`;
+        const displayName = `Élève ${i} ${level}A`;
 
-        const fbStudent = await getOrCreateFirebaseUser(auth, studentEmail, 'password123');
+        const fbStudent = await createFirebaseUser(auth, studentEmail, 'password123', displayName);
         
-        const studentUser = await prisma.user.upsert({
-            where: { id: fbStudent.uid },
-            update: {},
-            create: {
+        const studentUser = await prisma.user.create({
+            data: {
                 id: fbStudent.uid,
                 email: studentEmail,
                 username: studentName.toLowerCase(),
-                name: `Élève ${i} ${level}A`,
+                name: displayName,
                 role: 'STUDENT',
                 active: true,
                 firstName: 'Élève',
                 lastName: `${i} ${level}A`,
             }
         });
-        await prisma.student.upsert({
-            where: { userId: studentUser.id },
-            update: {},
-            create: {
+        await prisma.student.create({
+            data: {
                 userId: studentUser.id,
                 name: 'Élève',
                 surname: `${i} ${level}A`,
@@ -261,15 +250,15 @@ async function main() {
   console.log('🚪 Création des salles...');
   let totalRooms = 0;
   for (let i = 1; i <= 10; i++) {
-    await prisma.classroom.upsert({ where: {name: `Salle ${100 + i}`}, update: {}, create: { name: `Salle ${100 + i}`, capacity: 30 } });
+    await prisma.classroom.create({ data: { name: `Salle ${100 + i}`, capacity: 30 } });
     totalRooms++;
   }
-  await prisma.classroom.upsert({ where: {name: 'Labo Physique'}, update: {}, create: { name: 'Labo Physique', capacity: 20 } }); totalRooms++;
-  await prisma.classroom.upsert({ where: {name: 'Labo Technique'}, update: {}, create: { name: 'Labo Technique', capacity: 20 } }); totalRooms++;
-  await prisma.classroom.upsert({ where: {name: 'Labo Sciences'}, update: {}, create: { name: 'Labo Sciences', capacity: 20 } }); totalRooms++;
-  await prisma.classroom.upsert({ where: {name: 'Gymnase'}, update: {}, create: { name: 'Gymnase', capacity: 40 } }); totalRooms++;
+  await prisma.classroom.create({ data: { name: 'Labo Physique', capacity: 20 } }); totalRooms++;
+  await prisma.classroom.create({ data: { name: 'Labo Technique', capacity: 20 } }); totalRooms++;
+  await prisma.classroom.create({ data: { name: 'Labo Sciences', capacity: 20 } }); totalRooms++;
+  await prisma.classroom.create({ data: { name: 'Gymnase', capacity: 40 } }); totalRooms++;
   
-  console.log(`✅ ${totalRooms} salles et laboratoires créés ou mis à jour.`);
+  console.log(`✅ ${totalRooms} salles et laboratoires créés.`);
 
   console.log('🎉 Peuplement de la base de données terminé avec succès !');
 }
