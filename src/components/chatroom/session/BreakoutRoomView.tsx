@@ -66,7 +66,8 @@ export default function BreakoutRoomView({ user }: BreakoutRoomViewProps) {
                                 isTeacher={false} 
                                 points={participant.points}
                                 isMuted={participant.isMuted}
-                                isHost={false} 
+                                isHost={false}
+                                isCurrentUser={participant.id === user?.id}
                                 onToggleMute={() => {}}
                                 onToggleSpotlight={() => {}}
                                 isSpotlighted={false}
