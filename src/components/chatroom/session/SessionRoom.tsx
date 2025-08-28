@@ -115,11 +115,11 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
     return <div>Chargement de la session...</div>;
   }
   
-  const currentUserParticipant = activeSession.participants.find((p: SessionParticipant) => p.id === user.id);
+  const currentUserParticipant = activeSession.participants.find((p: SessionParticipant) => p.userId === user.id);
   
   // Simplified and corrected access control logic
   const isHost = activeSession.hostId === user.id;
-  const isParticipant = activeSession.participants.some((p: SessionParticipant) => p.id === user.id);
+  const isParticipant = activeSession.participants.some((p: SessionParticipant) => p.userId === user.id);
 
   if (!isHost && !isParticipant) {
       return <div>Accès non autorisé à cette session.</div>

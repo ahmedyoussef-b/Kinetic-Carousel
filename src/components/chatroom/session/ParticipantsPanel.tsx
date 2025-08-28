@@ -8,7 +8,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users } from 'lucide-react';
 import type { SessionParticipant } from '@/lib/redux/slices/session/types';
 import ParticipantItem from './ParticipantItem';
-import { useEffect } from 'react';
 
 interface ParticipantsPanelProps {
   isHost: boolean;
@@ -21,24 +20,14 @@ export default function ParticipantsPanel({ isHost }: ParticipantsPanelProps) {
   if (!activeSession) return null;
 
   const participants = activeSession.participants || [];
+  
+  // Assurer que la liste des participants est unique
   const uniqueParticipants = participants.filter((participant, index, self) =>
-    index === self.findIndex((p) => (
-      p.id === participant.id
-    ))
-  )
+    index === self.findIndex((p) => p.userId === participant.userId)
+  );
+
   const spotlightId = activeSession.spotlightedParticipantId;
   const hostId = activeSession.hostId;
-// Dans OverviewTab.tsx et ParticipantsPanel.tsx
-useEffect(() => {
-  console.log('🔍 [DEBUG] Participants userIDs:', activeSession.participants.map(p => p.userId));
-  
-  const hasDuplicates = new Set(activeSession.participants.map(p => p.userId)).size !== activeSession.participants.length;
-  if (hasDuplicates) {
-    console.error('❌ DUPLICATE userIDs FOUND!');
-  } else {
-    console.log('✅ No duplicate userIDs found');
-  }
-}, [activeSession.participants]);
 
   return (
     <Card>

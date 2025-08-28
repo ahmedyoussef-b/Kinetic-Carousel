@@ -64,9 +64,9 @@ export interface Badge {
 }
 
 export interface SessionParticipant {
-  id: string;
-  name: string;
+  id: string; // This should be the unique ID of the participant (user ID)
   userId: string;
+  name: string;
   email: string;
   role: Role;
   img?: string | null;

@@ -16,11 +16,20 @@ export default function OverviewTab({ activeSession, user }: OverviewTabProps) {
     if (!user || !activeSession) {
         return <div>Chargement...</div>;
     }
+    
+    // Assurer que les participants sont uniques avant de les passer au composant vidéo
+    const uniqueParticipants = activeSession.participants.filter((p, index, self) =>
+        index === self.findIndex((t) => (
+            t.userId === p.userId
+        ))
+    );
+    
+    const sessionWithUniqueParticipants = { ...activeSession, participants: uniqueParticipants };
 
     return (
         <div className="h-full">
             <VideoChat 
-                roomName={activeSession.id}
+                roomName={sessionWithUniqueParticipants.id}
                 user={user}
             />
         </div>
