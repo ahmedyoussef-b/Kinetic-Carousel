@@ -1,6 +1,8 @@
 import AttendanceManager from "@/components/attendance/AttendanceManager";
 import prisma from "@/lib/prisma";
-import { Day } from "@prisma/client";
+import { Day } from "@/types";
+
+export const dynamic = 'force-dynamic';
 
 const AttendancePage = async () => {
   type LessonData = {

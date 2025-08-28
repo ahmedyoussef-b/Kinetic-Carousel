@@ -6,6 +6,7 @@ import { Role } from '@/types';
 import type { ChatroomSession, User, SessionParticipant as PrismaSessionParticipant } from '@prisma/client';
 import type { SessionReport } from '@/lib/redux/slices/reportSlice';
 
+export const dynamic = 'force-dynamic';
 
 // Define a type that includes the relations you are fetching
 type ChatroomSessionWithRelations = ChatroomSession & {

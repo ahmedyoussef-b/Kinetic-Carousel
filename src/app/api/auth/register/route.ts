@@ -1,8 +1,8 @@
 // src/app/api/auth/register/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma, Role } from '@prisma/client';
-import type { SafeUser } from '@/types';
+import { Prisma } from '@prisma/client';
+import { Role, type SafeUser } from '@/types';
 import admin from 'firebase-admin';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[API/Register] Création d'un nouvel utilisateur dans la base de données pour ${email} avec le rôle ${role}...`);
-    const newUser = await prisma.$transaction(async (tx) => {
+    const newUser = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const user = await tx.user.create({
             data: {
                 id: uid, // Use Firebase UID as the primary key

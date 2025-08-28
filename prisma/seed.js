@@ -31,20 +31,35 @@ const optionalSubjectsData = [
 ];
 
 // --- FIREBASE ADMIN INITIALIZATION ---
+// --- FIREBASE ADMIN INITIALIZATION ---
 function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     console.log("🔥 [Seed Script] Initializing Firebase Admin SDK...");
-    const serviceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
-    if (!serviceAccount) {
-      throw new Error('FIREBASE_ADMIN_SDK_CONFIG env var not set.');
+    
+    // Utilisez les variables d'environnement EXISTANTES
+    const serviceAccount = {
+      type: "service_account",
+      project_id: process.env.FIREBASE_PROJECT_ID,
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID, // Optionnel
+      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'), // IMPORTANT: convertir les \n
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      client_id: process.env.FIREBASE_CLIENT_ID, // Optionnel
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      token_uri: "https://oauth2.googleapis.com/token",
+      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+      client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${process.env.FIREBASE_CLIENT_EMAIL.replace('@', '%40')}`
+    };
+
+    if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
+      throw new Error('Firebase Admin SDK configuration is missing required environment variables.');
     }
+
     admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(serviceAccount)),
+      credential: admin.credential.cert(serviceAccount),
     });
     console.log("🔥 [Seed Script] ✅ Admin SDK initialized.");
   }
 }
-
 
 // --- HELPER FUNCTIONS ---
 
@@ -154,8 +169,12 @@ async function main() {
       const teacherName = `Prof_${subject.name.replace(/\s+/g, '')}`;
       const teacherEmail = `${teacherName.toLowerCase()}@example.com`;
       
-      // We create a disabled user in Firebase to reserve the email and get a UID
-      const fbTeacher = await auth.createUser({ email: teacherEmail, disabled: true });
+      // We create a user in Firebase Auth, enabled and with a default password
+      const fbTeacher = await auth.createUser({
+        email: teacherEmail,
+        password: 'password123',
+        disabled: false
+      });
 
       const teacherUser = await prisma.user.create({
           data: {
@@ -212,7 +231,11 @@ async function main() {
         const studentName = `eleve_${level}a_${i}`;
         const studentEmail = `${studentName.toLowerCase()}@example.com`;
 
-        const fbStudent = await auth.createUser({ email: studentEmail, disabled: true });
+        const fbStudent = await auth.createUser({
+          email: studentEmail,
+          password: 'password123',
+          disabled: false
+        });
         
         const studentUser = await prisma.user.create({
             data: {

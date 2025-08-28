@@ -1,8 +1,10 @@
 // src/app/api/chatroom/classes/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Role } from '@prisma/client';
+import { Role } from '@/types';
 import type { SessionParticipant } from '@/lib/redux/slices/session/types';
+
+export const dynamic = 'force-dynamic';
 
 interface PrismaStudentWithUser {
   id: string;
