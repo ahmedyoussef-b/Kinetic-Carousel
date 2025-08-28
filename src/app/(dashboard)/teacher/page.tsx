@@ -4,8 +4,9 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
 import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
-import TeacherPageClient from "./TeacherPageClient";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import TimetableDisplay from "@/components/schedule/TimetableDisplay";
+import type { WizardData } from "@/types";
 
 // Server component to fetch data and pass it to the client component
 export default async function TeacherPage() {
@@ -38,8 +39,26 @@ export default async function TeacherPage() {
     );
   }
 
-  const wizardData = await fetchAllDataForWizard();
+  const wizardData: WizardData = await fetchAllDataForWizard();
 
   console.log("🧑‍🏫 [TeacherPage] Rendu de l'emploi du temps.");
-  return <TeacherPageClient teacherId={teacherFromDb.id} wizardData={wizardData} />;
+  return (
+    <div className="p-4 md:p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Mon Emploi du Temps Personnel</CardTitle>
+          <CardDescription>
+            Consultez votre emploi du temps par classe ou pour vous-même.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TimetableDisplay 
+            wizardData={wizardData} 
+            viewMode={"teacher"} 
+            selectedViewId={teacherFromDb.id} 
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
