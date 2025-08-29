@@ -12,10 +12,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
     }
 
-    const { room, identity } = await req.json();
+    // Utiliser l'identité de l'utilisateur de la session pour plus de sécurité
+    const identity = session.user.name || session.user.email;
+    if (!identity) {
+        return NextResponse.json({ message: 'Identité utilisateur non trouvée dans la session' }, { status: 400 });
+    }
 
-    if (!room || !identity) {
-        return NextResponse.json({ message: 'Identité et nom de la salle requis' }, { status: 400 });
+    const { room } = await req.json();
+
+    if (!room) {
+        return NextResponse.json({ message: 'Nom de la salle requis' }, { status: 400 });
     }
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
