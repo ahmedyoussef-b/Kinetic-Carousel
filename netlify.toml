@@ -1,7 +1,13 @@
 [build]
   command = "npm run build"
-  publish = ".next" # Le plugin se charge de tout, on laisse sur .next
+  publish = ".next/standalone" # Le dossier créé par 'output: standalone'
 
-# Indique à Netlify d'utiliser le plugin pour Next.js
+# Configuration nécessaire pour le bon fonctionnement de Next.js sur Netlify
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Utilisez le plugin officiel Netlify pour Next.js pour une optimisation maximale
 [[plugins]]
   package = "@netlify/plugin-nextjs"
