@@ -48,7 +48,7 @@ class SessionServiceController {
         host: true,
         participants: { include: { user: true } },
         messages: { include: { author: true }, orderBy: { createdAt: 'asc' } },
-        raisedHands: true, // Correct relation name
+        raisedHands: true,
       }
     });
 
@@ -76,11 +76,11 @@ class SessionServiceController {
     const participantEntry = await prisma.sessionParticipant.findFirst({
       where: {
         userId: userId,
-        session: { // Correctly filter on the related session model
+        session: {
           status: 'ACTIVE'
         }
       },
-      select: { chatroomSessionId: true } // Correct field name
+      select: { chatroomSessionId: true }
     });
     return participantEntry?.chatroomSessionId || null;
   }
@@ -91,7 +91,7 @@ class SessionServiceController {
             data: {
                 content: message.content,
                 authorId: message.authorId,
-                chatroomSessionId: sessionId, // Correct field name
+                chatroomSessionId: sessionId,
             }
         });
     } catch (error) {
