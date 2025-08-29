@@ -1,7 +1,9 @@
-
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // --- NOUVELLE CONFIGURATION CRUCIALE POUR NETLIFY ---
+  output: 'standalone', // Génère un dossier autonome optimisé pour la production
+  
+  // --- VOTRE CONFIGURATION EXISTANTE (conservée) ---
   async headers() {
     return [
       {
