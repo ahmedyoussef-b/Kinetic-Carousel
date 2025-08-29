@@ -36,7 +36,9 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
 
     if (!user) {
       console.error(`❌ [Serveur/Session] Utilisateur non trouvé dans Prisma pour l'UID: ${decodedToken.uid}`);
-      cookieStore.delete(SESSION_COOKIE_NAME);
+      // On ne peut pas supprimer le cookie ici, car ce n'est ni un Route Handler ni une Server Action.
+      // Le cookie invalide sera écrasé lors de la prochaine connexion réussie.
+      // cookieStore.delete(SESSION_COOKIE_NAME);
       return null;
     }
 
@@ -47,8 +49,9 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
     return { user: safeUser as SafeUser };
   } catch (error) {
     console.error('❌ [Serveur] Jeton de session invalide ou expiré:', error);
-    // Supprime le cookie invalide pour éviter des vérifications inutiles
-    cookieStore.delete(SESSION_COOKIE_NAME);
+    // On ne peut pas supprimer le cookie ici. L'utilisateur devra se reconnecter
+    // pour obtenir un nouveau cookie valide, ce qui écrasera l'ancien.
+    // cookieStore.delete(SESSION_COOKIE_NAME);
     return null;
   }
 }
