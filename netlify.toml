@@ -1,13 +1,9 @@
 [build]
   command = "npm run build"
-  publish = ".next/standalone" # Le dossier créé par 'output: standalone'
+  publish = "out" # Next.js place les fichiers static dans '/out' avec output: 'export'
 
-# Configuration nécessaire pour le bon fonctionnement de Next.js sur Netlify
+# Redirection pour SPA - essentiel pour le routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Utilisez le plugin officiel Netlify pour Next.js pour une optimisation maximale
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
