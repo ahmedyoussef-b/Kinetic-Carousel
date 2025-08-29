@@ -1,3 +1,4 @@
+
 // prisma/seed.js
 const { PrismaClient } = require('@prisma/client');
 const admin = require('firebase-admin');
@@ -275,3 +276,6 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
+    
