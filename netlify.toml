@@ -1,8 +1,8 @@
 [build]
   command = "npm run build"
-  publish = "out" # Next.js place les fichiers static dans '/out' avec output: 'export'
+  publish = "out"
 
-# Redirection pour SPA - essentiel pour le routing
+# Redirection essentielle pour le routing SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
