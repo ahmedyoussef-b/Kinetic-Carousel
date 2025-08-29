@@ -31,7 +31,7 @@ class SessionServiceController {
             })),
           },
         },
-        include: { host: true, participants: { include: { user: true } } },
+        include: { host: true, participants: { include: { user: true } }, raisedHands: true, messages: { include: { author: true } } },
       });
       console.log(`🚀 [SessionService] Session ${id} créée avec succès en base de données.`);
       return this.mapDbSessionToActiveSession(dbSession);
@@ -48,7 +48,7 @@ class SessionServiceController {
         host: true,
         participants: { include: { user: true } },
         messages: { include: { author: true }, orderBy: { createdAt: 'asc' } },
-        raisedHands: true,
+        raisedHands: true, // Correct relation name
       }
     });
 
@@ -76,11 +76,11 @@ class SessionServiceController {
     const participantEntry = await prisma.sessionParticipant.findFirst({
       where: {
         userId: userId,
-        session: {
+        session: { // Correctly filter on the related session model
           status: 'ACTIVE'
         }
       },
-      select: { chatroomSessionId: true }
+      select: { chatroomSessionId: true } // Correct field name
     });
     return participantEntry?.chatroomSessionId || null;
   }
@@ -91,7 +91,7 @@ class SessionServiceController {
             data: {
                 content: message.content,
                 authorId: message.authorId,
-                chatroomSessionId: sessionId,
+                chatroomSessionId: sessionId, // Correct field name
             }
         });
     } catch (error) {
@@ -108,7 +108,6 @@ class SessionServiceController {
           update: { raisedAt: new Date() },
         });
       } else {
-        // Use deleteMany to avoid errors if the record doesn't exist
         await prisma.raisedHand.deleteMany({ where: { chatroomSessionId: sessionId, userId } });
       }
     } catch (error) {
