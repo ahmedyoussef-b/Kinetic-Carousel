@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
     }
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const apiKey = process.env.TWILIO_API_KEY_SID; // CORRECTED: Was TWILIO_API_KEY
-    const apiSecret = process.env.TWILIO_API_KEY_SECRET;
+    const apiKey = process.env.TWILIO_API_KEY; // CORRECTED: Was TWILIO_API_KEY
+    const apiSecret = process.env.TWILIO_API_SECRET;
 
     if (!accountSid || !apiKey || !apiSecret) {
         console.error("Les variables d'environnement Twilio ne sont pas configurées.");
