@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
             name: SESSION_COOKIE_NAME,
             value: sessionCookie,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: true, // Requis pour SameSite=None
+            sameSite: 'none', // Changé de 'lax' à 'none'
             maxAge: expiresIn,
             path: '/',
         });
