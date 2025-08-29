@@ -1,5 +1,5 @@
 // src/services/session-service.ts
-import type { ActiveSession, Poll, Quiz, Reaction, RewardAction, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage } from '@/lib/redux/slices/session/types';
+import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage } from '@/lib/redux/slices/session/types';
 import prisma from '@/lib/prisma';
 import { Role } from '@/types';
 
@@ -76,13 +76,13 @@ class SessionServiceController {
     const participantEntry = await prisma.sessionParticipant.findFirst({
       where: {
         userId: userId,
-        session: {
+        session: { // Correctly filter on the relation
           status: 'ACTIVE'
         }
       },
-      select: { sessionId: true }
+      select: { chatroomSessionId: true } // Correct field name
     });
-    return participantEntry?.sessionId || null;
+    return participantEntry?.chatroomSessionId || null;
   }
   
   public async addMessage(sessionId: string, message: { content: string; authorId: string; }): Promise<void> {
@@ -91,7 +91,7 @@ class SessionServiceController {
             data: {
                 content: message.content,
                 authorId: message.authorId,
-                sessionId: sessionId,
+                chatroomSessionId: sessionId, // Correct field name
             }
         });
     } catch (error) {
@@ -103,12 +103,12 @@ class SessionServiceController {
     try {
       if (action === 'raise') {
         await prisma.raisedHand.upsert({
-          where: { sessionId_userId: { sessionId, userId } },
-          create: { sessionId, userId },
+          where: { chatroomSessionId_userId: { chatroomSessionId: sessionId, userId } }, // Correct field name
+          create: { chatroomSessionId: sessionId, userId },
           update: { raisedAt: new Date() },
         });
       } else {
-        await prisma.raisedHand.delete({ where: { sessionId_userId: { sessionId, userId } } });
+        await prisma.raisedHand.delete({ where: { chatroomSessionId_userId: { chatroomSessionId: sessionId, userId } } }); // Correct field name
       }
     } catch (error) {
       console.error(`❌ Erreur lors de la mise à jour de la main levée pour l'utilisateur ${userId} dans la session ${sessionId}:`, error);
@@ -130,7 +130,7 @@ class SessionServiceController {
         email: p.user.email,
         img: p.user.img,
         role: p.user.role as Role,
-        isOnline: true, // Ce champ devrait être géré par un service de présence en temps réel
+        isOnline: true, 
         isInSession: true,
         points: 0,
         badges: [],
@@ -143,7 +143,7 @@ class SessionServiceController {
       id: msg.id,
       content: msg.content,
       authorId: msg.authorId,
-      chatroomSessionId: msg.sessionId,
+      chatroomSessionId: msg.chatroomSessionId, // Correct field name
       createdAt: msg.createdAt.toISOString(),
       author: {
         id: msg.author.id,
