@@ -13,7 +13,7 @@ interface RoomProps {
 const Room: React.FC<RoomProps> = ({ roomName, token }) => {
     const [room, setRoom] = useState<TwilioRoom | null>(null);
     const [participants, setParticipants] = useState<Map<string, RemoteParticipant>>(new Map());
-    const [error, setError] = useState<TwilioError | null>(null);
+    const [error, setError] = useState<any | null>(null);
     const [isConnecting, setIsConnecting] = useState(true);
 
     useEffect(() => {
@@ -45,10 +45,14 @@ const Room: React.FC<RoomProps> = ({ roomName, token }) => {
                     setParticipants(prevParticipants => new Map(prevParticipants).set(participant.sid, participant));
                 });
 
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Erreur de connexion Twilio:", err);
-                if (err instanceof TwilioError) {
+                // Check for a 'code' property to identify a TwilioError more reliably
+                if (err && typeof err.code !== 'undefined') {
                     setError(err);
+                } else {
+                    // Handle non-Twilio errors
+                    setError({ message: 'Une erreur inattendue est survenue.' });
                 }
             } finally {
                 setIsConnecting(false);
