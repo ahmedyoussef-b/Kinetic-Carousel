@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
     }
 
-    // Utiliser l'identité de l'utilisateur de la session pour plus de sécurité
     const identity = session.user.name || session.user.email;
     if (!identity) {
         return NextResponse.json({ message: 'Identité utilisateur non trouvée dans la session' }, { status: 400 });
@@ -33,7 +32,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: 'Configuration du serveur incomplète' }, { status: 500 });
     }
     
-    const accessToken = new AccessToken(accountSid, apiKey, apiSecret, { identity });
+    // FIX: Pass identity inside an options object as the fourth argument.
+    // Also added a Time-to-Live (ttl) of 1 hour as a good practice.
+    const accessToken = new AccessToken(accountSid, apiKey, apiSecret, {
+      identity: identity,
+      ttl: 3600 // 1 hour
+    });
     
     const videoGrant = new VideoGrant({ room });
     accessToken.addGrant(videoGrant);
