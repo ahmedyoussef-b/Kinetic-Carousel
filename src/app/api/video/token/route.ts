@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const apiKey = process.env.TWILIO_API_KEY_SID;
+    const apiKey = process.env.TWILIO_API_KEY_SID; // CORRECTED: Was TWILIO_API_KEY
     const apiSecret = process.env.TWILIO_API_KEY_SECRET;
 
     if (!accountSid || !apiKey || !apiSecret) {
@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: 'Configuration du serveur incomplète' }, { status: 500 });
     }
     
-    // CORRECTED: Pass identity inside the options object (4th argument)
     const accessToken = new AccessToken(accountSid, apiKey, apiSecret, {
       identity: identity,
       ttl: 3600 // 1 heure
