@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     const { idToken, role, name } = body;
 
     if (!idToken || !role || !name) {
+        console.warn("🚫 [API/Register] Données d'inscription incomplètes.");
         return NextResponse.json({ message: "Données d'inscription incomplètes." }, { status: 400 });
     }
 
@@ -65,8 +66,7 @@ export async function POST(req: NextRequest) {
     console.log(`✅ [API/Register] Inscription réussie pour ${email}.`);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const safeUser = { id: newUser.id, name: newUser.name, firstName: newUser.firstName, lastName: newUser.lastName, username: newUser.username, email: newUser.email, img: newUser.img, role: newUser.role, active: newUser.active, createdAt: newUser.createdAt, updatedAt: newUser.updatedAt, twoFactorEnabled: newUser.twoFactorEnabled, twoFactorCode: newUser.twoFactorCode, twoFactorCodeExpires: newUser.twoFactorCodeExpires };
-
+    const { password, ...safeUser } = newUser;
 
     return NextResponse.json({ user: safeUser as SafeUser }, { status: 201 });
 

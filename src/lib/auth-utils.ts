@@ -42,7 +42,9 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
 
     console.log(`✅ [Serveur/Session] Utilisateur trouvé: ${user.email}`);
 
-    return { user: user as SafeUser };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...safeUser } = user;
+    return { user: safeUser as SafeUser };
   } catch (error) {
     console.error('❌ [Serveur] Jeton de session invalide ou expiré:', error);
     // Supprime le cookie invalide pour éviter des vérifications inutiles

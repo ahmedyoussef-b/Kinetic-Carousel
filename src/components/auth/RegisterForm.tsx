@@ -18,6 +18,7 @@ import { initializeFirebaseApp } from '@/lib/firebase';
 type RegisterFormValues = RegisterSchema;
 
 export default function RegisterForm() {
+  console.log("⚛️ [RegisterForm] Le composant d'inscription est rendu.");
   const router = useRouter();
   const { toast } = useToast();
   const [registerApi, { isLoading: isApiLoading }] = useRegisterMutation();

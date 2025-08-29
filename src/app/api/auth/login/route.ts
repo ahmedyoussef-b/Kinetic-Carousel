@@ -25,24 +25,16 @@ export async function POST(req: NextRequest) {
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         console.log(`✅ [API/Login] Jeton vérifié pour UID: ${decodedToken.uid}, Email: ${decodedToken.email}`);
         
-        // --- PRISMA BYPASS ---
-        // This simulates a successful user lookup without hitting the database.
-        const user: SafeUser = {
-          id: decodedToken.uid,
-          email: decodedToken.email || 'no-email@example.com',
-          name: decodedToken.name || 'Test User',
-          firstName: decodedToken.name?.split(' ')[0] || 'Test',
-          lastName: decodedToken.name?.split(' ')[1] || 'User',
-          username: decodedToken.email || `user_${decodedToken.uid.substring(0,5)}`,
-          role: decodedToken.role as Role || Role.ADMIN, // Default to ADMIN for testing
-          active: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          img: decodedToken.picture || null,
-          twoFactorEnabled: false,
-        };
-        console.log(`✅ [API/Login] Utilisateur simulé. Rôle : ${user.role}`);
-        // --- END PRISMA BYPASS ---
+        console.log(`📦 [API/Login] Recherche de l'utilisateur dans Prisma pour l'UID: ${decodedToken.uid}`);
+        const user = await prisma.user.findUnique({
+          where: { id: decodedToken.uid },
+        });
+
+        if (!user) {
+          console.error(`❌ [API/Login] Utilisateur non trouvé dans Prisma pour l'UID: ${decodedToken.uid}`);
+          return NextResponse.json({ message: "Profil utilisateur non trouvé dans notre base de données." }, { status: 404 });
+        }
+        console.log(`✅ [API/Login] Utilisateur trouvé. Rôle : ${user.role}`);
         
         const expiresIn = 60 * 60 * 24 * 5 * 1000;
         console.log("🍪 [API/Login] Création du cookie de session...");
@@ -51,7 +43,7 @@ export async function POST(req: NextRequest) {
         const response = NextResponse.json({ 
             status: 'success', 
             message: 'Authentification réussie',
-            user: user
+            user: user as SafeUser 
         }, { status: 200 });
 
         console.log("✅ [API/Login] Cookie de session créé. Envoi de la réponse au client.");
@@ -59,8 +51,8 @@ export async function POST(req: NextRequest) {
             name: SESSION_COOKIE_NAME,
             value: sessionCookie,
             httpOnly: true,
-            secure: true, // Always true for SameSite=None
-            sameSite: 'none', // Changed to 'none' for cross-site dev environments
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
             maxAge: expiresIn,
             path: '/',
         });
