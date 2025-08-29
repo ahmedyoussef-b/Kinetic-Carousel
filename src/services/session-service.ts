@@ -6,6 +6,8 @@
 // like Firebase Realtime Database.
 
 import type { ActiveSession, Poll, Quiz, Reaction, RewardAction, SessionParticipant } from '@/lib/redux/slices/session/types';
+import prisma from '@/lib/prisma';
+import { Role } from '@/types';
 
 // In-memory store for active sessions, keyed by session ID.
 const sessionStore = new Map<string, ActiveSession>();
@@ -23,6 +25,72 @@ class SessionServiceController {
 
   public getSession(sessionId: string): ActiveSession | undefined {
     return sessionStore.get(sessionId);
+  }
+
+  public async recreateSessionFromDb(sessionId: string): Promise<ActiveSession | null> {
+    console.log(`🔄 [SessionService] Attempting to recreate session ${sessionId} from DB.`);
+    const dbSession = await prisma.chatroomSession.findUnique({
+      where: { id: sessionId, status: 'ACTIVE' },
+      include: {
+        participants: { include: { user: true } },
+        host: true,
+        messages: { include: { author: true }, orderBy: { createdAt: 'asc' } },
+      }
+    });
+
+    if (!dbSession || !dbSession.host) {
+      console.warn(`[SessionService] Session ${sessionId} not found in DB or has no host.`);
+      return null;
+    }
+
+    const participants: SessionParticipant[] = dbSession.participants.map(p => ({
+      id: p.userId,
+      userId: p.userId,
+      name: p.user.name || p.user.email,
+      email: p.user.email,
+      role: p.user.role as Role,
+      img: p.user.img,
+      isOnline: false, // Will be updated by presence service
+      isInSession: true,
+      points: 0,
+      badges: [],
+      isMuted: false,
+    }));
+
+    const recreatedSession: ActiveSession = {
+      id: dbSession.id,
+      hostId: dbSession.hostId,
+      sessionType: dbSession.type as 'class' | 'meeting',
+      classId: dbSession.classId ? String(dbSession.classId) : '',
+      className: dbSession.title,
+      title: dbSession.title,
+      participants,
+      startTime: dbSession.startTime.toISOString(),
+      raisedHands: [],
+      reactions: [],
+      polls: [],
+      quizzes: [],
+      rewardActions: [],
+      classTimer: null,
+      spotlightedParticipantId: null,
+      breakoutRooms: null,
+      breakoutTimer: null,
+      messages: dbSession.messages.map(m => ({
+        ...m,
+        createdAt: m.createdAt.toISOString(),
+        author: {
+          id: m.author.id,
+          name: m.author.name,
+          email: m.author.email,
+          img: m.author.img,
+          role: m.author.role as Role,
+        }
+      })),
+    };
+
+    sessionStore.set(sessionId, recreatedSession);
+    console.log(`✅ [SessionService] Session ${sessionId} successfully recreated and cached.`);
+    return recreatedSession;
   }
   
   public findSessionIdForParticipant(userId: string): string | null {

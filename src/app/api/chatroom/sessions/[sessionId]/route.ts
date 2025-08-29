@@ -12,8 +12,13 @@ export async function GET(request: NextRequest, { params }: { params: { sessionI
   const { sessionId } = params;
 
   try {
-    const session = SessionService.getSession(sessionId);
+    let session = SessionService.getSession(sessionId);
 
+    // If session is not in memory, try to recreate it from DB
+    if (!session) {
+        session = await SessionService.recreateSessionFromDb(sessionId);
+    }
+    
     if (!session) {
       return NextResponse.json({ message: 'Session non trouvée ou terminée' }, { status: 404 });
     }
