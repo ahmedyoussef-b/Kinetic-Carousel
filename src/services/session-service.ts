@@ -76,11 +76,11 @@ class SessionServiceController {
     const participantEntry = await prisma.sessionParticipant.findFirst({
       where: {
         userId: userId,
-        session: { // Correctly filter on the relation
+        session: {
           status: 'ACTIVE'
         }
       },
-      select: { chatroomSessionId: true } // Correct field name
+      select: { chatroomSessionId: true }
     });
     return participantEntry?.chatroomSessionId || null;
   }
@@ -91,7 +91,7 @@ class SessionServiceController {
             data: {
                 content: message.content,
                 authorId: message.authorId,
-                chatroomSessionId: sessionId, // Correct field name
+                chatroomSessionId: sessionId,
             }
         });
     } catch (error) {
@@ -103,12 +103,13 @@ class SessionServiceController {
     try {
       if (action === 'raise') {
         await prisma.raisedHand.upsert({
-          where: { chatroomSessionId_userId: { chatroomSessionId: sessionId, userId } }, // Correct field name
+          where: { chatroomSessionId_userId: { chatroomSessionId: sessionId, userId } },
           create: { chatroomSessionId: sessionId, userId },
           update: { raisedAt: new Date() },
         });
       } else {
-        await prisma.raisedHand.delete({ where: { chatroomSessionId_userId: { chatroomSessionId: sessionId, userId } } }); // Correct field name
+        // Use deleteMany to avoid errors if the record doesn't exist
+        await prisma.raisedHand.deleteMany({ where: { chatroomSessionId: sessionId, userId } });
       }
     } catch (error) {
       console.error(`❌ Erreur lors de la mise à jour de la main levée pour l'utilisateur ${userId} dans la session ${sessionId}:`, error);
@@ -140,10 +141,10 @@ class SessionServiceController {
     })) || [];
 
     const messages: ClientMessage[] = dbSession.messages?.map((msg: any) => ({
-      id: msg.id,
+      id: msg.id.toString(),
       content: msg.content,
       authorId: msg.authorId,
-      chatroomSessionId: msg.chatroomSessionId, // Correct field name
+      chatroomSessionId: msg.chatroomSessionId,
       createdAt: msg.createdAt.toISOString(),
       author: {
         id: msg.author.id,
