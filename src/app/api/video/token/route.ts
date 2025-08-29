@@ -26,17 +26,16 @@ export async function POST(req: NextRequest) {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const apiKey = process.env.TWILIO_API_KEY_SID;
     const apiSecret = process.env.TWILIO_API_KEY_SECRET;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
 
-    if (!accountSid || !apiKey || !apiSecret) {
+    if (!accountSid || !apiKey || !apiSecret || !authToken) {
         console.error("Les variables d'environnement Twilio ne sont pas configurées.");
         return NextResponse.json({ message: 'Configuration du serveur incomplète' }, { status: 500 });
     }
     
-    // FIX: Pass identity inside an options object as the fourth argument.
-    // Also added a Time-to-Live (ttl) of 1 hour as a good practice.
     const accessToken = new AccessToken(accountSid, apiKey, apiSecret, {
       identity: identity,
-      ttl: 3600 // 1 hour
+      ttl: 3600 // 1 heure
     });
     
     const videoGrant = new VideoGrant({ room });

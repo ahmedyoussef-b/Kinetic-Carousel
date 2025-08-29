@@ -47,11 +47,9 @@ const Room: React.FC<RoomProps> = ({ roomName, token }) => {
 
             } catch (err: any) {
                 console.error("Erreur de connexion Twilio:", err);
-                // Check for a 'code' property to identify a TwilioError more reliably
                 if (err && typeof err.code !== 'undefined') {
                     setError(err);
                 } else {
-                    // Handle non-Twilio errors
                     setError({ message: 'Une erreur inattendue est survenue.' });
                 }
             } finally {
