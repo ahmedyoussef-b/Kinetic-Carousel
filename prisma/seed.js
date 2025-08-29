@@ -127,7 +127,6 @@ async function main() {
       active: true,
       firstName: 'Admin',
       lastName: 'Principal',
-      password: 'password123', // TODO: Use a hashed password in production
     }
   });
   await prisma.admin.create({ data: { userId: admin1.id, name: 'Admin', surname: 'Principal' } });
@@ -144,7 +143,6 @@ async function main() {
       active: true,
       firstName: 'Parent',
       lastName: 'Exemple',
-      password: 'password123', // TODO: Use a hashed password in production
     }
   });
   const parent = await prisma.parent.create({
@@ -186,7 +184,6 @@ async function main() {
               active: true,
               firstName: 'Prof',
               lastName: subject.name,
-              password: 'password123', // TODO: Use a hashed password in production
           }
       });
       const teacher = await prisma.teacher.create({
@@ -229,7 +226,6 @@ async function main() {
                 active: true,
                 firstName: 'Élève',
                 lastName: `${i} ${level}A`,
-                password: 'password123', // TODO: Use a hashed password in production
             }
         });
         await prisma.student.create({
