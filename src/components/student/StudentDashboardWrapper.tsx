@@ -7,20 +7,17 @@ import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { Role } from '@/types';
 import { useRouter } from 'next/navigation';
 
-// Unified presence update function using sendBeacon for reliability
+// Unified presence update function using fetch for reliability
 const updatePresence = (status: 'online' | 'offline') => {
   console.log(`📡 [StudentWrapper] Sending presence status: ${status}.`);
   
-  // The beacon API is best for sending data on page unload, but it doesn't send cookies.
-  // The API requires a session, so we must use fetch with credentials.
-  // 'keepalive' flag is crucial for making sure the request is sent even when the page is closing.
   try {
     fetch('/api/presence/update', {
         method: 'POST',
         body: JSON.stringify({ status }),
         headers: { 'Content-Type': 'application/json' },
-        keepalive: true,
-        credentials: 'include' // FIX: Ensure cookies are sent with the request
+        keepalive: true, // Important for reliability on page unload
+        credentials: 'include' 
     });
   } catch (e) {
       console.error("Presence update fetch failed:", e);
@@ -33,7 +30,6 @@ export default function StudentDashboardWrapper({ children }: { children: React.
 
   useEffect(() => {
     if (user?.role !== Role.STUDENT) {
-      // This is a safeguard, middleware should prevent this.
       router.replace('/');
       return;
     }
@@ -56,7 +52,7 @@ export default function StudentDashboardWrapper({ children }: { children: React.
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // This cleanup runs when the component unmounts (e.g., on logout or navigating away from the SPA)
+    // This cleanup runs when the component unmounts
     return () => {
         console.log("🛑 [StudentWrapper] Component unmounting. Clearing heartbeat and sending 'offline' status.");
         clearInterval(heartbeatInterval);
