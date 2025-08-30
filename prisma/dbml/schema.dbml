@@ -2,61 +2,44 @@
 //// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 //// ------------------------------------------------------
 
-Table users {
+Table User {
   id String [pk]
-  username String [unique, not null]
   email String [unique, not null]
-  name String
-  firstName String
-  lastName String
-  role Role [not null]
-  active Boolean [not null, default: true]
+  username String [unique, not null]
+  name String [not null]
+  firstName String [not null]
+  lastName String [not null]
   img String
+  role Role [not null]
+  active Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
-  twoFactorEnabled Boolean [default: false]
+  twoFactorEnabled Boolean
   twoFactorCode String
   twoFactorCodeExpires DateTime
-  admin admins
-  teacher teachers
-  student students
-  parent parents
-  hostedSessions chatroom_sessions [not null]
-  sessionParticipations session_participants [not null]
-  raisedHands raised_hands [not null]
-  messages chatroom_messages [not null]
-  reactions reactions [not null]
+  admin Admin
+  teacher Teacher
+  student Student
+  parent Parent
+  chatroomSessions ChatroomSession [not null]
+  sessionParticipants SessionParticipant [not null]
+  messages ChatroomMessage [not null]
+  reactions Reaction [not null]
+  raisedHands RaisedHand [not null]
+  scheduleDrafts ScheduleDraft [not null]
 }
 
-Table admins {
+Table Admin {
   id String [pk]
-  userId String [unique, not null]
   name String [not null]
   surname String [not null]
   phone String
-  user users [not null]
+  userId String [unique, not null]
+  user User [not null]
 }
 
-Table teachers {
+Table Teacher {
   id String [pk]
-  userId String [unique, not null]
-  name String [not null]
-  surname String [not null]
-  phone String
-  address String
-  img String
-  bloodType String
-  birthday DateTime
-  user users [not null]
-  subjects subjects [not null]
-  lessons lessons [not null]
-  teacherConstraints teacher_constraints [not null]
-  teacherAssignments teacher_assignments [not null]
-}
-
-Table students {
-  id String [pk]
-  userId String [unique, not null]
   name String [not null]
   surname String [not null]
   phone String
@@ -65,347 +48,400 @@ Table students {
   bloodType String
   birthday DateTime
   sex UserSex
-  classId Int
-  gradeId Int
-  parentId String
-  user users [not null]
-  class classes
-  grade grades
-  parent parents
-  attendances attendances [not null]
-  results results [not null]
+  userId String [unique, not null]
+  user User [not null]
+  subjects Subject [not null]
+  lessons Lesson [not null]
+  teacherConstraints TeacherConstraint [not null]
+  teacherAssignments TeacherAssignment [not null]
 }
 
-Table parents {
+Table Student {
   id String [pk]
+  name String [not null]
+  surname String [not null]
+  address String [not null]
+  phone String [not null]
+  img String
+  bloodType String [not null]
+  birthday DateTime [not null]
+  sex UserSex [not null]
   userId String [unique, not null]
+  user User [not null]
+  classId Int
+  class Class
+  gradeId Int
+  grade Grade
+  parentId String
+  parent Parent
+  attendances Attendance [not null]
+  results Result [not null]
+  optionalSubjects Subject [not null]
+  optionalGroup OptionalSubjectGroup
+  optionalGroupId String
+}
+
+Table Parent {
+  id String [pk]
   name String [not null]
   surname String [not null]
   phone String
   address String [not null]
-  img String
-  user users [not null]
-  students students [not null]
+  userId String [unique, not null]
+  user User [not null]
+  students Student [not null]
 }
 
-Table grades {
+Table Grade {
   id Int [pk, increment]
   level Int [unique, not null]
-  classes classes [not null]
-  students students [not null]
-  optionalSubjectGroups optional_subject_groups [not null]
+  classes Class [not null]
+  students Student [not null]
 }
 
-Table classes {
+Table Class {
   id Int [pk, increment]
-  name String [unique, not null]
+  name String [not null]
   abbreviation String
   capacity Int [not null]
   gradeId Int [not null]
-  grade grades [not null]
-  students students [not null]
-  lessons lessons [not null]
-  announcements announcements [not null]
-  events events [not null]
-  lessonRequirements lesson_requirements [not null]
-  classAssignments class_assignments [not null]
+  grade Grade [not null]
+  students Student [not null]
+  lessons Lesson [not null]
+  assignments Assignment [not null]
+  exams Exam [not null]
+  announcements Announcement [not null]
+  events Event [not null]
+  lessonRequirements LessonRequirement [not null]
+  classAssignments ClassAssignment [not null]
 }
 
-Table subjects {
+Table Subject {
   id Int [pk, increment]
   name String [not null]
-  weeklyHours Int
-  coefficient Int
+  weeklyHours Int [not null]
+  coefficient Int [not null]
   isOptional Boolean [default: false]
-  lessons lessons [not null]
-  teachers teachers [not null]
-  lessonRequirements lesson_requirements [not null]
-  subjectRequirements subject_requirements [not null]
-  teacherAssignments teacher_assignments [not null]
-  optionalGroups optional_subject_groups [not null]
+  requiresRoom Boolean [not null, default: false]
+  teachers Teacher [not null]
+  lessons Lesson [not null]
+  lessonRequirements LessonRequirement [not null]
+  subjectRequirements SubjectRequirement [not null]
+  teacherAssignments TeacherAssignment [not null]
+  students Student [not null]
+  optionalGroups OptionalSubjectGroup [not null]
 }
 
-Table optional_subject_groups {
-  id String [pk]
-  name String [not null]
-  gradeId Int [not null]
-  grade grades [not null]
-  allowedSubjects subjects [not null]
-}
-
-Table classrooms {
+Table Classroom {
   id Int [pk, increment]
   name String [not null]
   abbreviation String
   capacity Int [not null]
   building String
-  lessons lessons [not null]
+  lessons Lesson [not null]
+  subjectRequirements SubjectRequirement [not null]
 }
 
-Table lessons {
+Table Lesson {
   id Int [pk, increment]
   name String [not null]
   day Day [not null]
   startTime DateTime [not null]
   endTime DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
   subjectId Int [not null]
+  subject Subject [not null]
   classId Int
+  class Class
   teacherId String [not null]
+  teacher Teacher [not null]
   classroomId Int
+  classroom Classroom
+  attendances Attendance [not null]
+  exams Exam [not null]
+  assignments Assignment [not null]
   scheduleDraftId String
-  optionalSubjectId Int
-  subject subjects [not null]
-  class classes
-  teacher teachers [not null]
-  classroom classrooms
-  scheduleDraft schedule_drafts
-  exams exams [not null]
-  assignments assignments [not null]
-  attendances attendances [not null]
+  scheduleDraft ScheduleDraft
+  optionalGroupId String
+  optionalGroup OptionalSubjectGroup
 }
 
-Table exams {
+Table Exam {
   id Int [pk, increment]
   title String [not null]
   startTime DateTime [not null]
   endTime DateTime [not null]
   lessonId Int [not null]
-  lesson lessons [not null]
-  results results [not null]
+  lesson Lesson [not null]
+  classId Int
+  class Class
+  results Result [not null]
 }
 
-Table assignments {
+Table Assignment {
   id Int [pk, increment]
   title String [not null]
   startDate DateTime [not null]
   dueDate DateTime [not null]
   lessonId Int [not null]
-  lesson lessons [not null]
-  results results [not null]
+  lesson Lesson [not null]
+  classId Int
+  class Class
+  results Result [not null]
 }
 
-Table results {
+Table Result {
   id Int [pk, increment]
   score Float [not null]
   studentId String [not null]
+  student Student [not null]
   examId Int
+  exam Exam
   assignmentId Int
-  student students [not null]
-  exam exams
-  assignment assignments
+  assignment Assignment
 }
 
-Table attendances {
+Table Attendance {
   id Int [pk, increment]
   date DateTime [not null]
   present Boolean [not null]
   studentId String [not null]
+  student Student [not null]
   lessonId Int [not null]
-  student students [not null]
-  lesson lessons [not null]
+  lesson Lesson [not null]
 }
 
-Table announcements {
+Table Announcement {
   id Int [pk, increment]
   title String [not null]
   description String
   date DateTime [not null]
   classId Int
-  class classes
+  class Class
 }
 
-Table events {
+Table Event {
   id Int [pk, increment]
   title String [not null]
   description String
   startTime DateTime [not null]
   endTime DateTime [not null]
   classId Int
-  class classes
+  class Class
 }
 
-Table schedule_drafts {
-  id String [pk]
-  userId String [not null]
+Table School {
+  id Int [pk, increment]
   name String [not null]
-  description String
-  isActive Boolean [not null, default: false]
-  schoolConfig Json
-  classes Json
-  subjects Json
-  teachers Json
-  classrooms Json
-  grades Json
-  createdAt DateTime [default: `now()`, not null]
-  updatedAt DateTime [not null]
-  lessons lessons [not null]
-  lessonRequirements lesson_requirements [not null]
-  teacherConstraints teacher_constraints [not null]
-  subjectRequirements subject_requirements [not null]
-  teacherAssignments teacher_assignments [not null]
+  startTime String [not null]
+  endTime String [not null]
+  sessionDuration Int [not null]
+  sessionInterval Int [not null]
+  schoolDays String[] [not null]
+}
+
+Table LessonRequirement {
+  id Int [pk, increment]
+  hours Int [not null]
+  scheduleDraftId String
+  scheduleDraft ScheduleDraft
+  classId Int [not null]
+  class Class [not null]
+  subjectId Int [not null]
+  subject Subject [not null]
 
   indexes {
-    (userId, name) [unique]
+    (classId, subjectId, scheduleDraftId) [unique]
   }
 }
 
-Table lesson_requirements {
+Table SubjectRequirement {
   id Int [pk, increment]
-  classId Int [not null]
-  subjectId Int [not null]
-  hours Int [not null]
-  scheduleDraftId String
-  scheduleDraft schedule_drafts
-  class classes [not null]
-  subject subjects [not null]
-}
-
-Table subject_requirements {
-  id Int [pk, increment]
-  subjectId Int [unique, not null]
-  allowedRoomIds Int[] [not null]
   timePreference TimePreference [not null, default: 'ANY']
   scheduleDraftId String
-  scheduleDraft schedule_drafts
-  subject subjects [not null]
+  scheduleDraft ScheduleDraft
+  subjectId Int [not null]
+  subject Subject [not null]
+  allowedRooms Classroom [not null]
 }
 
-Table teacher_constraints {
+Table TeacherConstraint {
   id Int [pk, increment]
-  teacherId String [not null]
   day Day [not null]
   startTime String [not null]
   endTime String [not null]
   description String
   scheduleDraftId String
-  scheduleDraft schedule_drafts
-  teacher teachers [not null]
+  scheduleDraft ScheduleDraft
+  teacherId String [not null]
+  teacher Teacher [not null]
 }
 
-Table teacher_assignments {
+Table TeacherAssignment {
   id Int [pk, increment]
-  teacherId String [not null]
-  subjectId Int [not null]
   scheduleDraftId String
-  scheduleDraft schedule_drafts
-  teacher teachers [not null]
-  subject subjects [not null]
-  classAssignments class_assignments [not null]
+  scheduleDraft ScheduleDraft
+  teacherId String [not null]
+  teacher Teacher [not null]
+  subjectId Int [not null]
+  subject Subject [not null]
+  classAssignments ClassAssignment [not null]
 
   indexes {
-    (teacherId, subjectId) [unique]
+    (teacherId, subjectId, scheduleDraftId) [unique]
   }
 }
 
-Table class_assignments {
+Table ClassAssignment {
   id Int [pk, increment]
   teacherAssignmentId Int [not null]
   classId Int [not null]
-  teacherAssignment teacher_assignments [not null]
-  class classes [not null]
+  teacherAssignment TeacherAssignment [not null]
+  class Class [not null]
 
   indexes {
     (teacherAssignmentId, classId) [unique]
   }
 }
 
-Table chatroom_sessions {
+Table ScheduleDraft {
   id String [pk]
-  title String [not null]
-  type String [not null]
-  classId Int
-  hostId String [not null]
-  status String [not null, default: 'ACTIVE']
-  startTime DateTime [not null]
-  endTime DateTime
+  userId String [not null]
+  user User [not null]
+  name String [not null]
+  description String
+  isActive Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
-  host users [not null]
-  participants session_participants [not null]
-  messages chatroom_messages [not null]
-  raisedHands raised_hands [not null]
-  reactions reactions [not null]
-  polls polls [not null]
-  quizzes quizzes [not null]
+  schoolConfig Json
+  classes Json
+  subjects Json
+  teachers Json
+  rooms Json
+  grades Json
+  lessons Lesson [not null]
+  lessonRequirements LessonRequirement [not null]
+  subjectRequirements SubjectRequirement [not null]
+  teacherConstraints TeacherConstraint [not null]
+  teacherAssignments TeacherAssignment [not null]
+
+  indexes {
+    (userId, name) [unique]
+  }
 }
 
-Table session_participants {
+Table OptionalSubjectGroup {
   id String [pk]
-  chatroomSessionId String [not null]
-  userId String [not null]
+  name String [not null]
+  subjectId Int [not null]
+  subject Subject [not null]
+  students Student [not null]
+  lessons Lesson [not null]
+}
+
+Table ChatroomSession {
+  id String [pk]
+  title String [not null]
+  description String
+  type SessionType [not null]
+  classId Int
+  startTime DateTime [default: `now()`, not null]
+  endTime DateTime
+  status String [not null, default: 'ACTIVE']
+  hostId String [not null]
+  host User [not null]
+  participants SessionParticipant [not null]
+  messages ChatroomMessage [not null]
+  reactions Reaction [not null]
+  polls Poll [not null]
+  quizzes Quiz [not null]
+  raisedHands RaisedHand [not null]
+}
+
+Table SessionParticipant {
+  id String [pk]
   joinedAt DateTime [default: `now()`, not null]
-  leftAt DateTime
   isMuted Boolean [not null, default: false]
-  session chatroom_sessions [not null]
-  user users [not null]
-
-  indexes {
-    (chatroomSessionId, userId) [unique]
-  }
-}
-
-Table raised_hands {
-  id String [pk]
   chatroomSessionId String [not null]
   userId String [not null]
-  raisedAt DateTime [default: `now()`, not null]
-  session chatroom_sessions [not null]
-  user users [not null]
+  session ChatroomSession [not null]
+  user User [not null]
 
   indexes {
     (chatroomSessionId, userId) [unique]
   }
 }
 
-Table chatroom_messages {
-  id String [pk]
+Table ChatroomMessage {
+  id Int [pk, increment]
   content String [not null]
+  createdAt DateTime [default: `now()`, not null]
   authorId String [not null]
+  author User [not null]
   chatroomSessionId String [not null]
-  createdAt DateTime [default: `now()`, not null]
-  author users [not null]
-  session chatroom_sessions [not null]
+  session ChatroomSession [not null]
 }
 
-Table reactions {
-  id String [pk]
-  type String [not null]
+Table Reaction {
+  id Int [pk, increment]
+  type ReactionType [not null]
+  timestamp DateTime [default: `now()`, not null]
   userId String [not null]
+  user User [not null]
   chatroomSessionId String [not null]
-  createdAt DateTime [default: `now()`, not null]
-  user users [not null]
-  session chatroom_sessions [not null]
+  session ChatroomSession [not null]
 }
 
-Table polls {
-  id String [pk]
+Table RaisedHand {
+  id Int [pk, increment]
+  raisedAt DateTime [default: `now()`, not null]
+  chatroomSessionId String [not null]
+  userId String [not null]
+  session ChatroomSession [not null]
+  user User [not null]
+
+  indexes {
+    (chatroomSessionId, userId) [unique]
+  }
+}
+
+Table Poll {
+  id Int [pk, increment]
   question String [not null]
   options Json [not null]
-  votes Json [not null]
-  chatroomSessionId String [not null]
+  isActive Boolean [not null, default: true]
   createdAt DateTime [default: `now()`, not null]
-  session chatroom_sessions [not null]
-}
-
-Table quizzes {
-  id String [pk]
-  question String [not null]
-  options Json [not null]
-  correctAnswer String [not null]
-  participants Json [not null]
+  endedAt DateTime
   chatroomSessionId String [not null]
-  createdAt DateTime [default: `now()`, not null]
-  session chatroom_sessions [not null]
+  session ChatroomSession [not null]
 }
 
-Table TeacherSubjects {
-  subjectsId Int [ref: > subjects.id]
-  teachersId String [ref: > teachers.id]
+Table Quiz {
+  id Int [pk, increment]
+  title String [not null]
+  questions Json [not null]
+  currentQuestionIndex Int [not null, default: 0]
+  isActive Boolean [not null, default: true]
+  startTime DateTime [default: `now()`, not null]
+  endTime DateTime
+  chatroomSessionId String [not null]
+  session ChatroomSession [not null]
 }
 
-Table OptionalSubjectChoices {
-  optionalgroupsId String [ref: > optional_subject_groups.id]
-  allowedsubjectsId Int [ref: > subjects.id]
+Table SubjectToTeacher {
+  subjectsId Int [ref: > Subject.id]
+  teachersId String [ref: > Teacher.id]
+}
+
+Table OptionalSubjects {
+  optionalsubjectsId Int [ref: > Subject.id]
+  studentsId String [ref: > Student.id]
+}
+
+Table ClassroomToSubjectRequirement {
+  subjectrequirementsId Int [ref: > SubjectRequirement.id]
+  allowedroomsId Int [ref: > Classroom.id]
 }
 
 Enum Role {
@@ -419,6 +455,20 @@ Enum Role {
 Enum UserSex {
   MALE
   FEMALE
+}
+
+Enum SessionType {
+  CLASS
+  MEETING
+}
+
+Enum ReactionType {
+  THUMBS_UP
+  THUMBS_DOWN
+  HEART
+  LAUGH
+  UNDERSTOOD
+  CONFUSED
 }
 
 Enum Day {
@@ -437,94 +487,104 @@ Enum TimePreference {
   PM
 }
 
-Ref: admins.userId - users.id [delete: Cascade]
+Ref: Admin.userId - User.id [delete: Cascade]
 
-Ref: teachers.userId - users.id [delete: Cascade]
+Ref: Teacher.userId - User.id [delete: Cascade]
 
-Ref: students.userId - users.id [delete: Cascade]
+Ref: Student.userId - User.id [delete: Cascade]
 
-Ref: students.classId > classes.id [delete: Set Null]
+Ref: Student.classId > Class.id [delete: Set Null]
 
-Ref: students.gradeId > grades.id [delete: Set Null]
+Ref: Student.gradeId > Grade.id
 
-Ref: students.parentId > parents.id [delete: Set Null]
+Ref: Student.parentId > Parent.id [delete: Set Null]
 
-Ref: parents.userId - users.id [delete: Cascade]
+Ref: Student.optionalGroupId > OptionalSubjectGroup.id [delete: Set Null]
 
-Ref: classes.gradeId > grades.id [delete: Cascade]
+Ref: Parent.userId - User.id [delete: Cascade]
 
-Ref: optional_subject_groups.gradeId > grades.id
+Ref: Class.gradeId > Grade.id
 
-Ref: lessons.subjectId > subjects.id [delete: Cascade]
+Ref: Lesson.subjectId > Subject.id [delete: Cascade]
 
-Ref: lessons.classId > classes.id [delete: Cascade]
+Ref: Lesson.classId > Class.id [delete: Cascade]
 
-Ref: lessons.teacherId > teachers.id [delete: Cascade]
+Ref: Lesson.teacherId > Teacher.id [delete: Cascade]
 
-Ref: lessons.classroomId > classrooms.id [delete: Set Null]
+Ref: Lesson.classroomId > Classroom.id [delete: Set Null]
 
-Ref: lessons.scheduleDraftId > schedule_drafts.id [delete: Cascade]
+Ref: Lesson.scheduleDraftId > ScheduleDraft.id
 
-Ref: exams.lessonId > lessons.id [delete: Cascade]
+Ref: Lesson.optionalGroupId > OptionalSubjectGroup.id
 
-Ref: assignments.lessonId > lessons.id [delete: Cascade]
+Ref: Exam.lessonId > Lesson.id [delete: Cascade]
 
-Ref: results.studentId > students.id [delete: Cascade]
+Ref: Exam.classId > Class.id
 
-Ref: results.examId > exams.id [delete: Cascade]
+Ref: Assignment.lessonId > Lesson.id [delete: Cascade]
 
-Ref: results.assignmentId > assignments.id [delete: Cascade]
+Ref: Assignment.classId > Class.id
 
-Ref: attendances.studentId > students.id [delete: Cascade]
+Ref: Result.studentId > Student.id [delete: Cascade]
 
-Ref: attendances.lessonId > lessons.id [delete: Cascade]
+Ref: Result.examId > Exam.id [delete: Cascade]
 
-Ref: announcements.classId > classes.id [delete: Cascade]
+Ref: Result.assignmentId > Assignment.id [delete: Cascade]
 
-Ref: events.classId > classes.id [delete: Cascade]
+Ref: Attendance.studentId > Student.id [delete: Cascade]
 
-Ref: lesson_requirements.scheduleDraftId > schedule_drafts.id
+Ref: Attendance.lessonId > Lesson.id [delete: Cascade]
 
-Ref: lesson_requirements.classId > classes.id [delete: Cascade]
+Ref: Announcement.classId > Class.id [delete: Cascade]
 
-Ref: lesson_requirements.subjectId > subjects.id [delete: Cascade]
+Ref: Event.classId > Class.id [delete: Cascade]
 
-Ref: subject_requirements.scheduleDraftId > schedule_drafts.id
+Ref: LessonRequirement.scheduleDraftId > ScheduleDraft.id
 
-Ref: subject_requirements.subjectId > subjects.id [delete: Cascade]
+Ref: LessonRequirement.classId > Class.id [delete: Cascade]
 
-Ref: teacher_constraints.scheduleDraftId > schedule_drafts.id
+Ref: LessonRequirement.subjectId > Subject.id [delete: Cascade]
 
-Ref: teacher_constraints.teacherId > teachers.id [delete: Cascade]
+Ref: SubjectRequirement.scheduleDraftId > ScheduleDraft.id
 
-Ref: teacher_assignments.scheduleDraftId > schedule_drafts.id
+Ref: SubjectRequirement.subjectId > Subject.id [delete: Cascade]
 
-Ref: teacher_assignments.teacherId > teachers.id [delete: Cascade]
+Ref: TeacherConstraint.scheduleDraftId > ScheduleDraft.id
 
-Ref: teacher_assignments.subjectId > subjects.id [delete: Cascade]
+Ref: TeacherConstraint.teacherId > Teacher.id [delete: Cascade]
 
-Ref: class_assignments.teacherAssignmentId > teacher_assignments.id [delete: Cascade]
+Ref: TeacherAssignment.scheduleDraftId > ScheduleDraft.id
 
-Ref: class_assignments.classId > classes.id [delete: Cascade]
+Ref: TeacherAssignment.teacherId > Teacher.id [delete: Cascade]
 
-Ref: chatroom_sessions.hostId > users.id [delete: Cascade]
+Ref: TeacherAssignment.subjectId > Subject.id [delete: Cascade]
 
-Ref: session_participants.chatroomSessionId > chatroom_sessions.id [delete: Cascade]
+Ref: ClassAssignment.teacherAssignmentId > TeacherAssignment.id [delete: Cascade]
 
-Ref: session_participants.userId > users.id [delete: Cascade]
+Ref: ClassAssignment.classId > Class.id [delete: Cascade]
 
-Ref: raised_hands.chatroomSessionId > chatroom_sessions.id [delete: Cascade]
+Ref: ScheduleDraft.userId > User.id
 
-Ref: raised_hands.userId > users.id [delete: Cascade]
+Ref: OptionalSubjectGroup.subjectId > Subject.id
 
-Ref: chatroom_messages.authorId > users.id [delete: Cascade]
+Ref: ChatroomSession.hostId > User.id
 
-Ref: chatroom_messages.chatroomSessionId > chatroom_sessions.id [delete: Cascade]
+Ref: SessionParticipant.chatroomSessionId > ChatroomSession.id [delete: Cascade]
 
-Ref: reactions.userId > users.id [delete: Cascade]
+Ref: SessionParticipant.userId > User.id [delete: Cascade]
 
-Ref: reactions.chatroomSessionId > chatroom_sessions.id [delete: Cascade]
+Ref: ChatroomMessage.authorId > User.id [delete: Cascade]
 
-Ref: polls.chatroomSessionId > chatroom_sessions.id [delete: Cascade]
+Ref: ChatroomMessage.chatroomSessionId > ChatroomSession.id [delete: Cascade]
 
-Ref: quizzes.chatroomSessionId > chatroom_sessions.id [delete: Cascade]
+Ref: Reaction.userId > User.id [delete: Cascade]
+
+Ref: Reaction.chatroomSessionId > ChatroomSession.id [delete: Cascade]
+
+Ref: RaisedHand.chatroomSessionId > ChatroomSession.id [delete: Cascade]
+
+Ref: RaisedHand.userId > User.id [delete: Cascade]
+
+Ref: Poll.chatroomSessionId > ChatroomSession.id [delete: Cascade]
+
+Ref: Quiz.chatroomSessionId > ChatroomSession.id [delete: Cascade]

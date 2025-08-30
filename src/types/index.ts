@@ -25,7 +25,6 @@ import type {
     ClassAssignment as PrismaClassAssignment,
     ChatroomSession as PrismaChatroomSession,
     ScheduleDraft as PrismaScheduleDraft,
-    School as PrismaSchool,
     OptionalSubjectGroup as PrismaOptionalSubjectGroup,
     Role,
     UserSex,
@@ -46,7 +45,7 @@ export type EntityType = 'grade' | 'subject' | 'class' | 'teacher' | 'student' |
 export type User = PrismaUser;
 export type Admin = PrismaAdmin;
 export type Teacher = PrismaTeacher;
-export type Student = PrismaStudent & { optionalSubjects?: PrismaSubject[] };
+export type Student = PrismaStudent;
 export type OptionalSubject = PrismaSubject;
 export type OptionalSubjectGroup = PrismaOptionalSubjectGroup;
 export type Attendance = PrismaAttendance;
@@ -79,17 +78,6 @@ export type ScheduleDraft = Omit<PrismaScheduleDraft, 'createdAt' | 'updatedAt'>
     createdAt: string;
     updatedAt: string;
     description: string;
-};
-export type SchoolData = Omit<PrismaSchool, 'id'> & {
-    id?: number | string,
-    scheduleDraftId: string | null;
-    schoolConfig: {};
-    startTime: string;
-    endTime?: string;
-    schedule?: Lesson[];
-    schoolDays?: string[];
-    sessionDuration?: number;
-    sessionInterval?: number;
 };
 
 // --- SAFE CLIENT-SIDE TYPES (Passwords and sensitive data omitted) ---
@@ -191,7 +179,7 @@ export interface WizardData {
   teachers: TeacherWithDetails[];
   rooms: Classroom[];
   grades: Grade[];
-  students: Student[];
+  students: (Student & { optionalSubjects: Subject[] })[];
   lessonRequirements: LessonRequirement[];
   teacherConstraints: (TeacherConstraint & { scheduleDraftId: string | null })[];
   subjectRequirements: SubjectRequirement[];
@@ -375,3 +363,16 @@ export interface ActiveQuiz extends SessionTemplateQuiz {
   endTime?: Date; // Will be set when the quiz ends
   userAnswers?: { userId: string; answer: string; isCorrect: boolean }[];
 }
+
+export type SchoolData = {
+    id?: number | string,
+    name: string,
+    scheduleDraftId: string | null;
+    schoolConfig?: {};
+    startTime: string;
+    endTime?: string;
+    schedule?: Lesson[];
+    schoolDays?: string[];
+    sessionDuration?: number;
+    sessionInterval?: number;
+};

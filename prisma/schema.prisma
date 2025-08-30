@@ -237,8 +237,8 @@ model Lesson {
   scheduleDraftId String?
   scheduleDraft ScheduleDraft? @relation(fields: [scheduleDraftId], references: [id])
 
-  optionalSubjectId Int?
-  optionalGroup OptionalSubjectGroup? @relation(fields: [optionalSubjectId], references: [id])
+  optionalGroupId String?
+  optionalGroup OptionalSubjectGroup? @relation(fields: [optionalGroupId], references: [id])
 }
 
 
@@ -251,6 +251,8 @@ model Exam {
   // Relations
   lessonId  Int
   lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  classId   Int?
+  class     Class?   @relation(fields: [classId], references: [id])
   results   Result[]
 }
 
@@ -263,6 +265,8 @@ model Assignment {
   // Relations
   lessonId Int
   lesson   Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  classId   Int?
+  class     Class?   @relation(fields: [classId], references: [id])
   results  Result[]
 }
 
@@ -438,8 +442,7 @@ model OptionalSubjectGroup {
   subjectId Int
   subject   Subject  @relation(fields: [subjectId], references: [id])
   students  Student[]
-  lessons Lesson[] @relation(fields: [optionalSubjectId], references: [id])
-  optionalSubjectId Int?
+  lessons   Lesson[]
 }
 
 // ------------- CHATROOM MODELS -------------

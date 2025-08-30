@@ -16,7 +16,7 @@ const toSerializable = (obj: any) => {
 
 const parseJsonFields = (draft: any) => {
     const parsedData = { ...draft };
-    const fieldsToParse: (keyof WizardData | 'rooms')[] = ['schoolConfig', 'classes', 'subjects', 'teachers', 'rooms', 'grades'];
+    const fieldsToParse: (keyof WizardData | 'rooms' | 'schoolConfig')[] = ['schoolConfig', 'classes', 'subjects', 'teachers', 'rooms', 'grades'];
     fieldsToParse.forEach(field => {
         if (typeof parsedData[field] === 'string') {
             try {
