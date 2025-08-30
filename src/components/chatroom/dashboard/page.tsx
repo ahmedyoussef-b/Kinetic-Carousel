@@ -1,91 +1,106 @@
-
+// src/app/(dashboard)/list/chatroom/dashboard/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppDispatch, RootState } from '@/lib/redux/store';
-import { fetchSessionData, startSession } from '@/lib/redux/slices/sessionSlice';
-import { SessionType } from '@/lib/redux/slices/session/types';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
+import { setSelectedClass, fetchChatroomClasses, startSession, updateStudentPresence, fetchSessionState } from "@/lib/redux/slices/sessionSlice";
+import type { ClassRoom } from '@/lib/redux/slices/session/types';
+import ClassCard from '@/components/chatroom/dashboard/ClassCard';
+import StudentSelector from '@/components/chatroom/dashboard/StudentSelector';
+import TemplateSelector from '@/components/chatroom/dashboard/TemplateSelector';
+import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { Role } from '@/types';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus, Video, Users, Settings } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { ArrowLeft, Loader2, Video } from 'lucide-react';
 
-const ChatroomDashboardPage = () => {
-  const dispatch: AppDispatch = useDispatch();
+export default function DashboardPage() {
   const router = useRouter();
-  const user = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectCurrentUser);
+  const { toast } = useToast();
 
-  const {
-    classes,
-    selectedClass,
-    loading,
-    meetingCandidates,
-  } = useSelector((state: RootState) => state.session);
-
-  const [isAddStudentsDialogOpen, setAddStudentsDialogOpen] = useState(false);
+  const { classes, selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      dispatch(fetchSessionData(user.id));
-    }
-  }, [dispatch, user?.id]);
-
-  const handleClassSelect = (classId: string) => {
-    // This will be handled by the slice now if we want to keep it in Redux state
-    // For now, local state might suffice if it's just for this component
-  };
-
-  const handleStartSession = async (type: SessionType, classId: number | null) => {
-    if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Vous devez être connecté pour démarrer une session.',
-      });
+    if (!user || user.role !== Role.TEACHER) {
+      router.replace('/');
       return;
     }
 
-    if (type === 'CLASS' && !selectedClass) {
-        toast({
-          variant: 'destructive',
-          title: 'Aucune classe sélectionnée',
-          description: 'Veuillez sélectionner une classe pour démarrer une session de cours.',
-        });
-        return;
+    if (activeSession) {
+      router.replace(`/list/chatroom/session?sessionId=${activeSession.id}`);
     }
+  }, [user, activeSession, router]);
 
-    const sessionTitle = type === 'CLASS' ? `Cours: ${selectedClass?.name}` : 'Réunion';
-    const participants = type === 'CLASS' ? selectedClass!.students : meetingCandidates;
-
-    if (participants.length === 0) {
-        toast({
-            variant: 'warning',
-            title: 'Aucun participant',
-            description: 'Impossible de démarrer une session sans participants.',
-          });
-          return;
+  useEffect(() => {
+    if (user?.role === Role.TEACHER && classes.length === 0 && !loading) {
+        dispatch(fetchChatroomClasses());
     }
+  }, [dispatch, classes.length, loading, user]);
+  
+  // Effect for polling presence
+  useEffect(() => {
+    if (user?.role !== Role.TEACHER) return;
 
+    console.log("🧑‍🏫 [TeacherView] Setting up presence polling interval.");
+
+    const pollPresence = async () => {
+        console.log("🔄 [TeacherView] Polling for presence updates...");
+        try {
+            const response = await fetch('/api/presence/update', { credentials: 'include' });
+            if (response.ok) {
+                const data = await response.json();
+                const onlineUserIds: string[] = data.onlineUserIds || [];
+                console.log(`📡 [TeacherView] Received presence data. Online users: ${onlineUserIds.length}`, onlineUserIds);
+                
+                // Dispatch an action to update the presence status in the Redux store
+                // We need to check against all students in all classes
+                dispatch(updateStudentPresence({ onlineUserIds }));
+            } else {
+                // If the response is not OK, log the status to understand the error
+                console.error(`❌ [TeacherView] Failed to poll presence with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error("❌ [TeacherView] Failed to poll presence:", error);
+        }
+    };
+
+    const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
+
+    return () => {
+      console.log("🛑 [TeacherView] Clearing presence polling interval.");
+      clearInterval(intervalId);
+    }
+  }, [dispatch, user]);
+
+  const handleClassSelect = (classroom: ClassRoom) => {
+    if (selectedClass?.id === classroom.id) {
+        dispatch(setSelectedClass(null));
+    } else {
+        dispatch(setSelectedClass(classroom));
+    }
+  };
+
+  const handleStartSession = async () => {
+    if (!selectedClass || selectedStudents.length === 0) return;
+    
     try {
       const resultAction = await dispatch(startSession({
-        sessionType: type,
-        hostId: user.id,
-        title: sessionTitle,
-        classId: selectedClass?.id.toString(),
-        participants: participants.map(p => ({ ...p, id: p.userId, name: p.name || p.email, role: p.role || 'STUDENT' })),
+        classId: String(selectedClass.id),
+        className: selectedClass.name,
+        participantIds: selectedStudents,
+        templateId: selectedTemplateId || undefined,
       }));
 
       if (startSession.fulfilled.match(resultAction)) {
         const newSession = resultAction.payload;
-        if(selectedClass) {
-          toast({ title: 'Session Démarrée', description: `La session pour ${selectedClass.name} a commencé.`});
-          router.push(`/chatroom/session?sessionId=${newSession.id}`);
-        }
+        toast({ title: 'Session Démarrée', description: `La session pour ${selectedClass.name} a commencé.`});
+        router.push(`/list/chatroom/session?sessionId=${newSession.id}`);
       } else {
         throw new Error((resultAction.payload as string) || 'Failed to start session');
       }
@@ -106,69 +121,82 @@ const ChatroomDashboardPage = () => {
     );
   }
 
-  return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight">Tableau de Bord de la Salle de Classe</h1>
-        <p className="text-muted-foreground mt-2">Gérez vos sessions de cours et réunions en direct.</p>
-      </header>
+  // View for selecting students, after a class has been chosen
+  if (selectedClass) {
+    return (
+      <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+            <Card className="shadow-lg animate-in fade-in-0">
+             <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Étape 3: Sélectionner les élèves pour {selectedClass.name}</CardTitle>
+                        <CardDescription>Cochez les élèves que vous souhaitez inviter à la session interactive.</CardDescription>
+                    </div>
+                    <Button variant="outline" onClick={() => dispatch(setSelectedClass(null))}>
+                        <ArrowLeft className="mr-2 h-4 w-4"/>
+                        Changer de classe
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <StudentSelector 
+                classroom={selectedClass}
+              />
+            </CardContent>
+            <CardContent>
+               <div className="mt-6 pt-6 border-t">
+                  <Button
+                    onClick={handleStartSession}
+                    disabled={selectedStudents.length === 0 || loading}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-300 disabled:to-gray-400 py-6 text-lg font-medium"
+                  >
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Video className="w-5 h-5 mr-2" />}
+                    {loading ? 'Démarrage...' : `Lancer la session (${selectedStudents.length} élève${selectedStudents.length > 1 ? 's' : ''})`}
+                  </Button>
+                </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {/* Class Session Card */}
-        <Card className="flex flex-col">
+  // Main view for selecting a template and a class
+  return (
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Step 1: Template Selection */}
+        <TemplateSelector 
+            selectedTemplateId={selectedTemplateId} 
+            onSelectTemplate={setSelectedTemplateId} 
+        />
+        
+        {/* Step 2: Class Selection Card */}
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Video /> Session de Classe</CardTitle>
-            <CardDescription>Lancez une session vidéo interactive avec une classe.</CardDescription>
+            <CardTitle>Étape 2: Sélectionner une classe</CardTitle>
+            <CardDescription>Choisissez la classe pour laquelle vous souhaitez démarrer une session.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow space-y-4">
-            <Select onValueChange={handleClassSelect} defaultValue={selectedClass?.id.toString()}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une classe" />
-              </SelectTrigger>
-              <SelectContent>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {classes.map((classroom: ClassRoom) => (
+                  <ClassCard
+                    key={classroom.id}
+                    classroom={classroom}
+                    onSelect={handleClassSelect}
+                  />
                 ))}
-              </SelectContent>
-            </Select>
-            {selectedClass && (
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p className="flex items-center gap-2"><Users className="h-4 w-4" /> {selectedClass.students.length} élèves</p>
-                <p className="flex items-center gap-2"><Settings className="h-4 w-4" /> {selectedClass.abbreviation}</p>
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex-col sm:flex-row gap-2">
-            <Button onClick={() => handleStartSession('CLASS', selectedClass?.id ?? null)} className="w-full sm:w-auto" disabled={!selectedClass || loading}>
-              Démarrer la session de classe
-            </Button>
-            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setAddStudentsDialogOpen(true)} disabled={!selectedClass}>
-              <UserPlus className="mr-2 h-4 w-4"/> Gérer les élèves
-            </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Meeting Session Card */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Users /> Session de Réunion</CardTitle>
-            <CardDescription>Créez une réunion privée avec des enseignants ou du personnel.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-grow">
-            {/* Placeholder for meeting participant selection */}
-            <div className="text-center text-muted-foreground border-2 border-dashed rounded-lg p-8">
-                <p>La sélection des participants pour les réunions sera bientôt disponible.</p>
-            </div>
-          </CardContent>
-          <CardFooter>
-          <Button className="w-full" disabled>
-              Démarrer une réunion
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     </div>
   );
-};
-
-export default ChatroomDashboardPage;
+}

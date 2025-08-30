@@ -127,7 +127,7 @@ model Grade {
   id      Int       @id @default(autoincrement())
   level   Int       @unique
   
-  classes Classes[]
+  classes Class[]
   students Student[]
 }
 
