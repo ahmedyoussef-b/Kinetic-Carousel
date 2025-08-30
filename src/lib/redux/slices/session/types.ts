@@ -5,7 +5,7 @@ import { Role } from '@prisma/client';
 
 export type BadgeType = 'participation' | 'correct_answer' | 'helpful' | 'creative' | 'leader' | 'consistent';
 export type ReactionType = 'thumbs_up' | 'thumbs_down' | 'heart' | 'laugh' | 'understood' | 'confused';
-export type SessionType = 'class' | 'meeting';
+export type SessionType = 'CLASS' | 'MEETING';
 export type RewardActionType = 'manual' | 'quiz_correct' | 'participation' | 'poll_vote';
 
 

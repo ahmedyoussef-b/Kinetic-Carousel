@@ -1,5 +1,5 @@
 // src/services/session-service.ts
-import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage } from '@/lib/redux/slices/session/types';
+import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage, SessionType } from '@/lib/redux/slices/session/types';
 import prisma from '@/lib/prisma';
 import { Role } from '@/types';
 
@@ -157,7 +157,7 @@ class SessionServiceController {
     return {
       id: dbSession.id,
       hostId: dbSession.hostId,
-      sessionType: dbSession.type as 'class' | 'meeting',
+      sessionType: dbSession.type,
       classId: dbSession.classId ? String(dbSession.classId) : '',
       className: dbSession.title,
       title: dbSession.title,
