@@ -13,11 +13,12 @@ export async function GET(request: NextRequest) {
   const userId = sessionInfo.user.id;
 
   try {
-    const activeSessionId = SessionService.findSessionIdForParticipant(userId);
+    const activeSessionId = await SessionService.findSessionIdForParticipant(userId);
 
     if (activeSessionId) {
       console.log(`[API] Session active trouvée pour l'élève ${userId}: ${activeSessionId}`);
-      return NextResponse.json({ activeSessionId });
+      // FIX: Return the ID in a correctly formatted JSON object.
+      return NextResponse.json({ activeSessionId: activeSessionId });
     } else {
       console.log(`[API] Aucune session active trouvée pour l'élève ${userId}.`);
       return NextResponse.json({ activeSessionId: null });
