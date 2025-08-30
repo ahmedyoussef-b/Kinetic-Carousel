@@ -126,7 +126,7 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
       prisma.teacher.findMany({ include: { user: true, subjects: true, lessons: { select: { classId: true }, distinct: ['classId'] } } }),
       prisma.classroom.findMany({orderBy: {name: 'asc'}}),
       prisma.grade.findMany({orderBy: {level: 'asc'}}),
-      prisma.student.findMany({ include: { optionalSubjects: true } }), // Fetch students here
+      prisma.student.findMany({ include: { optionalSubjects: true } }), // Fetch students with their optional subjects
       prisma.lesson.findMany() // Fetch the "master" schedule
     ]);
     
