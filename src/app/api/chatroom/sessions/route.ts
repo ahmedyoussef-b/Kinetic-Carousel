@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
         title,
         type: sessionType,
         hostId,
-        classId: sessionType === 'class' && classId ? parseInt(classId, 10) : null,
+        classId: sessionType === 'CLASS' && classId ? parseInt(classId, 10) : null,
         participants: {
-          create: participants.map((p) => ({ userId: p.id! })),
+          create: participants.map((p) => ({ userId: p.userId! })),
         },
       },
       include: {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     };
     
     // Store the active session in the in-memory service
-    SessionService.createSession(activeSession);
+    await SessionService.createSession(activeSession);
 
     return NextResponse.json(activeSession, { status: 201 });
   } catch (error) {
