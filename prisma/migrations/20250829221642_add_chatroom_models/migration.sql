@@ -20,7 +20,6 @@
   - Made the column `scheduleDraftId` on table `SubjectRequirement` required. This step will fail if there are existing NULL values in that column.
   - Made the column `scheduleDraftId` on table `TeacherAssignment` required. This step will fail if there are existing NULL values in that column.
   - Made the column `scheduleDraftId` on table `TeacherConstraint` required. This step will fail if there are existing NULL values in that column.
-  - Added the required column `password` to the `User` table without a default value. This is not possible if the table is not empty.
   - Made the column `name` on table `User` required. This step will fail if there are existing NULL values in that column.
   - Made the column `firstName` on table `User` required. This step will fail if there are existing NULL values in that column.
   - Made the column `lastName` on table `User` required. This step will fail if there are existing NULL values in that column.
@@ -110,7 +109,7 @@ ALTER TABLE "public"."TeacherAssignment" ALTER COLUMN "scheduleDraftId" SET NOT 
 ALTER TABLE "public"."TeacherConstraint" ALTER COLUMN "scheduleDraftId" SET NOT NULL;
 
 -- AlterTable
-ALTER TABLE "public"."User" ADD COLUMN     "password" TEXT NOT NULL,
+ALTER TABLE "public"."User"
 ALTER COLUMN "name" SET NOT NULL,
 ALTER COLUMN "role" DROP DEFAULT,
 ALTER COLUMN "firstName" SET NOT NULL,

@@ -63,7 +63,7 @@ async function cleanupDatabase(auth) {
     const tableNames = [
         'ChatroomMessage', 'SessionParticipant', 'ChatroomSession', 'Result',
         'Assignment', 'Exam', 'Attendance', 'Lesson', 'Announcement', 'Event',
-        'OptionalSubjectGroup', 'Student', 'Parent', 'Teacher', 'Admin',
+        'Student', 'Parent', 'Teacher', 'Admin',
         'Class', 'Grade', 'Subject', 'Classroom', 'User'
     ];
 
