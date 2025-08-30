@@ -15,12 +15,12 @@ export const startSession = createAsyncThunk<ActiveSession, {
   state: { session: { classes: ClassRoom[] }, auth: { user: SafeUser | null } };
 }>(
   'session/startSession',
-  async ({ classId, className, participantIds, templateId }, { rejectValue, getState, dispatch }) => {
+  async ({ classId, className, participantIds, templateId }, { rejectWithValue, getState, dispatch }) => {
     const state = getState();
     const host = state.auth.user;
     const selectedClass = state.session.classes.find((c: ClassRoom) => c.id.toString() === classId);
 
-    if (!host || !selectedClass) return rejectValue('Host or class data not found');
+    if (!host || !selectedClass) return rejectWithValue('Host or class data not found');
 
     const participants: SessionParticipant[] = selectedClass.students
       .filter((s: SessionParticipant) => participantIds.includes(s.id!))
@@ -57,7 +57,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
     
     if (selectedTemplate) {
       templatePolls = selectedTemplate.polls.map((p: SessionTemplatePoll) => ({
-        id: `poll_${Date.now()}_${Math.random()}`, 
+        id: `poll_${Date.now()}_${Math.random()}`,
         question: p.question, 
         options: p.options.map((text: string, i: number) => ({ id: `opt_${i}`, text, votes: [] })), 
         isActive: false, 
@@ -66,7 +66,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
       }));
       
       templateQuizzes = selectedTemplate.quizzes.map((q: Omit<Quiz, 'id' | 'startTime' | 'isActive' | 'currentQuestionIndex' | 'answers' | 'timeRemaining'>) => ({
-        id: `quiz_${Date.now()}_${Math.random()}`, 
+        id: `quiz_${Date.now()}_${Math.random()}`,
         title: q.title, 
         questions: q.questions.map((ques: Omit<QuizQuestion, 'id'>, i: number) => ({ ...ques, id: `q_${i}` })), 
         currentQuestionIndex: 0, 
@@ -96,7 +96,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        return rejectValue(errorData.message || 'Failed to start session on server');
+        return rejectWithValue(errorData.message || 'Failed to start session on server');
       }
       const newSession: ActiveSession = await response.json();
       
@@ -122,7 +122,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
       
       return newSession;
     } catch (error) {
-      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );
@@ -135,12 +135,12 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
   state: { session: { meetingCandidates: SessionParticipant[] }, auth: { user: SafeUser | null } };
 }>(
   'session/startMeeting',
-  async ({ title, participantIds }, { rejectValue, getState, dispatch }) => {
+  async ({ title, participantIds }, { rejectWithValue, getState, dispatch }) => {
     const state = getState();
     const host = state.auth.user;
     const allCandidates = state.session.meetingCandidates;
 
-    if (!host) return rejectValue('Host user not found');
+    if (!host) return rejectWithValue('Host user not found');
 
     const participants: SessionParticipant[] = allCandidates
       .filter((p: SessionParticipant) => participantIds.includes(p.id!))
@@ -189,7 +189,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        return rejectValue(errorData.message || 'Failed to start meeting on server');
+        return rejectWithValue(errorData.message || 'Failed to start meeting on server');
       }
        const newSession: ActiveSession = await response.json();
 
@@ -215,7 +215,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
 
       return newSession;
     } catch (error) {
-      return rejectValue(error instanceof Error ? error.message : 'Unknown error');
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 );

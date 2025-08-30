@@ -1,6 +1,8 @@
 // src/services/presence-service.ts
 import prisma from '@/lib/prisma';
-import { PresenceStatus } from '@prisma/client';
+
+// Define status as string literals, as the enum is not available without `prisma generate`
+type PresenceStatus = 'ONLINE' | 'OFFLINE';
 
 class PresenceServiceController {
   constructor() {
@@ -13,7 +15,7 @@ class PresenceServiceController {
     try {
       console.log(`🔄 [PresenceService] Mise à jour du statut pour l'utilisateur ${userId} à ${status}`);
       
-      const presenceStatus = status === 'online' ? PresenceStatus.ONLINE : PresenceStatus.OFFLINE;
+      const presenceStatus: PresenceStatus = status === 'online' ? 'ONLINE' : 'OFFLINE';
 
       await prisma.userPresence.upsert({
         where: { userId },
@@ -44,7 +46,7 @@ class PresenceServiceController {
       
       const onlineUsers = await prisma.userPresence.findMany({
         where: {
-          status: PresenceStatus.ONLINE,
+          status: 'ONLINE',
           lastSeen: {
             gt: timeout // Seulement les utilisateurs vus dans la dernière minute
           }
@@ -52,7 +54,7 @@ class PresenceServiceController {
         select: { userId: true }
       });
 
-      const userIds = onlineUsers.map(user => user.userId);
+      const userIds = onlineUsers.map((user: { userId: string }) => user.userId);
       console.log(`👍 [PresenceService] ${userIds.length} utilisateurs actifs trouvés.`);
       
       return userIds;
@@ -71,7 +73,7 @@ class PresenceServiceController {
         select: { status: true, lastSeen: true }
       });
 
-      if (!presence || presence.status === PresenceStatus.OFFLINE) {
+      if (!presence || presence.status === 'OFFLINE') {
         return 'offline';
       }
 
@@ -95,13 +97,13 @@ class PresenceServiceController {
       
       const result = await prisma.userPresence.updateMany({
         where: {
-          status: PresenceStatus.ONLINE,
+          status: 'ONLINE',
           lastSeen: {
             lt: timeout
           }
         },
         data: {
-          status: PresenceStatus.OFFLINE
+          status: 'OFFLINE'
         }
       });
 
