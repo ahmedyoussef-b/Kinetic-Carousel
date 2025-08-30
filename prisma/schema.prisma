@@ -106,9 +106,6 @@ model Student {
   parent       Parent?               @relation(fields: [parentId], references: [id], onDelete: SetNull)
   attendances  Attendance[]
   results      Result[]
-  // optionalGroupId     String?
-  optionalGroup       OptionalSubjectGroup? @relation(fields: [optionalGroupId], references: [id])
-  optionalSubjects    OptionalSubject[]     @relation("StudentOptionalSubjects")
 
   @@map("students")
 }
@@ -138,6 +135,7 @@ model Grade {
   // Relations
   classes  Class[]
   students Student[]
+  optionalSubjectGroups OptionalSubjectGroup[]
 
   @@map("grades")
 }
@@ -174,7 +172,6 @@ model Subject {
   subjectRequirements SubjectRequirement[]
   teacherAssignments TeacherAssignment[]
   optionalGroups OptionalSubjectGroup[] @relation("OptionalSubjectChoices")
-  students       Student[]              @relation("StudentOptionalSubjects")
 
   @@map("subjects")
 }
@@ -187,7 +184,6 @@ model OptionalSubjectGroup {
   // Relations
   grade          Grade     @relation(fields: [gradeId], references: [id])
   allowedSubjects Subject[] @relation("OptionalSubjectChoices")
-  students       Student[]
 
   @@map("optional_subject_groups")
 }
