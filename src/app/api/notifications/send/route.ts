@@ -17,8 +17,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Données de notification incomplètes' }, { status: 400 });
     }
 
-    // Use the service to "send" the notification
-    NotificationService.sendNotification(recipientId, {
+    // CORRECTION: Utilisez la nouvelle méthode sendNotification
+    await NotificationService.sendNotification({
+      recipientId,
       type,
       title,
       message,

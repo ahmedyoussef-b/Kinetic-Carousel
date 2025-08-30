@@ -46,34 +46,35 @@ enum Day {
 
 // User model
 model User {
-  id                    String                @id @unique
-  username              String                @unique
+  id                    String               @id @unique
+  username              String               @unique
   name                  String?
   firstName             String?
   lastName              String?
-  email                 String                @unique
+  email                 String               @unique
   password              String
   img                   String?
-  role                  Role                  @default(STUDENT)
-  active                Boolean               @default(false)
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  role                  Role                 @default(STUDENT)
+  active                Boolean              @default(false)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
   passwordResetToken    String?
   passwordResetExpires  DateTime?
-  twoFactorEnabled      Boolean?              @default(false)
+  twoFactorEnabled      Boolean?             @default(false)
   twoFactorCode         String?
   twoFactorCodeExpires  DateTime?
   admin                 Admin?
   teacher               Teacher?
   student               Student?
   parent                Parent?
-  sentMessages          Message[]             @relation("SentMessages")
-  receivedMessages      Message[]             @relation("ReceivedMessages")
+  sentMessages          Message[]            @relation("SentMessages")
+  receivedMessages      Message[]            @relation("ReceivedMessages")
   hostedSessions        ChatroomSession[]
   sessionParticipations SessionParticipant[]
   authoredMessages      ChatroomMessage[]
   raisedHands           RaisedHand[]
   presence              UserPresence?
+  Notification          Notification[]
 }
 
 // Admin model
@@ -90,20 +91,20 @@ model Admin {
 
 // Teacher model
 model Teacher {
-  id         String   @id @default(cuid())
-  userId     String   @unique
-  name       String
-  surname    String
-  phone      String?
-  address    String?
-  img        String?
-  bloodType  String?
-  birthday   DateTime?
-  sex        UserSex?
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subjects   Subject[]
-  lessons    Lesson[]
-  
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  name      String
+  surname   String
+  phone     String?
+  address   String?
+  img       String?
+  bloodType String?
+  birthday  DateTime?
+  sex       UserSex?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects  Subject[]
+  lessons   Lesson[]
+
   teacherAssignments TeacherAssignment[]
 
   @@map("teachers")
@@ -111,41 +112,40 @@ model Teacher {
 
 // Student model
 model Student {
-  id             String                @id @default(cuid())
-  userId         String                @unique
-  name           String
-  surname        String
-  phone          String?
-  address        String?
-  img            String?
-  bloodType      String?
-  birthday       DateTime?
-  sex            UserSex?
-  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gradeId        Int?
-  grade          Grade?                @relation(fields: [gradeId], references: [id])
-  classId        Int?
-  class          Class?                @relation(fields: [classId], references: [id])
-  parentId       String?
-  parent         Parent?               @relation(fields: [parentId], references: [id])
-  attendances    Attendance[]
-  results        Result[]
-  optionalSubjects Subject[] @relation("StudentOptionalSubjects")
+  id               String       @id @default(cuid())
+  userId           String       @unique
+  name             String
+  surname          String
+  phone            String?
+  address          String?
+  img              String?
+  bloodType        String?
+  birthday         DateTime?
+  sex              UserSex?
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gradeId          Int?
+  grade            Grade?       @relation(fields: [gradeId], references: [id])
+  classId          Int?
+  class            Class?       @relation(fields: [classId], references: [id])
+  parentId         String?
+  parent           Parent?      @relation(fields: [parentId], references: [id])
+  attendances      Attendance[]
+  results          Result[]
+  optionalSubjects Subject[]    @relation("StudentOptionalSubjects")
 
   @@map("students")
 }
 
-
 // Parent model
 model Parent {
-  id      String    @id @default(cuid())
-  userId  String    @unique
-  name    String
-  surname String
-  phone   String?
-  address String
-  img     String?
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  userId   String    @unique
+  name     String
+  surname  String
+  phone    String?
+  address  String
+  img      String?
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   students Student[]
 
   @@map("parents")
@@ -163,17 +163,17 @@ model Grade {
 
 // Class model
 model Class {
-  id           Int       @id @default(autoincrement())
-  name         String
-  abbreviation String?
-  capacity     Int
-  gradeId      Int
-  grade        Grade     @relation(fields: [gradeId], references: [id])
-  students     Student[]
-  lessons      Lesson[]
-  events       Event[]
+  id            Int            @id @default(autoincrement())
+  name          String
+  abbreviation  String?
+  capacity      Int
+  gradeId       Int
+  grade         Grade          @relation(fields: [gradeId], references: [id])
+  students      Student[]
+  lessons       Lesson[]
+  events        Event[]
   announcements Announcement[]
-  
+
   teacherAssignments ClassAssignment[]
 
   @@map("classes")
@@ -181,19 +181,19 @@ model Class {
 
 // Subject model
 model Subject {
-  id                 Int                   @id @default(autoincrement())
-  name               String
-  weeklyHours        Int?
-  coefficient        Int?
-  requiresRoom       Boolean?              @default(false)
-  isOptional         Boolean?              @default(false)
-  teachers           Teacher[]
-  lessons            Lesson[]
-  lessonRequirements LessonRequirement[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  weeklyHours         Int?
+  coefficient         Int?
+  requiresRoom        Boolean?             @default(false)
+  isOptional          Boolean?             @default(false)
+  teachers            Teacher[]
+  lessons             Lesson[]
+  lessonRequirements  LessonRequirement[]
   subjectRequirements SubjectRequirement[]
-  teacherAssignments TeacherAssignment[]
-  students           Student[] @relation("StudentOptionalSubjects")
-  
+  teacherAssignments  TeacherAssignment[]
+  students            Student[]            @relation("StudentOptionalSubjects")
+
   @@map("subjects")
 }
 
@@ -211,21 +211,21 @@ model Classroom {
 
 // Lesson model
 model Lesson {
-  id                Int          @id @default(autoincrement())
+  id                Int            @id @default(autoincrement())
   name              String
   day               Day
   startTime         DateTime
   endTime           DateTime
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
   subjectId         Int
-  subject           Subject      @relation(fields: [subjectId], references: [id])
+  subject           Subject        @relation(fields: [subjectId], references: [id])
   classId           Int?
-  class             Class?       @relation(fields: [classId], references: [id])
+  class             Class?         @relation(fields: [classId], references: [id])
   teacherId         String
-  teacher           Teacher      @relation(fields: [teacherId], references: [id])
+  teacher           Teacher        @relation(fields: [teacherId], references: [id])
   classroomId       Int?
-  classroom         Classroom?   @relation(fields: [classroomId], references: [id])
+  classroom         Classroom?     @relation(fields: [classroomId], references: [id])
   attendances       Attendance[]
   exams             Exam[]
   assignments       Assignment[]
@@ -264,25 +264,25 @@ model Assignment {
 
 // Event model
 model Event {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   description String?
   startTime   DateTime
   endTime     DateTime
   classId     Int?
-  class       Class?    @relation(fields: [classId], references: [id])
+  class       Class?   @relation(fields: [classId], references: [id])
 
   @@map("events")
 }
 
 // Announcement model
 model Announcement {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   description String?
   date        DateTime
   classId     Int?
-  class       Class?  @relation(fields: [classId], references: [id])
+  class       Class?   @relation(fields: [classId], references: [id])
 
   @@map("announcements")
 }
@@ -383,19 +383,19 @@ model RaisedHand {
 
 // ScheduleDraft model
 model ScheduleDraft {
-  id                  String                @id @default(cuid())
+  id                  String               @id @default(cuid())
   userId              String
   name                String
   description         String?
-  isActive            Boolean               @default(false)
+  isActive            Boolean              @default(false)
   schoolConfig        Json?
   classes             Json?
   subjects            Json?
   teachers            Json?
   rooms               Json?
   grades              Json?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   lessons             Lesson[]
   lessonRequirements  LessonRequirement[]
   teacherConstraints  TeacherConstraint[]
@@ -407,18 +407,19 @@ model ScheduleDraft {
 }
 
 model LessonRequirement {
-  id              Int           @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   scheduleDraftId String?
   scheduleDraft   ScheduleDraft? @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
   classId         Int
   subjectId       Int
   hours           Int
+  Subject         Subject        @relation(fields: [subjectId], references: [id])
 
   @@map("lesson_requirements")
 }
 
 model TeacherConstraint {
-  id              Int           @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   scheduleDraftId String?
   scheduleDraft   ScheduleDraft? @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
   teacherId       String
@@ -431,24 +432,25 @@ model TeacherConstraint {
 }
 
 model SubjectRequirement {
-  id                Int            @id @default(autoincrement())
-  scheduleDraftId   String?
-  scheduleDraft     ScheduleDraft? @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
-  subjectId         Int
-  allowedRoomIds    Json?
-  timePreference    TimePreference @default(ANY)
+  id              Int            @id @default(autoincrement())
+  scheduleDraftId String?
+  scheduleDraft   ScheduleDraft? @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
+  subjectId       Int
+  allowedRoomIds  Json?
+  timePreference  TimePreference @default(ANY)
+  Subject         Subject        @relation(fields: [subjectId], references: [id])
 
   @@map("subject_requirements")
 }
 
 model TeacherAssignment {
-  id              Int           @id @default(autoincrement())
-  scheduleDraftId String?
-  scheduleDraft   ScheduleDraft? @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
-  teacherId       String
-  teacher         Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  subjectId       Int
-  subject         Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  id               Int               @id @default(autoincrement())
+  scheduleDraftId  String?
+  scheduleDraft    ScheduleDraft?    @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
+  teacherId        String
+  teacher          Teacher           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subjectId        Int
+  subject          Subject           @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   classAssignments ClassAssignment[]
 
   @@map("teacher_assignments")
@@ -466,10 +468,10 @@ model ClassAssignment {
 
 // This model is not used in the application logic but could be useful for more complex optional subject scenarios.
 model OptionalSubjectGroup {
-  id       Int       @id @default(autoincrement())
-  name     String // e.g., "LV2", "Arts"
-  gradeId  Int     // For which grade this choice is available
-  
+  id      Int    @id @default(autoincrement())
+  name    String // e.g., "LV2", "Arts"
+  gradeId Int // For which grade this choice is available
+
   @@map("optional_subject_groups")
 }
 
@@ -478,9 +480,28 @@ model UserPresence {
   userId   String   @unique
   status   String   @default("OFFLINE") // 'ONLINE' | 'OFFLINE'
   lastSeen DateTime @default(now()) @updatedAt
-  
+
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_presence")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  type        String // info, warning, success, error, etc.
+  title       String
+  message     String
+  actionUrl   String? // URL for action button
+  recipientId String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  recipient User @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, read])
+  @@index([createdAt])
+  @@map("notifications")
 }

@@ -65,5 +65,11 @@ export default function StudentDashboardWrapper({ children }: { children: React.
     };
   }, [user, router]);
 
-  return <>{children}</>;
+  // If the user is a student, render the actual dashboard content.
+  if (user?.role === Role.STUDENT) {
+    return <>{children}</>;
+  }
+
+  // Otherwise, return null or a loading indicator while redirecting.
+  return null;
 }
