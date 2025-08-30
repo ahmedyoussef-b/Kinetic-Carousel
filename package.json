@@ -2,17 +2,15 @@
   "name": "simple-page",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 9002 --hostname 0.0.0.0",
     "build": "npx prisma migrate reset --force && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "db:reset": "prisma migrate reset --force"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
