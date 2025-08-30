@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
         hostId,
         classId: sessionType === 'CLASS' && classId ? parseInt(classId, 10) : null,
         participants: {
-          create: participants.map((p) => ({ userId: p.userId! })),
+          create: participants
+            .filter((p) => p.userId !== hostId) // FIX: Exclude the host from the participants list to prevent DB conflict
+            .map((p) => ({ userId: p.userId! })),
         },
       },
       include: {
