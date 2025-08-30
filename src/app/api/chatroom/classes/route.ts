@@ -39,13 +39,13 @@ export async function GET() {
       id: cls.id,
       name: cls.name,
       students: cls.students.map((s): SessionParticipant => ({
-        id: s.userId, // Use userId as the primary identifier for the participant
-        userId: s.userId,
+        id: s.id, // Garder l'ID du profil Student pour la sélection initiale
+        userId: s.userId, // S'assurer que le userId est toujours présent
         name: `${s.name} ${s.surname}`,
         email: s.user?.email || 'N/A',
         img: s.user?.img,
         role: Role.STUDENT,
-        isOnline: false, // Correctly initialize as offline
+        isOnline: false, // Correctement initialisé comme hors ligne
         isInSession: false,
         points: 0,
         badges: [],

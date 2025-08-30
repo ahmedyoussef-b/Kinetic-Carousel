@@ -64,9 +64,9 @@ export interface Badge {
 }
 
 export interface SessionParticipant {
-  id?: string;
+  id: string;
+  userId: string; // Ensure userId is always present
   name: string;
-  userId: string;
   email: string;
   role: Role;
   img?: string | null;
