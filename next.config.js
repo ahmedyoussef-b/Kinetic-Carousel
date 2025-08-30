@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   // Cette option est requise pour l'environnement de développement de Firebase Studio.
   allowedDevOrigins: ["*.cloudworkstations.dev"],
   typescript: {
@@ -45,4 +46,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
