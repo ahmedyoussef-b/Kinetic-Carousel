@@ -100,9 +100,9 @@ export const startSession = createAsyncThunk<ActiveSession, {
       }
       const newSession: ActiveSession = await response.json();
       
-      // --- ENVOI DES NOTIFICATIONS AUX ÉLÈVES ---
-      for (const participantId of participantIds) {
-        if(participantId !== host.id) {
+      // --- ENVOI DES NOTIFICATIONS AUX ÉLÈVES (en excluant l'hôte) ---
+      const studentParticipantIds = participantIds.filter(id => id !== host.id);
+      for (const participantId of studentParticipantIds) {
           try {
             await fetch('/api/notifications/send', {
               method: 'POST',
@@ -118,7 +118,6 @@ export const startSession = createAsyncThunk<ActiveSession, {
           } catch (error) {
             console.error(`❌ Erreur envoi notification à ${participantId}:`, error);
           }
-        }
       }
       
       return newSession;
@@ -195,8 +194,8 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
        const newSession: ActiveSession = await response.json();
 
       // Dispatch notifications for meetings too
-      for (const participantId of participantIds) {
-        if(participantId !== host.id) {
+      const teacherParticipantIds = participantIds.filter(id => id !== host.id);
+      for (const participantId of teacherParticipantIds) {
           try {
             await fetch('/api/notifications/send', {
               method: 'POST',
@@ -212,7 +211,6 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
           } catch (error) {
             console.error(`❌ Erreur envoi notification de réunion à ${participantId}:`, error);
           }
-        }
       }
 
       return newSession;
