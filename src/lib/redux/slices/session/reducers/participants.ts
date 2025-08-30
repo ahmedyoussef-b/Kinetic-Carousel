@@ -62,20 +62,20 @@ export const participantReducers = {
     state.classes.forEach(c => {
         if(c.students) {
             c.students.forEach(s => {
-                s.isOnline = onlineUserIds.includes(s.id!);
+                s.isOnline = onlineUserIds.includes(s.userId!);
             });
         }
     });
 
     // Update presence for teacher meeting candidates
     state.meetingCandidates.forEach(p => {
-        p.isOnline = onlineUserIds.includes(p.id!);
+        p.isOnline = onlineUserIds.includes(p.userId!);
     });
 
     // Update presence for participants in the active session
     if (state.activeSession) {
         state.activeSession.participants.forEach(p => {
-            p.isOnline = onlineUserIds.includes(p.id!);
+            p.isOnline = onlineUserIds.includes(p.userId!);
         });
     }
   },
