@@ -1,4 +1,5 @@
 
+
 import { PayloadAction } from '@reduxjs/toolkit';
 import { arrayMove } from '@dnd-kit/sortable';
 import { SessionState, SessionParticipant, ClassRoom } from '../types';
@@ -14,9 +15,13 @@ export const participantReducers = {
   toggleStudentSelection: (state: SessionState, action: PayloadAction<string>) => {
     const studentId = action.payload;
     const currentSelection = Array.isArray(state.selectedStudents) ? state.selectedStudents : [];
-    state.selectedStudents = currentSelection.includes(studentId)
-      ? currentSelection.filter(id => id !== studentId)
-      : [...currentSelection, studentId];
+    const isSelected = currentSelection.includes(studentId);
+
+    if (isSelected) {
+      state.selectedStudents = currentSelection.filter(id => id !== studentId);
+    } else {
+      state.selectedStudents = [...currentSelection, studentId];
+    }
   },
   toggleTeacherSelection: (state: SessionState, action: PayloadAction<string>) => {
     const teacherId = action.payload;
