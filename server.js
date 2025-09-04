@@ -4,10 +4,6 @@ import { parse } from 'url';
 import next from 'next';
 import { Server } from 'socket.io';
 
-// Correction pour importer un module CommonJS/TS dans un environnement ES Module
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
