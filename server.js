@@ -6,11 +6,10 @@ import { Server } from 'socket.io';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = '0.0.0.0';
-const port = parseInt(process.env.PORT || '3001', 10); // Changed default to 3001
+const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-// Stocke la correspondance entre l'ID de socket et l'ID de l'utilisateur.
 const onlineUsers = new Map();
 
 app.prepare().then(() => {
@@ -80,7 +79,7 @@ app.prepare().then(() => {
   });
 
   httpServer.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
+      if ((err as any).code === 'EADDRINUSE') {
         console.error(`❌ Erreur: Le port ${port} est déjà utilisé. Veuillez en choisir un autre.`);
       } else {
         console.error(err);
