@@ -86,6 +86,12 @@ export default function DashboardPage() {
 
       if (startSession.fulfilled.match(resultAction)) {
         const newSession = resultAction.payload;
+        
+        // Notify participants via Socket.IO through the server
+        if (socket) {
+            socket.emit('session:start', { ...newSession, participants: newSession.participants.filter(p => p.role === Role.STUDENT) });
+        }
+
         toast({ title: 'Session Démarrée', description: `La session pour ${selectedClass.name} a commencé.`});
         router.push(`/list/chatroom/session?sessionId=${newSession.id}`);
       } else {
