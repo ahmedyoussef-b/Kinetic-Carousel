@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   console.log("--- 🚀 API: Tentative d'inscription ---");
   try {
     const body = await req.json();
-    const { idToken, role, name } = body;
+    const { idToken, role, name, password } = body;
 
     if (!idToken || !role || !name) {
         console.warn("🚫 [API/Register] Données d'inscription incomplètes.");
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
                 firstName: firstName,
                 lastName: lastName,
                 active: true, // Activate account upon registration
+                password: password,
             }
         });
 
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
     console.log(`✅ [API/Register] Inscription réussie pour ${email}.`);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = newUser;
+    const { ...safeUser } = newUser;
 
     return NextResponse.json({ user: safeUser as SafeUser }, { status: 201 });
 

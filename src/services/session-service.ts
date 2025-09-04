@@ -1,4 +1,3 @@
-
 // src/services/session-service.ts
 import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage, SessionType } from '@/lib/redux/slices/session/types';
 import prisma from '@/lib/prisma';
@@ -20,7 +19,7 @@ class SessionServiceController {
       // FIX: Filter out the host from the participants list to prevent DB constraint errors.
       const participantData = participants
         .filter(p => p.userId !== hostId)
-        .map(p => ({ userId: p.userId }));
+        .map(p => ({ userId: p.userId! }));
 
       const dbSession = await prisma.chatroomSession.create({
         data: {
