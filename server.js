@@ -79,7 +79,7 @@ app.prepare().then(() => {
   });
 
   httpServer.on('error', (err) => {
-      if ((err as any).code === 'EADDRINUSE') {
+      if (err.code === 'EADDRINUSE') {
         console.error(`❌ Erreur: Le port ${port} est déjà utilisé. Veuillez en choisir un autre.`);
       } else {
         console.error(err);
