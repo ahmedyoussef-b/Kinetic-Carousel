@@ -27,6 +27,7 @@ export default function StudentDashboard() {
   const { toast } = useToast();
   const { socket } = useSocket();
 
+
   const pendingInvitations: (AppNotification & { actionUrl: string })[] = notifications.filter(
     (n: AppNotification): n is AppNotification & { actionUrl: string } => n.type === 'session_invite' && !!n.actionUrl && !n.read
   );
