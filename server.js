@@ -5,7 +5,9 @@ import next from 'next';
 import { Server } from 'socket.io';
 
 const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
+const hostname = 'localhost';
+const port = parseInt(process.env.PORT || '3000', 10);
+const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 // Stocke la correspondance entre l'ID de socket et l'ID de l'utilisateur.
@@ -83,8 +85,12 @@ app.prepare().then(() => {
     });
   });
 
-  const port = process.env.PORT || 3000;
-  httpServer.listen(port, () => {
-    console.log(`> Prêt sur http://localhost:${port}`);
-  });
+  httpServer
+    .once('error', (err) => {
+      console.error(err);
+      process.exit(1);
+    })
+    .listen(port, () => {
+      console.log(`> Prêt sur http://${hostname}:${port}`);
+    });
 });
