@@ -1,6 +1,6 @@
 // src/lib/redux/slices/sessionSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { initialState, type ActiveSession, type SessionState, SessionParticipant } from './session/types';
+import { initialState, type ActiveSession, type SessionState, SessionParticipant, ClassRoom } from './session/types';
 import type { RootState } from '../store'; // Import RootState
 
 // Thunks
