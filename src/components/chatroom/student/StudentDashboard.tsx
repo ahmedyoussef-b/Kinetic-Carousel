@@ -14,6 +14,7 @@ import { NoInvitations } from './NoInvitations';
 import { NotificationList } from './NotificationList';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useSocket } from '@/hooks/useSocket';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function StudentDashboard() {
   const { notifications } = useAppSelector(state => state.notifications);
   const prevInvitationsCount = useRef(0);
   const { toast } = useToast();
-
+  const socket = useSocket();
 
   const pendingInvitations: (AppNotification & { actionUrl: string })[] = notifications.filter(
     (n: AppNotification): n is AppNotification & { actionUrl: string } => n.type === 'session_invite' && !!n.actionUrl && !n.read
@@ -56,29 +57,24 @@ export default function StudentDashboard() {
   }, [router]);
 
 
-  // Effect for polling for new notifications from the server
+  // Effect for receiving notifications from the server via Socket.IO
   useEffect(() => {
-      const pollNotifications = async () => {
-          try {
-              const response = await fetch('/api/notifications', { credentials: 'include' });
-              if (response.ok) {
-                  const data = await response.json();
-                  if (data.notifications && data.notifications.length > 0) {
-                      data.notifications.forEach((notif: any) => {
-                          // Dispatch each fetched notification to the local Redux store
-                          dispatch(addNotification(notif));
-                      });
-                  }
-              }
-          } catch (error) {
-              console.error("Failed to poll for notifications:", error);
-          }
+      if (!socket || !user) return;
+      
+      console.log('🎧 [StudentDashboard] Setting up Socket.IO notification listener.');
+
+      const handleNotification = (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => {
+        console.log('📬 [StudentDashboard] Received notification via Socket.IO:', notification);
+        dispatch(addNotification(notification));
       };
       
-      const intervalId = setInterval(pollNotifications, 5000); // Poll every 5 seconds
+      socket.on('notification', handleNotification);
       
-      return () => clearInterval(intervalId);
-  }, [dispatch]);
+      return () => {
+          console.log('🛑 [StudentDashboard] Clearing Socket.IO notification listener.');
+          socket.off('notification', handleNotification);
+      };
+  }, [socket, dispatch, user]);
 
   // Effect for audio notification
   useEffect(() => {
