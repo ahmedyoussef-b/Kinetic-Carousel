@@ -22,6 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+      </head>
       <body className="font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
