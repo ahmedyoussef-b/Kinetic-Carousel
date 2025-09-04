@@ -7,7 +7,6 @@ import { Server } from 'socket.io';
 // Correction pour importer un module CommonJS/TS dans un environnement ES Module
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { default: prisma } = require('./src/lib/prisma.ts');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -44,7 +43,9 @@ app.prepare().then(() => {
     
     // Function to broadcast presence updates
     const broadcastPresence = () => {
-        io.emit('presence:update', Array.from(onlineUsers.values()));
+        const uniqueOnlineUsers = Array.from(new Set(onlineUsers.values()));
+        io.emit('presence:update', uniqueOnlineUsers);
+        console.log(`📡 Broadcasting presence update. Online users: ${uniqueOnlineUsers.length}`, uniqueOnlineUsers);
     }
 
     // Initial presence update
@@ -56,9 +57,17 @@ app.prepare().then(() => {
             broadcastPresence();
         }
     });
+
+    socket.on('presence:offline', () => {
+        if (onlineUsers.has(socket.id)) {
+            onlineUsers.delete(socket.id);
+            broadcastPresence();
+        }
+    });
     
     socket.on('presence:get', () => {
-        socket.emit('presence:update', Array.from(onlineUsers.values()));
+        const uniqueOnlineUsers = Array.from(new Set(onlineUsers.values()));
+        socket.emit('presence:update', uniqueOnlineUsers);
     });
     
     // Session events

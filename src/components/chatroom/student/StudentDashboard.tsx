@@ -25,7 +25,7 @@ export default function StudentDashboard() {
   const { notifications } = useAppSelector(state => state.notifications);
   const prevInvitationsCount = useRef(0);
   const { toast } = useToast();
-  const socket = useSocket();
+  const { socket } = useSocket();
 
   const pendingInvitations: (AppNotification & { actionUrl: string })[] = notifications.filter(
     (n: AppNotification): n is AppNotification & { actionUrl: string } => n.type === 'session_invite' && !!n.actionUrl && !n.read
@@ -68,11 +68,11 @@ export default function StudentDashboard() {
         dispatch(addNotification(notification));
       };
       
-      socket.on('notification', handleNotification);
+      socket.on('session:invite', handleNotification);
       
       return () => {
           console.log('🛑 [StudentDashboard] Clearing Socket.IO notification listener.');
-          socket.off('notification', handleNotification);
+          socket.off('session:invite', handleNotification);
       };
   }, [socket, dispatch, user]);
 

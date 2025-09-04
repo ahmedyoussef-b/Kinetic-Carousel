@@ -11,7 +11,7 @@ import { useSocket } from '@/hooks/useSocket';
 export default function StudentDashboardWrapper({ children }: { children: React.ReactNode }) {
   const user = useAppSelector(selectCurrentUser);
   const router = useRouter();
-  const socket = useSocket();
+  const { socket } = useSocket();
 
   useEffect(() => {
     if (!user || user.role !== Role.STUDENT) {

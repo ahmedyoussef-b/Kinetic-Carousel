@@ -26,9 +26,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (user?.id) {
       // Connect to the socket server
-      const newSocket = io(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000', {
+      const newSocket = io({
         path: '/api/socket',
-        query: { userId: user.id, userName: user.name },
+        query: { userId: user.id },
       });
 
       newSocket.on('connect', () => {

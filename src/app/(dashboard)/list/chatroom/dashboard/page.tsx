@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
   const { toast } = useToast();
-  const socket = useSocket();
+  const { socket } = useSocket();
 
   const { classes, selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
