@@ -5,7 +5,7 @@ import next from 'next';
 import { Server } from 'socket.io';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
+const hostname = '0.0.0.0'; // Écouter sur toutes les interfaces réseau
 const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -27,7 +27,7 @@ app.prepare().then(() => {
     }
   });
   
-  console.log('🔌 Le serveur Socket.IO est initialisé sur /api/socket');
+  console.log(`🔌 Le serveur Socket.IO est initialisé sur /api/socket`);
 
   io.on('connection', (socket) => {
     const userId = socket.handshake.query.userId;
