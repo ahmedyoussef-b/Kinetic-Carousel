@@ -2,10 +2,11 @@
 'use client'
 
 import { Provider } from 'react-redux'
-import { store } from './store'
 import { useAuthInitializer } from '@/hooks/useAuthInitializer' // Import the new custom hook
+import { store } from '@/lib/redux/store';
+import type { ReactNode } from 'react';
 
-function AuthManager({ children }: { children: React.React.Node }) {
+function AuthManager({ children }: { children: ReactNode }) {
     // This custom hook now contains the logic to fetch the session only once
     // and manage the global loading state.
     console.log("⚛️ [StoreProvider] AuthManager is rendering. Calling useAuthInitializer.");
@@ -19,7 +20,7 @@ function AuthManager({ children }: { children: React.React.Node }) {
 export function StoreProvider({
   children,
 }: {
-  children: React.React.Node
+  children: ReactNode
 }) {
   return (
     <Provider store={store}>
