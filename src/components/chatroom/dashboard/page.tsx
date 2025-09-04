@@ -16,12 +16,14 @@ import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Video } from 'lucide-react';
+import { useSocket } from '@/hooks/useSocket';
 
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
   const { toast } = useToast();
+  const { socket } = useSocket();
 
   const { classes, selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -43,40 +45,25 @@ export default function DashboardPage() {
     }
   }, [dispatch, classes.length, loading, user]);
   
-  // Effect for polling presence
+  // Effect for presence updates via Socket.IO
   useEffect(() => {
-    if (user?.role !== Role.TEACHER) return;
+    if (!socket || user?.role !== Role.TEACHER) return;
 
-    console.log("🧑‍🏫 [TeacherView] Setting up presence polling interval.");
+    console.log("🧑‍🏫 [TeacherView] Setting up Socket.IO presence listener.");
 
-    const pollPresence = async () => {
-        console.log("🔄 [TeacherView] Polling for presence updates...");
-        try {
-            const response = await fetch('/api/presence/update', { credentials: 'include' });
-            if (response.ok) {
-                const data = await response.json();
-                const onlineUserIds: string[] = data.onlineUserIds || [];
-                console.log(`📡 [TeacherView] Received presence data. Online users: ${onlineUserIds.length}`, onlineUserIds);
-                
-                // Dispatch an action to update the presence status in the Redux store
-                // We need to check against all students in all classes
-                dispatch(updateStudentPresence({ onlineUserIds }));
-            } else {
-                // If the response is not OK, log the status to understand the error
-                console.error(`❌ [TeacherView] Failed to poll presence with status: ${response.status}`);
-            }
-        } catch (error) {
-            console.error("❌ [TeacherView] Failed to poll presence:", error);
-        }
+    const handlePresenceUpdate = (onlineUserIds: string[]) => {
+      console.log(`📡 [TeacherView] Received presence data via Socket. Online users: ${onlineUserIds.length}`, onlineUserIds);
+      dispatch(updateStudentPresence({ onlineUserIds }));
     };
 
-    const intervalId = setInterval(pollPresence, 5000); // Poll every 5 seconds
+    socket.on('presence:update', handlePresenceUpdate);
+    socket.emit('presence:get'); // Initial fetch
 
     return () => {
-      console.log("🛑 [TeacherView] Clearing presence polling interval.");
-      clearInterval(intervalId);
-    }
-  }, [dispatch, user]);
+      console.log("🛑 [TeacherView] Clearing Socket.IO presence listener.");
+      socket.off('presence:update', handlePresenceUpdate);
+    };
+  }, [socket, dispatch, user]);
 
   const handleClassSelect = (classroom: ClassRoom) => {
     if (selectedClass?.id === classroom.id) {
@@ -99,6 +86,12 @@ export default function DashboardPage() {
 
       if (startSession.fulfilled.match(resultAction)) {
         const newSession = resultAction.payload;
+        
+        // Notify participants via Socket.IO through the server
+        if (socket) {
+            socket.emit('session:start', { ...newSession, participants: newSession.participants.filter(p => p.role === Role.STUDENT) });
+        }
+
         toast({ title: 'Session Démarrée', description: `La session pour ${selectedClass.name} a commencé.`});
         router.push(`/list/chatroom/session?sessionId=${newSession.id}`);
       } else {

@@ -26,18 +26,10 @@ export default function StudentDashboardWrapper({ children }: { children: React.
     // Announce online status
     socket.emit('presence:online');
 
-    const handleBeforeUnload = () => {
-        console.log("🚪 [StudentWrapper] Page unloading. Emitting 'presence:offline'.");
-        socket.emit('presence:offline');
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // This cleanup runs when the component unmounts
+    // This cleanup runs when the component unmounts (e.g., page navigation, closing tab)
     return () => {
-        console.log("🛑 [StudentWrapper] Component unmounting. Clearing listeners and emitting 'presence:offline'.");
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-        socket.emit('presence:offline');
+        console.log("🛑 [StudentWrapper] Component unmounting. Disconnecting socket which will trigger 'disconnect' on server.");
+        // The 'disconnect' event on the server will handle removing the user from the online list.
     };
   }, [user, router, socket]);
 

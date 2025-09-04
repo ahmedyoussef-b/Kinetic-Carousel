@@ -3,7 +3,7 @@
 
 import { StoreProvider } from '@/lib/redux/StoreProvider';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/sonner';
 import { SocketProvider } from '@/hooks/useSocket';
 import type { ReactNode } from 'react';
 
