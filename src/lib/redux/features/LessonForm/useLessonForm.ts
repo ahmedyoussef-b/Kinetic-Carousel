@@ -36,6 +36,7 @@ const useLessonForm = ({
     resolver: zodResolver(lessonSchema),
     defaultValues: data ? {
       ...data,
+      classId: data.classId ?? undefined, // Ensure null is converted to undefined
       startTime: formatTime(data.startTime),
       endTime: formatTime(data.endTime),
       classroomId: data.classroomId ?? undefined,
@@ -85,6 +86,7 @@ const useLessonForm = ({
     }
   }, [createSuccess, updateSuccess, type, setOpen, reset, router]);
 
+
   useEffect(() => {
     const error: FetchBaseQueryError | SerializedError | undefined = 
     (createErrorData as FetchBaseQueryError | SerializedError | undefined) ||
@@ -98,9 +100,9 @@ const useLessonForm = ({
   return {
     register,
     handleSubmit,
+    onSubmit,
     errors,
     isLoading,
-    onSubmit,
     createErrorData: createErrorData as FetchBaseQueryError | SerializedError | undefined,
     updateErrorData: updateErrorData as FetchBaseQueryError | SerializedError | undefined,
   };
