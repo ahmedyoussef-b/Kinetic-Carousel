@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import Papa, { ParseResult, ParseError } from 'papaparse';
+import Papa, { type ParseResult, type ParseError } from 'papaparse';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
