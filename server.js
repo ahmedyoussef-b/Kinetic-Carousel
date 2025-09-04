@@ -3,7 +3,11 @@ import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { Server } from 'socket.io';
-import prisma from './src/lib/prisma.js';
+
+// Correction pour importer un module CommonJS/TS dans un environnement ES Module
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const prisma = require('./src/lib/prisma').default;
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
