@@ -1,10 +1,15 @@
 // src/lib/redux/features/students/studentsSlice.ts
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { Student } from '@/types';
+import type { Student, Subject } from '@/types';
 import { entityApi } from '../../api/entityApi';
 
+// Define the shape of a student within this slice's state
+export type StudentInState = Student & {
+  optionalSubjects: Subject[];
+};
+
 export type StudentsState = {
-  items: Array<Student>;
+  items: Array<StudentInState>;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
 };
@@ -20,8 +25,12 @@ export const studentsSlice = createSlice({
   name: 'students',
   initialState,
   reducers: {
-    setAllStudents(state, action: PayloadAction<Student[]>) {
-      state.items = action.payload;
+    setAllStudents(state, action: PayloadAction<StudentInState[]>) {
+      // Ensure every student has the optionalSubjects property, even if it's an empty array.
+      state.items = action.payload.map(student => ({
+        ...student,
+        optionalSubjects: student.optionalSubjects || [],
+      }));
       state.status = 'succeeded';
     },
   },
@@ -29,7 +38,11 @@ export const studentsSlice = createSlice({
     builder.addMatcher(
       entityApi.endpoints.getStudents.matchFulfilled,
       (state, { payload }) => {
-        state.items = payload as Student[];
+        // Ensure every student from the API has the optionalSubjects property.
+        state.items = (payload as Student[]).map(student => ({
+            ...student,
+            optionalSubjects: (student as any).optionalSubjects || [],
+        }));
         state.status = 'succeeded';
       }
     )
