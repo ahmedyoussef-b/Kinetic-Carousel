@@ -85,12 +85,16 @@ app.prepare().then(() => {
     });
   });
 
-  httpServer
-    .once('error', (err) => {
-      console.error(err);
+  httpServer.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Erreur: Le port ${port} est déjà utilisé. Veuillez en choisir un autre.`);
+      } else {
+        console.error(err);
+      }
       process.exit(1);
-    })
-    .listen(port, () => {
+    });
+
+  httpServer.listen(port, () => {
       console.log(`> Prêt sur http://${hostname}:${port}`);
     });
 });
