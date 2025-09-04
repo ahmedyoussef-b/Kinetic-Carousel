@@ -9,7 +9,7 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 // Stocke la correspondance entre l'ID de socket et l'ID de l'utilisateur.
-const onlineUsers = new Map<string, string>();
+const onlineUsers = new Map();
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
@@ -64,7 +64,7 @@ app.prepare().then(() => {
     
     socket.on('session:start', (sessionData) => {
         // Notifier les participants spécifiques d'une invitation à une session.
-        sessionData.participants.forEach((p: { id: string }) => {
+        sessionData.participants.forEach((p) => {
              // Trouver le socket.id pour un userId donné.
             const socketId = Array.from(onlineUsers.entries()).find(([, uId]) => uId === p.id)?.[0];
             if (socketId) {
