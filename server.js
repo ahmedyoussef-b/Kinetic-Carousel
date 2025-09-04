@@ -5,8 +5,8 @@ import next from 'next';
 import { Server } from 'socket.io';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = '0.0.0.0'; // Écouter sur toutes les interfaces réseau
-const port = parseInt(process.env.PORT || '3000', 10);
+const hostname = '0.0.0.0';
+const port = parseInt(process.env.PORT || '3001', 10); // Changed default to 3001
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
@@ -22,7 +22,7 @@ app.prepare().then(() => {
   const io = new Server(httpServer, {
     path: '/api/socket',
     cors: {
-        origin: "*", // Pour la production, il est recommandé de restreindre à votre domaine.
+        origin: "*", 
         methods: ["GET", "POST"]
     }
   });
@@ -39,17 +39,14 @@ app.prepare().then(() => {
         return;
     }
     
-    // Ajouter l'utilisateur à la liste des utilisateurs en ligne.
     onlineUsers.set(socket.id, userId);
     
-    // Fonction pour diffuser la liste mise à jour des utilisateurs uniques en ligne.
     const broadcastPresence = () => {
         const uniqueOnlineUsers = Array.from(new Set(onlineUsers.values()));
         io.emit('presence:update', uniqueOnlineUsers);
         console.log(`📡 Diffusion de la présence. ${uniqueOnlineUsers.length} utilisateur(s) en ligne.`, uniqueOnlineUsers);
     }
 
-    // Diffuser la mise à jour à toutes les connexions, y compris la nouvelle.
     broadcastPresence();
 
     socket.on('presence:online', () => {
@@ -65,9 +62,7 @@ app.prepare().then(() => {
     });
     
     socket.on('session:start', (sessionData) => {
-        // Notifier les participants spécifiques d'une invitation à une session.
         sessionData.participants.forEach((p) => {
-             // Trouver le socket.id pour un userId donné.
             const socketId = Array.from(onlineUsers.entries()).find(([, uId]) => uId === p.id)?.[0];
             if (socketId) {
                 io.to(socketId).emit('session:invite', sessionData);
@@ -79,7 +74,6 @@ app.prepare().then(() => {
       console.log(`🔌 Client déconnecté: ${socket.id}`);
       if (onlineUsers.has(socket.id)) {
           onlineUsers.delete(socket.id);
-          // Diffuser la mise à jour après une déconnexion.
           broadcastPresence();
       }
     });
