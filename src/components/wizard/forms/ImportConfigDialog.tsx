@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import Papa from 'papaparse';
+import Papa, { ParseResult, ParseError } from 'papaparse';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -78,7 +78,7 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: (results: ParseResult<any>) => {
         try {
           if (type === 'subjects') {
             const parsedData = z.array(subjectSchema).parse(results.data);
@@ -195,7 +195,7 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
           setLoading(null);
         }
       },
-      error: (err) => {
+      error: (err: ParseError) => {
         setError(err.message);
         setLoading(null);
       }
