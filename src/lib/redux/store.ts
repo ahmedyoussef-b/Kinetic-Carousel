@@ -7,6 +7,7 @@ import authReducer from './features/auth/authSlice';
 import classesReducer, { setAllClasses } from './features/classes/classesSlice';
 import subjectsReducer, { setAllSubjects } from './features/subjects/subjectsSlice';
 import teachersReducer, { setAllTeachers } from './features/teachers/teachersSlice';
+import studentsReducer, { setAllStudents } from './features/students/studentsSlice'; // Importer le nouveau reducer
 import classroomsReducer, { setAllClassrooms } from './features/classrooms/classroomsSlice';
 import scheduleReducer, { setInitialSchedule } from './features/schedule/scheduleSlice';
 import sessionReducer from './slices/sessionSlice';
@@ -32,6 +33,7 @@ const rootReducer = combineReducers({
   classes: classesReducer,
   subjects: subjectsReducer,
   teachers: teachersReducer,
+  students: studentsReducer, // Ajouter le nouveau reducer
   classrooms: classroomsReducer,
   schedule: scheduleReducer,
   session: sessionReducer,
@@ -56,6 +58,7 @@ const hydrationMiddleware = (store: any) => (next: any) => (action: any) => {
     store.dispatch(setAllClasses(data.classes));
     store.dispatch(setAllSubjects(data.subjects));
     store.dispatch(setAllTeachers(data.teachers));
+    store.dispatch(setAllStudents(data.students)); // Ajouter l'hydratation pour les étudiants
     store.dispatch(setAllClassrooms(data.rooms));
     store.dispatch(setAllGrades(data.grades));
     store.dispatch(setAllRequirements(data.lessonRequirements));

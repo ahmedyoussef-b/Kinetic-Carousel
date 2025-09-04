@@ -12,6 +12,7 @@ import { selectTeacherAssignments } from '@/lib/redux/features/teacherAssignment
 import { selectTeacherConstraints } from '@/lib/redux/features/teacherConstraintsSlice';
 import { selectAllProfesseurs } from '@/lib/redux/features/teachers/teachersSlice';
 import { selectSchedule } from '@/lib/redux/features/schedule/scheduleSlice';
+import { selectAllStudents } from '@/lib/redux/features/students/studentsSlice'; // Importer le nouveau sélecteur
 import type { WizardData } from '@/types';
 
 /**
@@ -27,6 +28,7 @@ export default function useWizardData(): WizardData {
     const teachers = useAppSelector(selectAllProfesseurs);
     const rooms = useAppSelector(selectAllSalles);
     const grades = useAppSelector(selectAllGrades);
+    const students = useAppSelector(selectAllStudents); // Utiliser le nouveau sélecteur
     const lessonRequirements = useAppSelector(selectLessonRequirements);
     const teacherConstraints = useAppSelector(selectTeacherConstraints);
     const subjectRequirements = useAppSelector(selectSubjectRequirements);
@@ -40,12 +42,13 @@ export default function useWizardData(): WizardData {
         teachers,
         rooms,
         grades,
+        students, // Ajouter les étudiants à l'objet retourné
         lessonRequirements,
         teacherConstraints,
         subjectRequirements,
         teacherAssignments,
-        schedule: schedule, // Dates are already in string format in the slice
-        scheduleDraftId: null, // This is handled by the draft slice itself
+        schedule: schedule,
+        scheduleDraftId: null,
       }), [
           schoolData, 
           classes, 
@@ -53,6 +56,7 @@ export default function useWizardData(): WizardData {
           teachers, 
           rooms, 
           grades, 
+          students, // Ajouter aux dépendances
           lessonRequirements, 
           teacherConstraints, 
           subjectRequirements, 
