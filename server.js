@@ -8,7 +8,8 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const onlineUsers = new Map(); // In-memory store for online users: socket.id -> userId
+// Stocke la correspondance entre l'ID de socket et l'ID de l'utilisateur.
+const onlineUsers = new Map<string, string>();
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
@@ -19,32 +20,34 @@ app.prepare().then(() => {
   const io = new Server(httpServer, {
     path: '/api/socket',
     cors: {
-        origin: "*", // Adjust for production
+        origin: "*", // Pour la production, il est recommandé de restreindre à votre domaine.
         methods: ["GET", "POST"]
     }
   });
   
-  console.log('🔌 Socket.IO server initialized on /api/socket');
+  console.log('🔌 Le serveur Socket.IO est initialisé sur /api/socket');
 
   io.on('connection', (socket) => {
     const userId = socket.handshake.query.userId;
-    console.log(`⚡️ New connection: ${socket.id} for user ${userId}`);
+    console.log(`⚡️ Nouvelle connexion: ${socket.id} pour l'utilisateur ${userId}`);
 
-    if (typeof userId !== 'string') {
+    if (typeof userId !== 'string' || !userId) {
+        console.warn(`Connexion rejetée: UserID invalide pour le socket ${socket.id}`);
         socket.disconnect();
         return;
     }
     
+    // Ajouter l'utilisateur à la liste des utilisateurs en ligne.
     onlineUsers.set(socket.id, userId);
     
-    // Function to broadcast presence updates
+    // Fonction pour diffuser la liste mise à jour des utilisateurs uniques en ligne.
     const broadcastPresence = () => {
         const uniqueOnlineUsers = Array.from(new Set(onlineUsers.values()));
         io.emit('presence:update', uniqueOnlineUsers);
-        console.log(`📡 Broadcasting presence update. Online users: ${uniqueOnlineUsers.length}`, uniqueOnlineUsers);
+        console.log(`📡 Diffusion de la présence. ${uniqueOnlineUsers.length} utilisateur(s) en ligne.`, uniqueOnlineUsers);
     }
 
-    // Initial presence update
+    // Diffuser la mise à jour à toutes les connexions, y compris la nouvelle.
     broadcastPresence();
 
     socket.on('presence:online', () => {
@@ -54,22 +57,15 @@ app.prepare().then(() => {
         }
     });
 
-    socket.on('presence:offline', () => {
-        if (onlineUsers.has(socket.id)) {
-            onlineUsers.delete(socket.id);
-            broadcastPresence();
-        }
-    });
-    
     socket.on('presence:get', () => {
         const uniqueOnlineUsers = Array.from(new Set(onlineUsers.values()));
         socket.emit('presence:update', uniqueOnlineUsers);
     });
     
-    // Session events
     socket.on('session:start', (sessionData) => {
-        // Here you would notify participants
-        sessionData.participants.forEach(p => {
+        // Notifier les participants spécifiques d'une invitation à une session.
+        sessionData.participants.forEach((p: { id: string }) => {
+             // Trouver le socket.id pour un userId donné.
             const socketId = Array.from(onlineUsers.entries()).find(([, uId]) => uId === p.id)?.[0];
             if (socketId) {
                 io.to(socketId).emit('session:invite', sessionData);
@@ -78,14 +74,17 @@ app.prepare().then(() => {
     });
 
     socket.on('disconnect', () => {
-      console.log(`🔌 Client disconnected: ${socket.id}`);
-      onlineUsers.delete(socket.id);
-      broadcastPresence();
+      console.log(`🔌 Client déconnecté: ${socket.id}`);
+      if (onlineUsers.has(socket.id)) {
+          onlineUsers.delete(socket.id);
+          // Diffuser la mise à jour après une déconnexion.
+          broadcastPresence();
+      }
     });
   });
 
   const port = process.env.PORT || 3000;
   httpServer.listen(port, () => {
-    console.log(`> Ready on http://localhost:${port}`);
+    console.log(`> Prêt sur http://localhost:${port}`);
   });
 });
