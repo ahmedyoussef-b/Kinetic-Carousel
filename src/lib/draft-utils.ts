@@ -90,7 +90,7 @@ export async function parseDraftToWizardData(draft: ScheduleDraft): Promise<Wiza
  * @param wizardData The full WizardData object from the Redux store.
  * @returns A partial ScheduleDraft object with fields stringified.
  */
-export function serializeWizardDataForUpdate(wizardData: Partial<WizardData> & { id?: string, name: string, description?: string }): Partial<ScheduleDraft> {
+export function serializeWizardDataForUpdate(wizardData: Partial<WizardData> & { id?: string, name: string, description?: string }): Partial<ScheduleDraft> & { id: string } {
     const serializableData: any = {};
     const fieldsToStringify = [
         'classes', 'subjects', 'teachers', 'rooms', 'grades', 'students',
@@ -110,7 +110,7 @@ export function serializeWizardDataForUpdate(wizardData: Partial<WizardData> & {
     }
     
     return {
-        id: wizardData.id,
+        id: wizardData.id || `temp_${Date.now()}`, // Ensure ID is always a string
         name: wizardData.name,
         description: wizardData.description,
         ...serializableData

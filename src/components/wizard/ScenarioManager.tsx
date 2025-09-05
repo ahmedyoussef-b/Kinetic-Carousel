@@ -114,9 +114,10 @@ export default function ScenarioManager() {
     if (!activeDraft) return;
 
     try {
+        // Prepare the payload including the active draft's ID.
         const payload = serializeWizardDataForUpdate({
             ...wizardData,
-            id: activeDraft.id, // Ensure ID is passed for update
+            id: activeDraft.id, 
             name: activeDraft.name,
             description: activeDraft.description,
         });
