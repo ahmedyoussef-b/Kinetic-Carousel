@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Student } from '@prisma/client';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { AppDispatch, RootState } from '@/lib/redux/store';
 import { fetchAllStudents, updateClassStudents } from '@/lib/redux/slices/class-slice';
 
@@ -16,8 +16,9 @@ interface AddStudentsToClassDialogProps {
 }
 
 export const AddStudentsToClassDialog = ({ isOpen, setOpen, classId, className, initialStudents }: AddStudentsToClassDialogProps) => {
-  const dispatch: AppDispatch = useDispatch();
-  const { students, loading } = useSelector((state: RootState) => state.class);
+  const dispatch: AppDispatch = useAppDispatch();
+  const { items: students, status } = useAppSelector((state: RootState) => state.classes);
+  const loading = status === 'loading';
   const [selectedStudents, setSelectedStudents] = useState<string[]>(initialStudents);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export const AddStudentsToClassDialog = ({ isOpen, setOpen, classId, className, 
           {loading ? (
             <p>Loading students...</p>
           ) : (
-            students.map((student: Student) => (
+            students.map((student: any) => ( // Using any for now as Student type from prisma might differ
               <div key={student.id} className="flex items-center space-x-2 my-2">
                 <Checkbox
                   id={student.id}
