@@ -1,4 +1,4 @@
-{// server.js
+// server.js
 import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
@@ -36,7 +36,7 @@ app.prepare().then(() => {
     },
   });
 
-  console.log(`🔌 Socket.IO server initialized at /api/socket`);
+  console.log(`🔌 Initializing Socket.IO server at path /api/socket`);
 
   const broadcastPresence = () => {
     const onlineUserIds = Array.from(onlineUsers.keys());
@@ -112,15 +112,14 @@ app.prepare().then(() => {
 
 
   httpServer.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
+    console.error('❌ HTTP Server Error:', err);
+    if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
       console.error(`❌ Error: Port ${port} is already in use. Please choose another one.`);
-    } else {
-      console.error(err);
     }
     process.exit(1);
   });
 
   httpServer.listen(port, hostname, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
+    console.log(`✅ Server is ready and listening on http://${hostname}:${port}`);
   });
 });

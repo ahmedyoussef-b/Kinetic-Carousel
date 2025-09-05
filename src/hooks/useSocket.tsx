@@ -1,4 +1,4 @@
-{{// src/hooks/useSocket.tsx
+// src/hooks/useSocket.tsx
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from './redux-hooks';
 import { io, Socket } from 'socket.io-client';
