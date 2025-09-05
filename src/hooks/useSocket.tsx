@@ -35,8 +35,10 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         return; // Socket already initialized
     }
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000';
-    console.log(`🔌 [SocketProvider] Initialisation de la connexion socket à ${socketUrl} pour l'utilisateur ${user.id}`);
+    // Use a relative URL by default so it works in any environment (local, staging, prod)
+    // The server is configured to listen for socket connections on the same port.
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+    console.log(`🔌 [SocketProvider] Initialisation de la connexion socket à ${socketUrl || 'l\'URL actuelle'} pour l'utilisateur ${user.id}`);
 
     socketRef.current = io(socketUrl, {
       path: '/api/socket',
