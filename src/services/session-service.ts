@@ -2,7 +2,7 @@
 import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage, SessionType } from '@/lib/redux/slices/session/types';
 import prisma from '@/lib/prisma';
 import { Role } from '@/types';
-import { SessionParticipant as PrismaSessionParticipant, User } from '@prisma/client';
+import { SessionParticipant as PrismaSessionParticipant, User, RaisedHand } from '@prisma/client';
 
 
 type PrismaSessionParticipantWithUser = PrismaSessionParticipant & { user: User | null };
@@ -128,31 +128,31 @@ class SessionServiceController {
   }
 
   private mapDbSessionToActiveSession(dbSession: any): ActiveSession {
-    const raisedHandsUserIds = dbSession.raisedHands?.map((rh: any) => rh.userId) || [];
+    const raisedHandsUserIds = (dbSession.raisedHands || []).map((rh: RaisedHand) => rh.userId);
 
     const participants: ClientParticipant[] = (dbSession.participants || [])
-    .map((p: PrismaSessionParticipantWithUser) => {
-        if (!p.user) {
-            console.warn(`[SessionService] Participant avec userId ${p.userId} n'a pas d'objet 'user' associé. Il sera ignoré.`);
-            return null;
-        }
-        return {
-            id: p.userId,
-            userId: p.userId,
-            name: p.user.name || p.user.email,
-            email: p.user.email,
-            img: p.user.img,
-            role: p.user.role as Role,
-            isOnline: true, 
-            isInSession: true,
-            points: 0,
-            badges: [],
-            isMuted: p.isMuted,
-            hasRaisedHand: raisedHandsUserIds.includes(p.userId),
-            raisedHandAt: dbSession.raisedHands?.find((rh: any) => rh.userId === p.userId)?.raisedAt.toISOString(),
-        };
-    })
-    .filter((p): p is ClientParticipant => p !== null);
+      .map((p: PrismaSessionParticipantWithUser) => {
+          if (!p.user) {
+              console.warn(`[SessionService] Participant avec userId ${p.userId} n'a pas d'objet 'user' associé. Il sera ignoré.`);
+              return null;
+          }
+          return {
+              id: p.userId,
+              userId: p.userId,
+              name: p.user.name || p.user.email,
+              email: p.user.email,
+              img: p.user.img,
+              role: p.user.role as Role,
+              isOnline: true, 
+              isInSession: true,
+              points: 0,
+              badges: [],
+              isMuted: false, // Provide a default value for isMuted
+              hasRaisedHand: raisedHandsUserIds.includes(p.userId),
+              raisedHandAt: (dbSession.raisedHands || []).find((rh: RaisedHand) => rh.userId === p.userId)?.raisedAt.toISOString(),
+          };
+      })
+      .filter((p): p is ClientParticipant => p !== null);
 
 
     const messages: ClientMessage[] = (dbSession.messages || [])
