@@ -7,7 +7,7 @@ import { Video, LogOut, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { tickTimer, breakoutTimerTick, fetchSessionState } from '@/lib/redux/slices/sessionSlice';
 import TimerDisplay from './TimerDisplay';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 
@@ -21,7 +21,7 @@ import ScreenShareView from './ScreenShareView';
 import Whiteboard from './Whiteboard';
 import BreakoutRoomView from './BreakoutRoomView';
 import type { SessionParticipant } from '@/lib/redux/slices/session/types';
-import { Role } from '@/types';
+import { Role, type SafeUser } from '@/types';
 
 interface SessionRoomProps {
     onEndSession: () => void;
@@ -113,11 +113,11 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
     return <div>Chargement de la session...</div>;
   }
   
-  const currentUserParticipant = activeSession.participants.find((p: SessionParticipant) => p.id === user.id);
+  const currentUserParticipant = activeSession.participants.find((p: SessionParticipant) => p.userId === user.id);
   
   // Simplified and corrected access control logic
   const isHost = activeSession.hostId === user.id;
-  const isParticipant = activeSession.participants.some((p: SessionParticipant) => p.id === user.id);
+  const isParticipant = activeSession.participants.some((p: SessionParticipant) => p.userId === user.id);
 
   if (!isHost && !isParticipant) {
       return <div>Accès non autorisé à cette session.</div>
