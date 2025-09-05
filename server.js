@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { Server } from 'socket.io';
+import prisma from './src/lib/prisma.js';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = '0.0.0.0';
@@ -21,80 +22,92 @@ app.prepare().then(() => {
   const io = new Server(httpServer, {
     path: '/api/socket',
     cors: {
-        origin: "*", 
-        methods: ["GET", "POST"]
-    }
+      origin: process.env.NODE_ENV === 'production'
+        ? ['https://your-netlify-app.netlify.app'] // Add your production URL here
+        : ['http://localhost:3000', 'http://localhost:3001'],
+      methods: ['GET', 'POST'],
+    },
   });
-  
-  console.log(`🔌 Le serveur Socket.IO est initialisé sur /api/socket`);
 
-  io.on('connection', (socket) => {
-    const userId = socket.handshake.query.userId;
-    console.log(`⚡️ Nouvelle connexion: ${socket.id} pour l'utilisateur ${userId}`);
+  console.log(`🔌 Socket.IO server initialized at /api/socket`);
 
-    if (typeof userId !== 'string' || !userId) {
-        console.warn(`Connexion rejetée: UserID invalide pour le socket ${socket.id}`);
-        socket.disconnect();
-        return;
-    }
-    
-    onlineUsers.set(socket.id, userId);
-    
-    const broadcastPresence = () => {
-        const uniqueOnlineUsers = Array.from(new Set(onlineUsers.values()));
-        io.emit('presence:update', uniqueOnlineUsers);
-        console.log(`📡 Diffusion de la présence. ${uniqueOnlineUsers.length} utilisateur(s) en ligne.`, uniqueOnlineUsers);
-    }
+  io.on('connection', async (socket) => {
+    console.log('👤 User connected:', socket.id);
 
-    broadcastPresence();
-
-    socket.on('presence:online', () => {
-        if (!onlineUsers.has(socket.id)) {
-            onlineUsers.set(socket.id, userId);
-            broadcastPresence();
+    socket.on('user-online', async (userData) => {
+      onlineUsers.set(socket.id, { ...userData, socketId: socket.id });
+      try {
+        if (userData.id) {
+          await prisma.user.update({
+            where: { id: userData.id },
+            data: { lastSeen: new Date() },
+          });
         }
+      } catch (error) {
+        console.error('Error updating user status:', error);
+      }
+      io.emit('users-online', Array.from(onlineUsers.values()));
     });
 
-    socket.on('presence:get', () => {
-        const uniqueOnlineUsers = Array.from(new Set(onlineUsers.values()));
-        socket.emit('presence:update', uniqueOnlineUsers);
-    });
-    
-    socket.on('session:start', (sessionData) => {
-        sessionData.participants.forEach((p) => {
-            const socketId = Array.from(onlineUsers.entries()).find(([, uId]) => uId === p.id)?.[0];
-            if (socketId) {
-                io.to(socketId).emit('session:invite', sessionData);
-            }
+    socket.on('send-invitation', async (data) => {
+      const { studentSocketId, teacher, sessionData } = data;
+      try {
+        const session = await prisma.chatroomSession.create({
+          data: {
+            title: sessionData.title,
+            hostId: teacher.id,
+            status: 'LIVE',
+            startTime: new Date(),
+            type: sessionData.type || 'CLASS'
+          },
         });
+        io.to(studentSocketId).emit('receive-invitation', {
+          ...data,
+          sessionId: session.id,
+        });
+      } catch (error) {
+        console.error('Error creating session:', error);
+      }
     });
 
-    // Nouvel écouteur pour le signal de présence de l'élève
-    socket.on('student:present', (studentId) => {
-        console.log(`✋ L'élève ${studentId} a signalé sa présence.`);
-        // Diffuser à tous les clients (y compris les professeurs) que l'élève est présent
-        io.emit('student:signaled_presence', studentId);
+    socket.on('invitation-response', async (data) => {
+      const { invitation, accepted, student } = data;
+      if (accepted) {
+        try {
+          await prisma.chatroomSession.update({
+            where: { id: invitation.sessionId },
+            data: {
+              participants: {
+                create: {
+                  userId: student.id,
+                }
+              },
+            },
+          });
+        } catch (error) {
+          console.error('Error adding student to session:', error);
+        }
+      }
+      io.emit('invitation-update', data);
     });
 
     socket.on('disconnect', () => {
-      console.log(`🔌 Client déconnecté: ${socket.id}`);
-      if (onlineUsers.has(socket.id)) {
-          onlineUsers.delete(socket.id);
-          broadcastPresence();
-      }
+      onlineUsers.delete(socket.id);
+      io.emit('users-online', Array.from(onlineUsers.values()));
+      console.log('👋 User disconnected:', socket.id);
     });
   });
 
   httpServer.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        console.error(`❌ Erreur: Le port ${port} est déjà utilisé. Veuillez en choisir un autre.`);
-      } else {
-        console.error(err);
-      }
-      process.exit(1);
-    });
+    if (err.code === 'EADDRINUSE') {
+      console.error(`❌ Error: Port ${port} is already in use. Please choose another one.`);
+    } else {
+      console.error(err);
+    }
+    process.exit(1);
+  });
 
   httpServer.listen(port, () => {
-      console.log(`> Prêt sur http://${hostname}:${port}`);
-    });
+    console.log(`> Ready on http://${hostname}:${port}`);
+  });
 });

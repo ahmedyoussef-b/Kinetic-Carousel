@@ -1,67 +1,76 @@
-// src/hooks/useSocket.tsx
-'use client';
-
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+// src/hooks/useSocket.ts
+import { useEffect, useRef } from 'react';
+import { useAppDispatch, useAppSelector } from './redux-hooks';
 import { io, Socket } from 'socket.io-client';
-import { useAppSelector, useAppDispatch } from './redux-hooks';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
-import { studentSignaledPresence } from '@/lib/redux/slices/sessionSlice';
+import { setConnected, setOnlineUsers, addInvitation } from '../lib/redux/slices/socketSlice';
+import { RootState } from '../lib/redux/store';
 
-interface SocketContextType {
-  socket: Socket | null;
-  isConnected: boolean;
-}
-
-const SocketContext = createContext<SocketContextType>({
-  socket: null,
-  isConnected: false,
-});
-
-export const useSocket = () => useContext(SocketContext);
-
-export const SocketProvider = ({ children }: { children: ReactNode }) => {
-  const user = useAppSelector(selectCurrentUser);
+export const useSocket = () => {
   const dispatch = useAppDispatch();
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const { user } = useAppSelector((state: RootState) => state.auth);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      // Connect to the socket server
-      const newSocket = io({
-        path: '/api/socket',
-        query: { userId: user.id },
-      });
+    if (!user) return;
 
-      newSocket.on('connect', () => {
-        console.log('✅ [SocketProvider] Connected to Socket.IO server with ID:', newSocket.id);
-        setIsConnected(true);
-      });
+    // Use NEXT_PUBLIC_SOCKET_URL for both environments, relying on .env files
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000';
 
-      newSocket.on('disconnect', () => {
-        console.log('🔌 [SocketProvider] Disconnected from Socket.IO server.');
-        setIsConnected(false);
-      });
+    socketRef.current = io(socketUrl, {
+      path: '/api/socket', // Important: specify the path
+      transports: ['websocket', 'polling'],
+      auth: {
+        userId: user.id,
+        role: user.role,
+      },
+    });
 
-      // Écouteur pour le signal de présence
-      newSocket.on('student:signaled_presence', (studentId: string) => {
-        console.log(`[SocketProvider] Received presence signal for student: ${studentId}`);
-        dispatch(studentSignaledPresence(studentId));
+    socketRef.current.on('connect', () => {
+      dispatch(setConnected(true));
+      socketRef.current?.emit('user-online', {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
       });
-      
-      setSocket(newSocket);
+    });
 
-      return () => {
-        console.log('🛑 [SocketProvider] Disconnecting socket...');
-        newSocket.off('student:signaled_presence');
-        newSocket.disconnect();
-      };
-    }
+    socketRef.current.on('disconnect', () => {
+      dispatch(setConnected(false));
+    });
+
+    socketRef.current.on('users-online', (users: any[]) => {
+      dispatch(setOnlineUsers(users));
+    });
+
+    socketRef.current.on('receive-invitation', (invitation: any) => {
+      dispatch(addInvitation(invitation));
+    });
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
   }, [user, dispatch]);
 
-  return (
-    <SocketContext.Provider value={{ socket, isConnected }}>
-      {children}
-    </SocketContext.Provider>
-  );
+  const sendInvitation = (studentSocketId: string, sessionData: any) => {
+    socketRef.current?.emit('send-invitation', {
+      studentSocketId,
+      teacher: user,
+      sessionData,
+    });
+  };
+
+  const respondToInvitation = (invitation: any, accepted: boolean) => {
+    socketRef.current?.emit('invitation-response', {
+      invitation,
+      accepted,
+      student: user,
+    });
+  };
+
+  return {
+    socket: socketRef.current,
+    sendInvitation,
+    respondToInvitation,
+  };
 };
