@@ -117,6 +117,7 @@ app.prepare().then(() => {
   // Graceful shutdown logic
   const cleanup = async () => {
     console.log('🔌 [Server] Closing server and disconnecting Prisma...');
+    io.close(); // Close Socket.IO connections
     await prisma.$disconnect();
     httpServer.close(() => {
         console.log('✅ [Server] Server closed.');
