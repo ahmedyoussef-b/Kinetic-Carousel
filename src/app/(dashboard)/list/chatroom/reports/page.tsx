@@ -14,15 +14,12 @@ import { Role } from '@/types';
 import type { SessionReport } from '@/lib/redux/slices/reportSlice';
 
 export default function ReportsPage() {
-  console.log("📊 [TeacherReportsPage] Le composant est en cours de rendu.");
   const router = useRouter();
   const user = useAppSelector(selectCurrentUser);
   const { sessions, loading } = useAppSelector(state => state.reports);
 
   useEffect(() => {
-     console.log("📊 [TeacherReportsPage] Le composant est monté. Vérification du rôle.");
     if (!user || user.role !== Role.TEACHER) {
-       console.warn("📊 [TeacherReportsPage] Utilisateur non enseignant ou non trouvé. Redirection.");
       router.replace('/');
       return;
     }

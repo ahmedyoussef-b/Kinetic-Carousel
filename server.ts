@@ -37,11 +37,9 @@ app.prepare().then(() => {
     },
   });
 
-  console.log(`🔌 Initializing Socket.IO server at path /api/socket`);
 
   const broadcastPresence = () => {
     const onlineUserIds = Array.from(onlineUsers.keys());
-    console.log(`📡 [Presence] Broadcasting presence update. Online users: ${onlineUserIds.length}`);
     io.emit('presence:update', onlineUserIds);
   };
 
@@ -50,10 +48,7 @@ app.prepare().then(() => {
     const userId = socket.handshake.auth.userId;
     if (userId) {
         onlineUsers.set(userId, socket.id);
-        console.log(`👤 User connected: ${userId} with socket ID: ${socket.id}. Total online: ${onlineUsers.size}`);
         broadcastPresence();
-    } else {
-        console.warn(`⚠️ User connected without a userId.`);
     }
     
     socket.on('presence:get', () => {
@@ -61,22 +56,17 @@ app.prepare().then(() => {
     });
     
     socket.on('student:present', (studentId: string) => {
-        console.log(`✋ [Signal] Student ${studentId} signaled presence.`);
         io.emit('student:signaled_presence', studentId);
     });
 
     socket.on('session:start', async (sessionData) => {
-        console.log(`🚀 [Session] Starting session "${sessionData.title}"`);
         if (!sessionData.participants || sessionData.participants.length === 0) return;
 
         sessionData.participants.forEach((participant: { role: Role; userId: string; }) => {
             if (participant.role === Role.STUDENT || participant.role === Role.TEACHER) {
                 const targetSocketId = onlineUsers.get(participant.userId);
                 if (targetSocketId) {
-                    console.log(`📬 [Session] Sending invite for session ${sessionData.id} to user ${participant.userId} on socket ${targetSocketId}`);
                     io.to(targetSocketId).emit('session:invite', sessionData);
-                } else {
-                    console.log(`[Session] User ${participant.userId} is not online. Skipping invite.`);
                 }
             }
         });
@@ -94,10 +84,7 @@ app.prepare().then(() => {
 
       if (disconnectedUserId) {
           onlineUsers.delete(disconnectedUserId);
-          console.log(`👋 User disconnected: ${disconnectedUserId}. Total online: ${onlineUsers.size}`);
           broadcastPresence();
-      } else {
-           console.log(`👋 Socket ${socket.id} disconnected, but was not associated with a userId.`);
       }
     });
   });
@@ -117,11 +104,9 @@ app.prepare().then(() => {
   
   // Graceful shutdown logic
   const cleanup = async () => {
-    console.log('🔌 [Server] Closing server and disconnecting Prisma...');
     io.close(); // Close Socket.IO connections
     await prisma.$disconnect();
     httpServer.close(() => {
-        console.log('✅ [Server] Server closed.');
         process.exit(0);
     });
   };

@@ -49,15 +49,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!socket || user?.role !== Role.TEACHER) return;
 
-    console.log("🧑‍🏫 [TeacherView] Setting up Socket.IO listeners.");
 
     const handlePresenceUpdate = (onlineUserIds: string[]) => {
-      console.log(`📡 [TeacherView] Received presence data. Online users: ${onlineUserIds.length}`, onlineUserIds);
       dispatch(updateStudentPresence({ onlineUserIds }));
     };
 
     const handlePresenceSignal = (studentId: string) => {
-      console.log(`✋ [TeacherView] Received presence signal from student: ${studentId}`);
       dispatch(studentSignaledPresence(studentId));
     };
 
@@ -66,7 +63,6 @@ export default function DashboardPage() {
     socket.emit('presence:get'); // Initial fetch
 
     return () => {
-      console.log("🛑 [TeacherView] Clearing Socket.IO listeners.");
       socket.off('presence:update', handlePresenceUpdate);
       socket.off('student:signaled_presence', handlePresenceSignal);
     };

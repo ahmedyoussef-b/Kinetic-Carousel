@@ -15,37 +15,31 @@ import { Role } from '@/types';
 import type { SessionReport } from '@/lib/redux/slices/reportSlice';
 
 export default function AdminReportsPage() {
-  console.log("📊 [AdminReportsPage] Le composant est en cours de rendu.");
   const router = useRouter();
   const user = useAppSelector(selectCurrentUser);
   const [reports, setReports] = useState<SessionReport[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("📊 [AdminReportsPage] Le composant est monté. Vérification du rôle et récupération des rapports.");
     if (user && user.role !== Role.ADMIN) {
-      console.warn("📊 [AdminReportsPage] Utilisateur non administrateur ou non trouvé. Redirection.");
       router.replace('/');
       return;
     }
 
     async function fetchReports() {
-      console.log("📊 [AdminReportsPage] Début de la récupération des rapports via l'API.");
       setLoading(true);
       try {
         const response = await fetch('/api/chatroom/reports');
         if (response.ok) {
           const data = await response.json();
           setReports(data);
-          console.log(`📊 [AdminReportsPage] ${data.length} rapports récupérés avec succès.`);
         } else {
-          console.error("📊 [AdminReportsPage] Échec de la récupération des rapports : la réponse n'est pas OK.", response.status);
+          console.error("Échec de la récupération des rapports : la réponse n'est pas OK.", response.status);
         }
       } catch (error) {
-        console.error("📊 [AdminReportsPage] Erreur lors de la récupération des rapports:", error);
+        console.error("Erreur lors de la récupération des rapports:", error);
       } finally {
         setLoading(false);
-        console.log("📊 [AdminReportsPage] Fin du processus de récupération des rapports.");
       }
     }
     

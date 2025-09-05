@@ -52,7 +52,6 @@ const AttendancePage = async () => {
     orderBy: [{ day: 'asc' }, { startTime: 'asc' }],
   });
 
-  console.log("Fetched lessons:", lessons);
 
   return (
     <div className="p-4 md:p-6">
