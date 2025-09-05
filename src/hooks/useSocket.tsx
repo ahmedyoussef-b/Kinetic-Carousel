@@ -1,4 +1,4 @@
-{// src/hooks/useSocket.tsx
+{{// src/hooks/useSocket.tsx
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from './redux-hooks';
 import { io, Socket } from 'socket.io-client';
@@ -51,17 +51,23 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
     const socket = socketRef.current;
 
+    // --- DEBUG MIDDLEWARE ---
+    socket.onAny((event, ...args) => {
+        console.log(`📡 [Socket Client] Received event: '${event}' with data:`, args);
+    });
+    
     socket.on('connect', () => {
-      console.log('✅ [Socket.IO] Successfully connected to the server.');
+      console.log(`✅ [Socket Client] Connected with ID: ${socket.id}`);
     });
 
     socket.on('disconnect', (reason) => {
-      console.log(`🔌 [Socket.IO] Disconnected from the server: ${reason}`);
+      console.log(`🔌 [Socket Client] Disconnected: ${reason}`);
     });
     
     socket.on('connect_error', (err) => {
-      console.error(`❌ [Socket.IO] Connection error: ${err.message}`);
+      console.error(`❌ [Socket Client] Connection error: ${err.message}`);
     });
+
 
     // --- CENTRALIZED EVENT LISTENERS ---
     
