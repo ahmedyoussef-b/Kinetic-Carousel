@@ -278,7 +278,7 @@ const ChartLegendContent = React.forwardRef<
   ) => {
     const { config } = useChart()
 
-    if (!payload || !payload.length) {
+    if (!payload?.length) {
       return null
     }
 
@@ -291,13 +291,13 @@ const ChartLegendContent = React.forwardRef<
           className
         )}
       >
-        {payload.map((item: Payload) => {
+        {payload.map((item) => {
           const key = `${nameKey || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
           return (
             <div
-              key={item.value}
+              key={item.value as string}
               className={cn(
                 "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
               )}
