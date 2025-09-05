@@ -77,7 +77,7 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
     setLoading(type);
     setError(null);
 
-    Papa.parse(file, {
+    Papa.parse(file as any, {
         header: true,
         skipEmptyLines: true,
         complete: (results: ParseResult<any>) => {
