@@ -79,7 +79,7 @@ const BigCalendar = ({
     time: "Heure",
     event: "Événement",
     noEventsInRange: "Aucun événement dans cette période.",
-    showMore: total => `+${total} de plus`,
+    showMore: (total: number) => `+${total} de plus`,
     // Les clés "today", "previous", "next" ne sont plus utilisées par CustomToolbar
   };
 
@@ -102,11 +102,11 @@ const BigCalendar = ({
       }}
       messages={messages}
       formats={{
-        dayFormat: (date, culture, localizer: DateLocalizer) =>
+        dayFormat: (date: Date, culture: string | undefined, localizer: DateLocalizer) =>
           localizer.format(date, 'dddd', culture), 
-        weekdayFormat: (date, culture, localizer: DateLocalizer) =>
+        weekdayFormat: (date: Date, culture: string | undefined, localizer: DateLocalizer) =>
           localizer.format(date, 'ddd', culture),
-        dayHeaderFormat: (date, culture, localizer: DateLocalizer) =>
+        dayHeaderFormat: (date: Date, culture: string | undefined, localizer: DateLocalizer) =>
           localizer.format(date, 'dddd, D MMM', culture), // Format français
       }}
     />
