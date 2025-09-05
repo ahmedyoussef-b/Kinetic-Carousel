@@ -2,22 +2,15 @@
 'use client'
 
 import { Provider } from 'react-redux'
-import { store } from './store'
-import { useGetSessionQuery } from './api/authApi'
-import { useEffect } from 'react'
-import { setAuthLoading } from './features/auth/authSlice'
+import { useAuthInitializer } from '@/hooks/useAuthInitializer' // Import the new custom hook
+import { store } from '@/lib/redux/store';
+import type { ReactNode } from 'react';
 
-function AuthInitializer({ children }: { children: React.React.Node }) {
-    // This hook ensures that on initial load, we make a request to check the session.
-    // The onQueryStarted listener in the authApi will then dispatch setUser if a session exists.
-    console.log("⚛️ [StoreProvider] AuthInitializer est en cours de rendu. Déclenchement de useGetSessionQuery.");
-    const { isLoading, isUninitialized } = useGetSessionQuery();
-
-    // Manually manage the top-level loading state in the auth slice.
-    useEffect(() => {
-        console.log(`⚛️ [StoreProvider] useEffect détecte un changement de chargement. isLoading: ${isLoading}, isUninitialized: ${isUninitialized}`);
-        store.dispatch(setAuthLoading(isLoading || isUninitialized));
-    }, [isLoading, isUninitialized]);
+function AuthManager({ children }: { children: ReactNode }) {
+    // This custom hook now contains the logic to fetch the session only once
+    // and manage the global loading state.
+    console.log("⚛️ [StoreProvider] AuthManager is rendering. Calling useAuthInitializer.");
+    useAuthInitializer();
     
     // Render children immediately; loading states are handled by individual pages.
     return <>{children}</>;
@@ -27,11 +20,11 @@ function AuthInitializer({ children }: { children: React.React.Node }) {
 export function StoreProvider({
   children,
 }: {
-  children: React.React.Node
+  children: ReactNode
 }) {
   return (
     <Provider store={store}>
-      <AuthInitializer>{children}</AuthInitializer>
+      <AuthManager>{children}</AuthManager>
     </Provider>
   )
 }
