@@ -4,7 +4,7 @@ import { parse } from 'url';
 import next from 'next';
 import { Server } from 'socket.io';
 import prisma from './src/lib/prisma.js';
-import { Role } from './src/types/index.js'; // Assurez-vous que ce chemin est correct
+import { Role } from './src/types/index.js';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = '0.0.0.0';
@@ -12,20 +12,25 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-// Map pour suivre les utilisateurs en ligne : { userId: socket.id }
 const onlineUsers = new Map();
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
+    try {
+      const parsedUrl = parse(req.url, true);
+      handle(req, res, parsedUrl);
+    } catch (err) {
+      console.error('Error handling request:', err);
+      res.statusCode = 500;
+      res.end('internal server error');
+    }
   });
 
   const io = new Server(httpServer, {
     path: '/api/socket',
     cors: {
       origin: process.env.NODE_ENV === 'production'
-        ? ['https://your-netlify-app.netlify.app'] // Add your production URL here
+        ? ['https://your-netlify-app.netlify.app']
         : ['http://localhost:3000', 'http://localhost:3001'],
       methods: ['GET', 'POST'],
     },
@@ -47,7 +52,6 @@ app.prepare().then(() => {
         console.log(`👤 User connected: ${userId} with socket ID: ${socket.id}. Total online: ${onlineUsers.size}`);
         broadcastPresence();
 
-        // Mettre à jour lastSeen dans la BDD
         try {
             await prisma.user.update({
                 where: { id: userId },
@@ -60,19 +64,15 @@ app.prepare().then(() => {
         console.warn(`⚠️ User connected without a userId.`);
     }
     
-    // Demande initiale de présence par un client (ex: un professeur qui vient de se connecter)
     socket.on('presence:get', () => {
         socket.emit('presence:update', Array.from(onlineUsers.keys()));
     });
     
-    // Un élève signale activement sa présence
     socket.on('student:present', (studentId) => {
         console.log(`✋ [Signal] Student ${studentId} signaled presence.`);
-        // Transférer ce signal à tous les clients (le professeur l'interceptera)
         io.emit('student:signaled_presence', studentId);
     });
 
-    // Un professeur démarre une session et notifie les participants
     socket.on('session:start', async (sessionData) => {
         console.log(`🚀 [Session] Starting session "${sessionData.title}"`);
         if (!sessionData.participants || sessionData.participants.length === 0) return;
@@ -92,7 +92,6 @@ app.prepare().then(() => {
 
 
     socket.on('disconnect', () => {
-      // Retrouver le userId basé sur le socket.id
       let disconnectedUserId = null;
       for (const [key, value] of onlineUsers.entries()) {
           if (value === socket.id) {
