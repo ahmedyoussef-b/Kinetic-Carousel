@@ -57,7 +57,7 @@ export const useScheduleActions = (
       }
     }
 
-    if (!classInfo) {
+    if (!classInfo || classInfo.id === null) {
       toast({ variant: "destructive", title: "Action impossible", description: "Impossible de déterminer la classe pour ce cours. Essayez depuis la vue 'Par Classe'." });
       return;
     }
@@ -129,13 +129,16 @@ export const useScheduleActions = (
     
     const availableRoom = potentialRooms[0] || null;
 
-    const newLessonPayload: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'> = {
+    // This assertion guarantees classId is a number for the payload
+    const finalClassId = classInfo.id; 
+
+    const newLessonPayload = {
       name: `${subjectInfo.name} - ${classInfo.name}`,
       day: day,
       startTime: lessonStartTimeDate.toISOString(),
       endTime: lessonEndTimeDate.toISOString(),
       subjectId: subjectInfo.id,
-      classId: classInfo.id,
+      classId: finalClassId,
       teacherId: teacherInfo.id,
       classroomId: availableRoom ? availableRoom.id : null,
       scheduleDraftId: wizardData.scheduleDraftId || null,
