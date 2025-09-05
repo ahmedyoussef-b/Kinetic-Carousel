@@ -1,4 +1,4 @@
-// server.js
+// server.ts
 import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
@@ -12,12 +12,12 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-const onlineUsers = new Map();
+const onlineUsers = new Map<string, string>();
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
     try {
-      const parsedUrl = parse(req.url, true);
+      const parsedUrl = parse(req.url!, true);
       handle(req, res, parsedUrl);
     } catch (err) {
       console.error('Error handling request:', err);
@@ -68,7 +68,7 @@ app.prepare().then(() => {
         socket.emit('presence:update', Array.from(onlineUsers.keys()));
     });
     
-    socket.on('student:present', (studentId) => {
+    socket.on('student:present', (studentId: string) => {
         console.log(`✋ [Signal] Student ${studentId} signaled presence.`);
         io.emit('student:signaled_presence', studentId);
     });
@@ -77,7 +77,7 @@ app.prepare().then(() => {
         console.log(`🚀 [Session] Starting session "${sessionData.title}"`);
         if (!sessionData.participants || sessionData.participants.length === 0) return;
 
-        sessionData.participants.forEach((participant) => {
+        sessionData.participants.forEach((participant: { role: Role; userId: string; }) => {
             if (participant.role === Role.STUDENT || participant.role === Role.TEACHER) {
                 const targetSocketId = onlineUsers.get(participant.userId);
                 if (targetSocketId) {
@@ -92,7 +92,7 @@ app.prepare().then(() => {
 
 
     socket.on('disconnect', () => {
-      let disconnectedUserId = null;
+      let disconnectedUserId: string | null = null;
       for (const [key, value] of onlineUsers.entries()) {
           if (value === socket.id) {
               disconnectedUserId = key;
@@ -113,7 +113,7 @@ app.prepare().then(() => {
 
   httpServer.on('error', (err) => {
     console.error('❌ HTTP Server Error:', err);
-    if (err.code === 'EADDRINUSE') {
+    if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
       console.error(`❌ Error: Port ${port} is already in use. Please choose another one.`);
     }
     process.exit(1);
