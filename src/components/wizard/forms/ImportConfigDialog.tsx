@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import Papa, { type ParseResult, type ParseError } from 'papaparse';
 import { z } from 'zod';
