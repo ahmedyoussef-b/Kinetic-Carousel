@@ -33,7 +33,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { FieldErrors, SubmitHandler, UseFormHandleSubmit, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import type { SerializedError } from "@reduxjs/toolkit";
-import type { TeacherSchema, ParentSchema, StudentSchema, SubjectSchema } from './schemas';
+import type { TeacherSchema, ParentSchema, StudentSchema as StudentSchemaInternal, SubjectSchema } from './schemas';
 import { MutationDefinition } from "@reduxjs/toolkit/query";
 
 
@@ -221,6 +221,8 @@ export interface JwtPayload {
   exp: number;
 }
 
+// Re-export schema type
+export type StudentSchema = StudentSchemaInternal;
 
 // --- FORM PROPS & RETURN TYPES ---
 export interface TeacherFormProps {
