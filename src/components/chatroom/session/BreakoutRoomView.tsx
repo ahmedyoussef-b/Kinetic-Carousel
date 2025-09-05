@@ -63,14 +63,13 @@ export default function BreakoutRoomView({ user }: BreakoutRoomViewProps) {
                                 key={participant.id}
                                 name={participant.id === user?.id ? `${participant.name} (Vous)` : participant.name}
                                 isOnline={participant.isOnline}
-                                isTeacher={false} 
+                                isTeacher={false}
                                 points={participant.points}
                                 isMuted={participant.isMuted}
-                                isHost={false} 
-                                onToggleMute={() => {}}
-                                onToggleSpotlight={() => {}}
-                                isSpotlighted={false}
-                            />
+                                isHost={false}
+                                onToggleMute={() => { } }
+                                onToggleSpotlight={() => { } }
+                                isSpotlighted={false} isCurrentUser={false}                            />
                         ))}
                     </div>
                     

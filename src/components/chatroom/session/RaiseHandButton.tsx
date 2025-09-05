@@ -6,7 +6,7 @@ import { Hand, HandMetal } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { raiseHand, lowerHand } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { SessionParticipant } from '@/lib/redux/slices/session/types';
 
 export default function RaiseHandButton() {
@@ -23,16 +23,17 @@ export default function RaiseHandButton() {
   const position = activeSession.raisedHands.indexOf(user.id) + 1;
 
   const handleToggleHand = () => {
-    if (!user) return;
+    if (!user?.id || !activeSession?.id) return; // Guard clause
+
     if (hasRaisedHand) {
-      dispatch(lowerHand(user.id));
+      dispatch(lowerHand(activeSession.id));
       dispatch(addNotification({
         type: 'hand_lowered',
         title: 'Main baissée',
         message: 'Vous avez baissé la main',
       }));
     } else {
-      dispatch(raiseHand(user.id));
+      dispatch(raiseHand(activeSession.id));
       dispatch(addNotification({
         type: 'hand_raised',
         title: 'Main levée',
