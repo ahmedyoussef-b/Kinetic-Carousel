@@ -132,13 +132,14 @@ export const useScheduleActions = (
     // This assertion guarantees classId is a number for the payload
     const finalClassId = classInfo.id; 
 
-    const newLessonPayload = {
+    // Explicitly type the payload to match what createLesson expects
+    const newLessonPayload: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'> = {
       name: `${subjectInfo.name} - ${classInfo.name}`,
       day: day,
       startTime: lessonStartTimeDate.toISOString(),
       endTime: lessonEndTimeDate.toISOString(),
       subjectId: subjectInfo.id,
-      classId: finalClassId,
+      classId: finalClassId, // This is now guaranteed to be a number
       teacherId: teacherInfo.id,
       classroomId: availableRoom ? availableRoom.id : null,
       scheduleDraftId: wizardData.scheduleDraftId || null,
