@@ -51,15 +51,6 @@ app.prepare().then(() => {
         onlineUsers.set(userId, socket.id);
         console.log(`👤 User connected: ${userId} with socket ID: ${socket.id}. Total online: ${onlineUsers.size}`);
         broadcastPresence();
-
-        try {
-            await prisma.user.update({
-                where: { id: userId },
-                data: { lastSeen: new Date() },
-            });
-        } catch (error) {
-            console.error(`Error updating lastSeen for user ${userId}:`, error);
-        }
     } else {
         console.warn(`⚠️ User connected without a userId.`);
     }
