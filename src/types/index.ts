@@ -33,8 +33,28 @@ import type { Dispatch, SetStateAction } from "react";
 import type { FieldErrors, SubmitHandler, UseFormHandleSubmit, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import type { SerializedError } from "@reduxjs/toolkit";
-import type { TeacherSchema, ParentSchema, StudentSchema as StudentSchemaInternal, SubjectSchema } from './schemas';
+import type { TeacherSchema as TeacherSchemaInternal, ParentSchema, StudentSchema as StudentSchemaInternal, SubjectSchema } from './schemas';
 import { MutationDefinition } from "@reduxjs/toolkit/query";
+
+// Re-export schemas for global use
+export type { 
+    AnnouncementSchema,
+    AssignmentSchema,
+    AttendanceSchema,
+    ClassSchema,
+    EventSchema,
+    ExamSchema,
+    GradeSchema,
+    LessonSchema,
+    LoginSchema,
+    ParentSchema,
+    ProfileUpdateSchema,
+    RegisterSchema,
+    ResultSchema,
+    StudentSchema,
+    SubjectSchema,
+    TeacherSchema,
+ } from './schemas';
 
 
 export { Role, UserSex, Day, TimePreference } from '@prisma/client';
@@ -221,9 +241,6 @@ export interface JwtPayload {
   exp: number;
 }
 
-// Re-export schema type
-export type StudentSchema = StudentSchemaInternal;
-
 // --- FORM PROPS & RETURN TYPES ---
 export interface TeacherFormProps {
   type: 'create' | 'update';
@@ -251,15 +268,15 @@ export interface ParentFormProps {
 }
 
 export type ParentFormValues = Omit<ParentSchema, 'confirmPassword'>;
-export type StudentFormValues = Omit<StudentSchema, 'confirmPassword'>;
+export type StudentFormValues = Omit<StudentSchemaInternal, 'confirmPassword'>;
 
 export interface TeacherFormReturn {
-  register: UseFormRegister<TeacherSchema>;
-  handleSubmit: UseFormHandleSubmit<TeacherSchema>;
-  actualOnSubmit: SubmitHandler<TeacherSchema>;
-  errors: FieldErrors<TeacherSchema>;
+  register: UseFormRegister<TeacherSchemaInternal>;
+  handleSubmit: UseFormHandleSubmit<TeacherSchemaInternal>;
+  actualOnSubmit: SubmitHandler<TeacherSchemaInternal>;
+  errors: FieldErrors<TeacherSchemaInternal>;
   isLoading: boolean;
-  setValue: UseFormSetValue<TeacherSchema>;
+  setValue: UseFormSetValue<TeacherSchemaInternal>;
   sexWatch: UserSex | null | undefined;
   birthdayWatch: Date | null | undefined; // Changed from string to Date
   imgPreview: string | null | undefined;
