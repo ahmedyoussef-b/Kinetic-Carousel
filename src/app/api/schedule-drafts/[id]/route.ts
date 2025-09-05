@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
             classIds,
             subjectIds,
             teacherIds,
-            classroomIds,
+            roomsId, // Renommé de classroomIds
             gradeIds,
             lessonRequirements = [],
             teacherConstraints = [],
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
                 classes: classIds ? JSON.stringify(classIds) : Prisma.JsonNull,
                 subjects: subjectIds ? JSON.stringify(subjectIds) : Prisma.JsonNull,
                 teachers: teacherIds ? JSON.stringify(teacherIds) : Prisma.JsonNull,
-                classrooms: classroomIds ? JSON.stringify(classroomIds) : Prisma.JsonNull,
+                rooms: roomsId ? JSON.stringify(roomsId) : Prisma.JsonNull, // Corrigé ici
                 grades: gradeIds ? JSON.stringify(gradeIds) : Prisma.JsonNull,
             };
             
