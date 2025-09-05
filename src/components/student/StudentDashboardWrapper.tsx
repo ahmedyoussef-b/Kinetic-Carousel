@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useAppSelector } from '@/hooks/redux-hooks';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { Role } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/useSocket';
