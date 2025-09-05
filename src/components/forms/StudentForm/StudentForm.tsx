@@ -19,25 +19,7 @@ const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => 
     imgPreview,
     createErrorData,
     updateErrorData,
-  } = useStudentForm({ type, data, setOpen });
-
-  // Create a flattened object for the form, converting nulls to undefined
-  // to match Zod's optional field expectations and prevent type errors.
-  const studentDataForFields = data ? {
-    ...data,
-    username: (data as any).user?.username ?? '',
-    email: (data as any).user?.email ?? '',
-    classId: data.classId ?? undefined,
-    gradeId: data.gradeId ?? undefined,
-    parentId: data.parentId ?? undefined,
-    phone: data.phone ?? undefined,
-    address: data.address ?? undefined,
-    img: data.img ?? undefined,
-    bloodType: data.bloodType ?? undefined,
-    birthday: data.birthday ? new Date(data.birthday) : undefined,
-    sex: data.sex ?? undefined,
-  } : undefined;
-
+  } = useStudentForm({ type, data, setOpen, relatedData }); // Pass relatedData to the hook
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -52,7 +34,7 @@ const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => 
         imgPreview={imgPreview}
         relatedData={relatedData}
         type={type}
-        data={studentDataForFields}
+        data={data as any} // Pass original data, hook handles transformation
       />
       {(createErrorData || updateErrorData) && (
         <span className="text-red-500 text-sm mt-2">

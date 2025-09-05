@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import type { SubmitHandler, UseFormRegister, UseFormHandleSubmit, FieldErrors, UseFormSetValue } from "react-hook-form";
-import type { StudentSchema, StudentFormProps } from "@/types/index";
+import type { StudentSchema, StudentFormProps, Student } from "@/types/index";
 import { studentSchema } from "@/lib/formValidationSchemas";
 import {
   useCreateStudentMutation,
@@ -56,29 +56,60 @@ const useStudentForm = ({
     resolver: zodResolver(studentSchema),
     defaultValues: data ? {
       ...data,
-      birthday: data.birthday ? new Date(data.birthday).toISOString().split('T')[0] as any : '', 
+      username: (data as any).user?.username ?? '',
+      email: (data as any).user?.email ?? '',
+      birthday: data.birthday ? new Date(data.birthday) : undefined,
       classId: data.classId ?? undefined, 
       gradeId: data.gradeId ?? undefined, 
-      parentId: data.parentId ?? undefined, 
+      parentId: data.parentId ?? undefined,
+      phone: data.phone ?? undefined,
+      address: data.address ?? undefined,
+      img: data.img ?? undefined,
+      bloodType: data.bloodType ?? undefined,
+      sex: data.sex ?? undefined,
+      password: '', // Always clear password for updates
     } : {},
   });
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
+  const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = form;
   const [imgPreview, setImgPreview] = useState<string | null | undefined>(data?.img || paths.noAvatarIcon);
   const watchedImg = watch("img");
 
   useEffect(() => {
-    if (data?.img) { 
-      setImgPreview(data.img);
+    if (data) { 
+      // Reset form with corrected null -> undefined values
+      reset({
+        ...data,
+        username: (data as any).user?.username ?? '',
+        email: (data as any).user?.email ?? '',
+        birthday: data.birthday ? new Date(data.birthday) : undefined,
+        classId: data.classId ?? undefined,
+        gradeId: data.gradeId ?? undefined,
+        parentId: data.parentId ?? undefined,
+        phone: data.phone ?? undefined,
+        address: data.address ?? undefined,
+        img: data.img ?? undefined,
+        bloodType: data.bloodType ?? undefined,
+        sex: data.sex ?? undefined,
+        password: '',
+      });
+      setImgPreview(data.img || paths.noAvatarIcon);
     }
-  }, [data]);
+  }, [data, reset]);
+
 
   const onSubmit: SubmitHandler<StudentSchema> = async (formData) => {
     try {
+      // Create a payload and remove empty password field for updates
+      const payload = { ...formData };
+      if (type === 'update' && (!payload.password || payload.password.trim() === '')) {
+        delete (payload as any).password;
+      }
+      
       if (type === "create") {
-        await createStudent(formData).unwrap();
+        await createStudent(payload).unwrap();
       } else if (data?.id) {
-        await updateStudent({ ...formData, id: data.id }).unwrap();
+        await updateStudent({ ...payload, id: data.id }).unwrap();
       }
       setOpen(false);
       router.refresh();
