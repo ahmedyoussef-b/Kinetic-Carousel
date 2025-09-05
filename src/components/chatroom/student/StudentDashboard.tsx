@@ -38,26 +38,6 @@ export default function StudentDashboard() {
     }
   }, [isAuthenticated, user, router]);
 
-  // Effect to check for an active session on load
-  useEffect(() => {
-    const checkForActiveSession = async () => {
-      try {
-        const response = await fetch('/api/chatroom/sessions/active-for-student');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.activeSessionId) {
-            console.log(`[StudentDashboard] Session active ${data.activeSessionId} détectée. Redirection...`);
-            router.replace(`/list/chatroom/session?sessionId=${data.activeSessionId}`);
-          }
-        }
-      } catch (error) {
-        console.error("Erreur lors de la vérification de la session active:", error);
-      }
-    };
-    checkForActiveSession();
-  }, [router]);
-
-
   // Effect for receiving notifications from the server via Socket.IO
   useEffect(() => {
       if (!socket || !user) return;

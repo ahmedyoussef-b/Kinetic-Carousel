@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const apiKey = process.env.TWILIO_API_KEY; // CORRECTED: Was TWILIO_API_KEY
+    const apiKey = process.env.TWILIO_API_KEY_SID; // CORRECTED: Use API Key SID
     const apiSecret = process.env.TWILIO_API_SECRET;
 
     if (!accountSid || !apiKey || !apiSecret) {
