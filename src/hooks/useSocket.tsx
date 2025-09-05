@@ -1,4 +1,4 @@
-// src/hooks/useSocket.tsx
+{// src/hooks/useSocket.tsx
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from './redux-hooks';
 import { io, Socket } from 'socket.io-client';
@@ -34,18 +34,18 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         return; // Socket already initialized and connected
     }
     
-    // Correction: Use a relative path for the socket URL to work in both dev and prod.
-    // The server will handle the path /api/socket.
-    const socketUrl = '/'; 
+    const socketUrl = process.env.NODE_ENV === 'production'
+      ? process.env.NEXT_PUBLIC_SITE_URL || '/'
+      : 'http://localhost:3000';
+      
     console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl} for user ${user.id}`);
 
 
-    // The auth object is the primary way to pass data on initial connection
     socketRef.current = io(socketUrl, {
       path: '/api/socket',
       transports: ['websocket', 'polling'],
       auth: {
-        userId: user.id, // Use the correct user ID from the session
+        userId: user.id,
       },
     });
 
