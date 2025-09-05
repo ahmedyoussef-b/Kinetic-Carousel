@@ -28,6 +28,7 @@ import { audioReducers } from './session/reducers/audio';
 import { spotlightReducers } from './session/reducers/spotlight';
 import { breakoutRoomReducers } from './session/reducers/breakoutRooms';
 import { chatReducers } from './session/reducers/chat';
+import { Role } from '@/types';
 
 const ensureSessionArrays = (session: ActiveSession): ActiveSession => ({
   ...session,
