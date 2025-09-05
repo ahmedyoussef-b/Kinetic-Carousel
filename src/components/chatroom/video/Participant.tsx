@@ -18,7 +18,6 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
 
   useEffect(() => {
     const trackSubscribed = (track: Track) => {
-      // Check the track's kind to ensure the attach method is available
       if (track.kind === 'video' && videoRef.current) {
         videoRef.current.appendChild(track.attach());
       } else if (track.kind === 'audio' && audioRef.current) {
@@ -27,10 +26,9 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
     };
 
     const trackUnsubscribed = (track: Track) => {
-      // Check the track's kind to ensure the detach method is available
-      if (track.kind === 'video' || track.kind === 'audio') {
-        track.detach().forEach((element: HTMLElement) => element.remove());
-      }
+        if (track.kind === 'video' || track.kind === 'audio') {
+            track.detach().forEach((element: HTMLElement) => element.remove());
+        }
     };
 
     participant.on('trackSubscribed', trackSubscribed);
