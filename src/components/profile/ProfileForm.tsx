@@ -28,7 +28,7 @@ const ProfileForm: React.FC<{ userProfile: UserProfile }> = ({ userProfile }) =>
         errors={errors}
         isLoading={isLoading}
         setValue={setValue}
-        imgUrl={imgUrl}
+        imgUrl={imgUrl ?? null}
         userProfile={userProfile}
       />
 
@@ -40,7 +40,7 @@ const ProfileForm: React.FC<{ userProfile: UserProfile }> = ({ userProfile }) =>
       />
       
       <TwoFactorCard 
-        twoFactorEnabled={twoFactorEnabled}
+        twoFactorEnabled={twoFactorEnabled ?? false}
         setValue={setValue}
         isLoading={isLoading}
       />

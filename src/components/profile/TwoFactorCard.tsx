@@ -4,10 +4,12 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ShieldCheck } from 'lucide-react';
+import type { UseFormSetValue } from 'react-hook-form';
+import type { ProfileUpdateSchema } from '@/lib/formValidationSchemas';
 
 interface TwoFactorCardProps {
   twoFactorEnabled: boolean;
-  setValue: (name: string, value: any, options?: any) => void;
+  setValue: UseFormSetValue<ProfileUpdateSchema>;
   isLoading: boolean;
 }
 

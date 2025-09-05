@@ -1,4 +1,6 @@
 import type { Teacher, Student, Parent, Admin, Role } from "@/types";
+import { ProfileUpdateSchema } from "@/lib/formValidationSchemas";
+import { UseFormSetValue } from "react-hook-form";
 
 export type UserProfile = (Teacher | Student | Parent | Admin) & {
   user: {
@@ -35,7 +37,7 @@ export interface ProfileFormReturn {
   errors: any;
   isLoading: boolean;
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
-  setValue: any;
-  imgUrl: string | null;
-  twoFactorEnabled: boolean;
+  setValue: UseFormSetValue<ProfileUpdateSchema>;
+  imgUrl: string | null | undefined;
+  twoFactorEnabled: boolean | undefined;
 }
