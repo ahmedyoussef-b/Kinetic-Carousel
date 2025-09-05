@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Video, LogOut, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import * as sessionActions from '@/lib/redux/slices/sessionSlice';
+import { breakoutTimerTick, fetchSessionState, setTimerRemaining } from '@/lib/redux/slices/sessionSlice';
 import TimerDisplay from './TimerDisplay';
 import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { useToast } from "@/hooks/use-toast";
@@ -44,12 +44,13 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
     if (!activeSession?.classTimer?.isActive || activeSession.classTimer.remaining <= 0) {
       return;
     }
-
+  
     const interval = setInterval(() => {
-      // Dispatch the tickTimer action directly from sessionActions
-      dispatch(sessionActions.tickTimer());
+      // Logic is now inside the component
+      const newRemainingTime = Math.max(0, (activeSession.classTimer?.remaining || 0) - 1);
+      dispatch(setTimerRemaining(newRemainingTime));
     }, 1000);
-
+  
     return () => clearInterval(interval);
   }, [activeSession?.classTimer?.isActive, activeSession?.classTimer?.remaining, dispatch]);
   
@@ -59,7 +60,7 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
           return;
       }
       const interval = setInterval(() => {
-          dispatch(sessionActions.breakoutTimerTick());
+          dispatch(breakoutTimerTick());
       }, 1000);
 
       return () => clearInterval(interval);
@@ -70,7 +71,7 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
     if (!activeSession?.id) return;
 
     const pollSessionState = () => {
-        dispatch(sessionActions.fetchSessionState(activeSession.id));
+        dispatch(fetchSessionState(activeSession.id));
     };
 
     const intervalId = setInterval(pollSessionState, 3000); // Poll every 3 seconds

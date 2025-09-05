@@ -27,11 +27,13 @@ export const timerReducers = {
       state.activeSession.classTimer = null;
     }
   },
-  tickTimer: (state: SessionState) => {
-    if (state.activeSession?.classTimer?.isActive && state.activeSession.classTimer.remaining > 0) {
-      state.activeSession.classTimer.remaining--;
-    } else if (state.activeSession?.classTimer) {
-      state.activeSession.classTimer.isActive = false;
+  // Remplacé par setTimerRemaining pour éviter les problèmes d'importation
+  setTimerRemaining: (state: SessionState, action: PayloadAction<number>) => {
+    if (state.activeSession?.classTimer) {
+      state.activeSession.classTimer.remaining = action.payload;
+      if (action.payload <= 0) {
+        state.activeSession.classTimer.isActive = false;
+      }
     }
   },
 };

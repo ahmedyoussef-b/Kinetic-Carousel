@@ -166,6 +166,7 @@ export const {
   toggleTimer,
   resetTimer,
   stopTimer,
+  setTimerRemaining, // Nouvelle action exportée
   studentSignaledPresence,
 } = sessionSlice.actions;
 
