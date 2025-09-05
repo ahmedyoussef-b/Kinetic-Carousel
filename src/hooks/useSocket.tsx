@@ -1,110 +1,121 @@
+
 // src/hooks/useSocket.tsx
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from './redux-hooks';
-import { io, Socket } from 'socket.io-client';
+import Pusher from 'pusher-js';
 import { updateStudentPresence, studentSignaledPresence } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
 import { RootState } from '../lib/redux/store';
 import { toast } from 'sonner';
 
-interface SocketContextType {
-  socket: Socket | null;
+interface PusherContextType {
+  pusher: Pusher | null;
 }
 
-const SocketContext = createContext<SocketContextType>({ socket: null });
+const PusherContext = createContext<PusherContextType>({ pusher: null });
 
-export const useSocket = () => useContext(SocketContext);
+export const usePusher = () => useContext(PusherContext);
 
-export const SocketProvider = ({ children }: { children: ReactNode }) => {
+export const PusherProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state: RootState) => state.auth);
-  const socketRef = useRef<Socket | null>(null);
+  const pusherRef = useRef<Pusher | null>(null);
 
   useEffect(() => {
     if (!user) {
-        if (socketRef.current) {
-            console.log("🔌 [SocketProvider] User logged out, disconnecting socket.");
-            socketRef.current.disconnect();
-            socketRef.current = null;
-        }
-        return;
+      if (pusherRef.current) {
+        console.log("🔌 [PusherProvider] User logged out, disconnecting pusher.");
+        pusherRef.current.disconnect();
+        pusherRef.current = null;
+      }
+      return;
     }
 
-    if (socketRef.current?.connected) {
-        return; // Socket already initialized and connected
+    if (pusherRef.current?.connection.state === 'connected') {
+      return; // Pusher already initialized and connected
     }
-    
-    const socketUrl = process.env.NODE_ENV === 'production'
-      ? process.env.NEXT_PUBLIC_SITE_URL || '/'
-      : 'http://localhost:3000';
-      
-    console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl} for user ${user.id}`);
 
+    console.log(`🔌 [PusherProvider] Initializing pusher for user ${user.id}`);
 
-    socketRef.current = io(socketUrl, {
-      path: '/api/socket',
-      transports: ['websocket', 'polling'],
+    pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+      authEndpoint: '/api/pusher-auth',
       auth: {
-        userId: user.id,
+        params: {
+          user_id: user.id,
+          user_info: JSON.stringify({
+            id: user.id,
+            name: user.name,
+            role: user.role
+          }),
+        },
       },
     });
 
-    const socket = socketRef.current;
+    const pusher = pusherRef.current;
 
-    // --- DEBUG MIDDLEWARE ---
-    socket.onAny((event, ...args) => {
-        console.log(`📡 [Socket Client] Received event: '${event}' with data:`, args);
-    });
-    
-    socket.on('connect', () => {
-      console.log(`✅ [Socket Client] Connected with ID: ${socket.id}`);
-    });
+    // --- PRESENCE CHANNEL FOR ONLINE USERS ---
+    const presenceChannel = pusher.subscribe('presence-global');
 
-    socket.on('disconnect', (reason) => {
-      console.log(`🔌 [Socket Client] Disconnected: ${reason}`);
-    });
-    
-    socket.on('connect_error', (err) => {
-      console.error(`❌ [Socket Client] Connection error: ${err.message}`);
-    });
-
-
-    // --- CENTRALIZED EVENT LISTENERS ---
-    
-    socket.on('presence:update', (onlineUserIds: string[]) => {
-      console.log(`📡 [SocketProvider] Received presence update. Online users: ${onlineUserIds.length}`);
+    presenceChannel.bind('pusher:subscription_succeeded', (members: any) => {
+      const onlineUserIds = Object.keys(members.members);
+      console.log(`📡 [PusherProvider] Subscribed to presence channel. Online users: ${onlineUserIds.length}`);
       dispatch(updateStudentPresence({ onlineUserIds }));
     });
 
-    socket.on('student:signaled_presence', (studentId: string) => {
-        console.log(`✋ [SocketProvider] Student ${studentId} signaled presence.`);
-        dispatch(studentSignaledPresence(studentId));
+    presenceChannel.bind('pusher:member_added', (member: any) => {
+      console.log(`📡 [PusherProvider] User joined: ${member.id}`);
+      // You can dispatch an action here if needed to update the user list in real-time
     });
 
-    socket.on('session:invite', (sessionData) => {
-      console.log(`📬 [SocketProvider] Received invite for session: ${sessionData.title}`);
+    presenceChannel.bind('pusher:member_removed', (member: any) => {
+      console.log(`📡 [PusherProvider] User left: ${member.id}`);
+      // You can dispatch an action here if needed
+    });
+
+    presenceChannel.bind('student:signaled_presence', (data: { studentId: string }) => {
+      console.log(`✋ [PusherProvider] Student ${data.studentId} signaled presence.`);
+      dispatch(studentSignaledPresence(data.studentId));
+    });
+
+
+    // --- PRIVATE CHANNEL FOR USER-SPECIFIC NOTIFICATIONS ---
+    const privateChannel = pusher.subscribe(`private-user-${user.id}`);
+
+    privateChannel.bind('session:invite', (sessionData: any) => {
+      console.log(`📬 [PusherProvider] Received invite for session: ${sessionData.title}`);
       dispatch(addNotification({
         type: 'session_invite',
         title: `Invitation: ${sessionData.title}`,
-        message: `De: ${sessionData.host.name || 'Admin'}`,
+        message: `De: ${sessionData.host.name || 'Admin'}` ,
         actionUrl: `/list/chatroom/session?sessionId=${sessionData.id}`
       }));
       toast.info(`Nouvelle invitation de ${sessionData.host.name || 'Admin'}`);
     });
 
 
+    // --- DEBUG LOGGING ---
+    pusher.connection.bind('state_change', (states: any) => {
+      console.log(`🔌 [Pusher] state changed: ${states.previous} -> ${states.current}`);
+    });
+
+    pusher.connection.bind('error', (err: any) => {
+      console.error(`❌ [Pusher] Connection error:`, err);
+    });
+
     return () => {
-      if (socket) {
-        console.log("🔌 [SocketProvider] Cleanup: disconnecting socket.");
-        socket.disconnect();
-        socketRef.current = null;
+      if (pusher) {
+        console.log("🔌 [PusherProvider] Cleanup: disconnecting pusher.");
+        pusher.disconnect();
+        pusherRef.current = null;
       }
     };
   }, [user, dispatch]);
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current }}>
+    <PusherContext.Provider value={{ pusher: pusherRef.current }}>
       {children}
-    </SocketContext.Provider>
+    </PusherContext.Provider>
   );
 };
+

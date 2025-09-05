@@ -1,6 +1,18 @@
+
 [build]
   command = "npm run build"
   publish = "out"
+
+[functions]
+  directory = "netlify/functions"
+
+[build.environment]
+  PUSHER_APP_ID = "2046914"
+  PUSHER_KEY = "7f41fd289d255208178b"
+  PUSHER_SECRET = "525a33abb52df337f78c"
+  PUSHER_CLUSTER = "eu"
+  NEXT_PUBLIC_PUSHER_KEY = "7f41fd289d255208178b"
+  NEXT_PUBLIC_PUSHER_CLUSTER = "eu"
 
 # Redirection essentielle pour le routing SPA
 [[redirects]]
