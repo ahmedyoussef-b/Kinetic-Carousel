@@ -37,8 +37,20 @@ export async function POST(request: NextRequest) {
     console.log(`✅ [API/login] Cookie de session créé.`);
 
     // Create a safe user object without the password
-    const { password, ...safeUserData } = user;
-    const safeUser: SafeUser = safeUserData;
+    const safeUser: SafeUser = {
+        id: user.id,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        img: user.img,
+        active: user.active,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        twoFactorEnabled: user.twoFactorEnabled,
+    };
 
     const response = NextResponse.json({ user: safeUser });
 
