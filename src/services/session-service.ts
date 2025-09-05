@@ -131,7 +131,7 @@ class SessionServiceController {
     const raisedHandsUserIds = (dbSession.raisedHands || []).map((rh: RaisedHand) => rh.userId);
 
     const participants: ClientParticipant[] = (dbSession.participants || [])
-      .map((p: PrismaSessionParticipantWithUser) => {
+      .map((p: PrismaSessionParticipantWithUser): ClientParticipant | null => {
           if (!p.user) {
               console.warn(`[SessionService] Participant avec userId ${p.userId} n'a pas d'objet 'user' associé. Il sera ignoré.`);
               return null;
@@ -152,7 +152,7 @@ class SessionServiceController {
               raisedHandAt: (dbSession.raisedHands || []).find((rh: RaisedHand) => rh.userId === p.userId)?.raisedAt.toISOString(),
           };
       })
-      .filter((p): p is ClientParticipant => p !== null);
+      .filter((p: ClientParticipant | null): p is ClientParticipant => p !== null);
 
 
     const messages: ClientMessage[] = (dbSession.messages || [])
