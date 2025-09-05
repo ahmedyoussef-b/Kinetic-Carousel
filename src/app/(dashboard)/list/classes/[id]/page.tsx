@@ -92,7 +92,7 @@ const SingleClassPage = async ({ params }: { params: { id: string } }) => {
               table="class" 
               type="update" 
               data={classData} 
-              relatedData={{ students: allStudents }}
+              relatedData={{ students: allStudents, grades: wizardData.grades }}
             />
         )}
       </div>
