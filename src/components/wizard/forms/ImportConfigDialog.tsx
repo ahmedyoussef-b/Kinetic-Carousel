@@ -70,160 +70,138 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
   const allRequirements = useAppSelector(selectLessonRequirements);
   const allClasses = useAppSelector(state => state.classes.items);
 
-
-  const processFile = (file: File, type: ImportType) => {
-    setLoading(type);
-    setError(null);
-    
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        const csvString = event.target?.result as string;
-        if (!csvString) {
-            setError("Impossible de lire le fichier.");
-            setLoading(null);
-            return;
-        }
-
-        Papa.parse(csvString, {
-            header: true,
-            skipEmptyLines: true,
-            complete: (results: ParseResult<any>) => {
-              try {
-                if (type === 'subjects') {
-                  const parsedData = z.array(subjectSchema).parse(results.data);
-                  const subjects: Subject[] = parsedData.map((item, index) => ({
-                    id: -(Date.now() + index),
-                    name: item.name,
-                    weeklyHours: item.weeklyHours,
-                    coefficient: item.coefficient,
-                    requiresRoom: false,
-                    isOptional: false
-                    
-                  }));
-                  dispatch(setAllSubjects(subjects));
-                  toast({ title: "Succès", description: `${subjects.length} matières importées.` });
-                } else if (type === 'classes') {
-                  const parsedData = z.array(classSchema).parse(results.data);
-                  const classes: ClassWithGrade[] = parsedData.map((item, index) => {
-                    const grade = grades.find(g => g.level === item.gradeLevel);
-                    if (!grade) {
-                      throw new Error(`Niveau invalide "${item.gradeLevel}" pour la classe "${item.name}" à la ligne ${index + 2}.`);
-                    }
-                    return {
-                      id: -(Date.now() + index),
-                      name: item.name,
-                      abbreviation: `${item.gradeLevel}${item.name}`,
-                      capacity: item.capacity,
-                      gradeId: grade.id,
-                      grade: grade,
-                      _count: { students: 0, lessons: 0 },
-                      superviseurId: null,
-                      supervisor: null,
-                    };
-                  });
-                  dispatch(setAllClasses(classes));
-                  toast({ title: "Succès", description: `${classes.length} classes importées.` });
-                } else if (type === 'classrooms') {
-                  const parsedData = z.array(classroomSchema).parse(results.data);
-                  const classrooms = parsedData.map((item, index) => ({
-                    id: -(Date.now() + index),
-                    name: item.name,
-                    capacity: item.capacity,
-                    building: item.building || null,
-                    abbreviation: null,
-                  }));
-                  dispatch(setAllClassrooms(classrooms));
-                  toast({ title: "Succès", description: `${classrooms.length} salles importées.` });
-                } else if (type === 'teachers') {
-                   // Advanced Teacher Import with Random Assignment Logic
-                  const parsedTeachers = z.array(teacherCsvSchema).parse(results.data);
-                  const TEACHER_HOURS_QUOTA = 25;
-                  
-                  const teacherWorkload: Record<string, number> = {};
-                  dispatch(setAllTeacherAssignments([])); // Reset assignments
-
-                  const newTeachers: TeacherWithDetails[] = parsedTeachers.map((teacherData, index) => {
-                      const tempId = `csv_teacher_${Date.now()}_${index}`;
-                      teacherWorkload[tempId] = 0;
-                      
-                      const subjectNames = teacherData.subjects.split(';').map(s => s.trim().toLowerCase());
-                      const teacherSubjects = allSubjects.filter(s => subjectNames.includes(s.name.toLowerCase()));
-                      
-                      return {
-                          id: tempId,
-                          userId: `csv_user_${Date.now()}_${index}`,
-                          name: teacherData.name,
-                          surname: teacherData.surname,
-                          phone: null, address: null, img: null, bloodType: null,
-                          birthday: new Date(), sex: UserSex.MALE,
-                          user: {
-                            id: `csv_user_${Date.now()}_${index}`,
-                            name: `${teacherData.name} ${teacherData.surname}`,
-                            email: teacherData.email, username: teacherData.email, role: Role.TEACHER, active: true,
-                            img: null, createdAt: new Date(), updatedAt: new Date(),
-                            twoFactorEnabled: false, firstName: teacherData.name, lastName: teacherData.surname, 
-                          },
-                          subjects: teacherSubjects,
-                          classes: [],
-                          _count: { subjects: teacherSubjects.length, classes: 0, lessons: 0 }
-                      };
-                  });
-                  
-                  dispatch(setAllTeachers(newTeachers));
-
-                  const requirementsToAssign = [...allRequirements].filter(r => r.hours > 0);
-
-                  for(const req of requirementsToAssign) {
-                    const competentTeachers = newTeachers.filter(t => t.subjects.some(s => s.id === req.subjectId));
-                    const shuffledCompetentTeachers = [...competentTeachers].sort(() => 0.5 - Math.random());
-                    
-                    let assigned = false;
-                    for (const teacher of shuffledCompetentTeachers) {
-                      if (teacherWorkload[teacher.id] + req.hours <= TEACHER_HOURS_QUOTA) {
-                        dispatch(setAssignment({ teacherId: teacher.id, subjectId: req.subjectId, classIds: [req.classId] }));
-                        teacherWorkload[teacher.id] += req.hours;
-                        assigned = true;
-                        break; 
-                      }
-                    }
-                    if (!assigned) {
-                      const subjectName = allSubjects.find(s => s.id === req.subjectId)?.name;
-                      const className = allClasses.find(c => c.id === req.classId)?.name;
-                      console.warn(`Could not assign teacher for ${subjectName} in ${className}. No teacher available with enough hours.`);
-                    }
-                  }
-
-                  toast({ title: 'Professeurs importés et pré-assignés !', description: 'Vérifiez les assignations dans l\'étape "Professeurs".' });
-                }
-                setLoading(null);
-                setIsOpen(false);
-              } catch (e: any) {
-                console.error("Erreur de parsing CSV:", e);
-                const message = e instanceof z.ZodError ? "Le format du fichier est incorrect. Veuillez vérifier les colonnes et les types de données." : e.message;
-                setError(message);
-                setLoading(null);
-              }
-            },
-            error: (err: ParseError) => {
-              setError(err.message);
-              setLoading(null);
-            }
-        });
-    };
-    
-    reader.onerror = () => {
-        setError("Erreur de lecture du fichier.");
-        setLoading(null);
-    };
-    
-    reader.readAsText(file);
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: ImportType) => {
     const file = e.target.files?.[0];
-    if (file) {
-      processFile(file, type);
-    }
+    if (!file) return;
+
+    setLoading(type);
+    setError(null);
+
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results: ParseResult<any>) => {
+          try {
+            if (type === 'subjects') {
+              const parsedData = z.array(subjectSchema).parse(results.data);
+              const subjects: Subject[] = parsedData.map((item, index) => ({
+                id: -(Date.now() + index),
+                name: item.name,
+                weeklyHours: item.weeklyHours,
+                coefficient: item.coefficient,
+                requiresRoom: false,
+                isOptional: false
+                
+              }));
+              dispatch(setAllSubjects(subjects));
+              toast({ title: "Succès", description: `${subjects.length} matières importées.` });
+            } else if (type === 'classes') {
+              const parsedData = z.array(classSchema).parse(results.data);
+              const classes: ClassWithGrade[] = parsedData.map((item, index) => {
+                const grade = grades.find(g => g.level === item.gradeLevel);
+                if (!grade) {
+                  throw new Error(`Niveau invalide "${item.gradeLevel}" pour la classe "${item.name}" à la ligne ${index + 2}.`);
+                }
+                return {
+                  id: -(Date.now() + index),
+                  name: item.name,
+                  abbreviation: `${item.gradeLevel}${item.name}`,
+                  capacity: item.capacity,
+                  gradeId: grade.id,
+                  grade: grade,
+                  _count: { students: 0, lessons: 0 },
+                  superviseurId: null,
+                  supervisor: null,
+                };
+              });
+              dispatch(setAllClasses(classes));
+              toast({ title: "Succès", description: `${classes.length} classes importées.` });
+            } else if (type === 'classrooms') {
+              const parsedData = z.array(classroomSchema).parse(results.data);
+              const classrooms = parsedData.map((item, index) => ({
+                id: -(Date.now() + index),
+                name: item.name,
+                capacity: item.capacity,
+                building: item.building || null,
+                abbreviation: null,
+              }));
+              dispatch(setAllClassrooms(classrooms));
+              toast({ title: "Succès", description: `${classrooms.length} salles importées.` });
+            } else if (type === 'teachers') {
+               // Advanced Teacher Import with Random Assignment Logic
+              const parsedTeachers = z.array(teacherCsvSchema).parse(results.data);
+              const TEACHER_HOURS_QUOTA = 25;
+              
+              const teacherWorkload: Record<string, number> = {};
+              dispatch(setAllTeacherAssignments([])); // Reset assignments
+
+              const newTeachers: TeacherWithDetails[] = parsedTeachers.map((teacherData, index) => {
+                  const tempId = `csv_teacher_${Date.now()}_${index}`;
+                  teacherWorkload[tempId] = 0;
+                  
+                  const subjectNames = teacherData.subjects.split(';').map(s => s.trim().toLowerCase());
+                  const teacherSubjects = allSubjects.filter(s => subjectNames.includes(s.name.toLowerCase()));
+                  
+                  return {
+                      id: tempId,
+                      userId: `csv_user_${Date.now()}_${index}`,
+                      name: teacherData.name,
+                      surname: teacherData.surname,
+                      phone: null, address: null, img: null, bloodType: null,
+                      birthday: new Date(), sex: UserSex.MALE,
+                      user: {
+                        id: `csv_user_${Date.now()}_${index}`,
+                        name: `${teacherData.name} ${teacherData.surname}`,
+                        email: teacherData.email, username: teacherData.email, role: Role.TEACHER, active: true,
+                        img: null, createdAt: new Date(), updatedAt: new Date(),
+                        twoFactorEnabled: false, firstName: teacherData.name, lastName: teacherData.surname, 
+                      },
+                      subjects: teacherSubjects,
+                      classes: [],
+                      _count: { subjects: teacherSubjects.length, classes: 0, lessons: 0 }
+                  };
+              });
+              
+              dispatch(setAllTeachers(newTeachers));
+
+              const requirementsToAssign = [...allRequirements].filter(r => r.hours > 0);
+
+              for(const req of requirementsToAssign) {
+                const competentTeachers = newTeachers.filter(t => t.subjects.some(s => s.id === req.subjectId));
+                const shuffledCompetentTeachers = [...competentTeachers].sort(() => 0.5 - Math.random());
+                
+                let assigned = false;
+                for (const teacher of shuffledCompetentTeachers) {
+                  if (teacherWorkload[teacher.id] + req.hours <= TEACHER_HOURS_QUOTA) {
+                    dispatch(setAssignment({ teacherId: teacher.id, subjectId: req.subjectId, classIds: [req.classId] }));
+                    teacherWorkload[teacher.id] += req.hours;
+                    assigned = true;
+                    break; 
+                  }
+                }
+                if (!assigned) {
+                  const subjectName = allSubjects.find(s => s.id === req.subjectId)?.name;
+                  const className = allClasses.find(c => c.id === req.classId)?.name;
+                  console.warn(`Could not assign teacher for ${subjectName} in ${className}. No teacher available with enough hours.`);
+                }
+              }
+
+              toast({ title: 'Professeurs importés et pré-assignés !', description: 'Vérifiez les assignations dans l\'étape "Professeurs".' });
+            }
+            setLoading(null);
+            setIsOpen(false);
+          } catch (e: any) {
+            console.error("Erreur de parsing CSV:", e);
+            const message = e instanceof z.ZodError ? "Le format du fichier est incorrect. Veuillez vérifier les colonnes et les types de données." : e.message;
+            setError(message);
+            setLoading(null);
+          }
+        },
+        error: (err: ParseError) => {
+          setError(err.message);
+          setLoading(null);
+        }
+    });
   };
   
   const ImportTabContent = ({ type, title, headers, example }: { type: ImportType, title: string, headers: string, example: string }) => (
