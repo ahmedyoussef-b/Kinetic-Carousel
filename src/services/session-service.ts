@@ -142,20 +142,35 @@ class SessionServiceController {
         raisedHandAt: dbSession.raisedHands?.find((rh: any) => rh.userId === p.userId)?.raisedAt.toISOString(),
     })) || [];
 
-    const messages: ClientMessage[] = dbSession.messages?.map((msg: any) => ({
-      id: msg.id.toString(),
-      content: msg.content,
-      authorId: msg.authorId,
-      chatroomSessionId: msg.chatroomSessionId,
-      createdAt: msg.createdAt.toISOString(),
-      author: {
-        id: msg.author.id,
-        name: msg.author.name,
-        email: msg.author.email,
-        img: msg.author.img,
-        role: msg.author.role,
+    const messages: ClientMessage[] = (dbSession.messages || [])
+    .map((msg: any) => {
+      if (!msg.author) {
+        // Handle cases where the author might have been deleted or is otherwise missing
+        return {
+          id: msg.id.toString(),
+          content: msg.content,
+          authorId: msg.authorId,
+          chatroomSessionId: msg.chatroomSessionId,
+          createdAt: msg.createdAt.toISOString(),
+          author: { id: 'unknown', name: 'Utilisateur inconnu', email: '', role: Role.STUDENT },
+        };
       }
-    })) || [];
+      return {
+        id: msg.id.toString(),
+        content: msg.content,
+        authorId: msg.authorId,
+        chatroomSessionId: msg.chatroomSessionId,
+        createdAt: msg.createdAt.toISOString(),
+        author: {
+          id: msg.author.id,
+          name: msg.author.name,
+          email: msg.author.email,
+          img: msg.author.img,
+          role: msg.author.role,
+        },
+      };
+    })
+    .filter(Boolean); // Filter out any nulls if you decide to return null for invalid messages
     
     return {
       id: dbSession.id,
