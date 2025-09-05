@@ -1,6 +1,6 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 console.log("🔥 [Firebase Init] Chargement de la configuration Firebase...");
 
@@ -19,14 +19,11 @@ function isConfigValid(config: FirebaseOptions): boolean {
 }
 
 export function initializeFirebaseApp() {
-    console.log("🔥 [Firebase Init] Tentative d'initialisation de l'application Firebase...");
     if (getApps().length) {
-        console.log("🔥 [Firebase Init] ✅ Application déjà initialisée. Retour de l'instance existante.");
         return getApp();
     }
 
     if (isConfigValid(firebaseConfig)) {
-        console.log("🔥 [Firebase Init] ✅ Configuration valide. Initialisation d'une nouvelle application.");
         return initializeApp(firebaseConfig);
     } else {
         console.error("🔥 [Firebase Init] ❌ Configuration Firebase invalide ou manquante. Vérifiez vos variables d'environnement.");
@@ -34,5 +31,17 @@ export function initializeFirebaseApp() {
     }
 }
 
-export const app = initializeFirebaseApp();
+const app = initializeFirebaseApp();
 export const auth = getAuth(app);
+
+// Connect to emulators in development
+if (process.env.NODE_ENV === 'development') {
+  try {
+    connectAuthEmulator(auth, 'http://localhost:9099');
+    console.log('🔥 Connected to Firebase Auth Emulator');
+  } catch (error) {
+    console.log('⚠️ Firebase Auth Emulator not available');
+  }
+}
+
+export default app;

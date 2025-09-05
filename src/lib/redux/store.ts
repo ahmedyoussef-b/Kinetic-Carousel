@@ -1,56 +1,61 @@
 // src/lib/redux/store.ts
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import { TypedUseSelectorHook, useSelector } from 'react-redux';
+
+// APIs
 import { authApi } from './api/authApi';
+import { entityApi } from './api/entityApi';
 import { draftApi } from './api/draftApi';
+
+// Slices
 import authReducer from './features/auth/authSlice';
-import classesReducer, { setAllClasses } from './features/classes/classesSlice';
-import subjectsReducer, { setAllSubjects } from './features/subjects/subjectsSlice';
-import teachersReducer, { setAllTeachers } from './features/teachers/teachersSlice';
-import studentsReducer, { setAllStudents } from './features/students/studentsSlice'; // Importer le nouveau reducer
-import classroomsReducer, { setAllClassrooms } from './features/classrooms/classroomsSlice';
-import scheduleReducer, { setInitialSchedule } from './features/schedule/scheduleSlice';
 import sessionReducer from './slices/sessionSlice';
 import notificationReducer from './slices/notificationSlice';
 import reportReducer from './slices/reportSlice';
-import lessonRequirementsReducer, { setAllRequirements } from './features/lessonRequirements/lessonRequirementsSlice';
+import wizardReducer, { setInitialData } from './features/wizardSlice';
+import schoolConfigReducer, { setSchoolConfig } from './features/schoolConfigSlice';
+import classesReducer, { setAllClasses } from './features/classes/classesSlice';
+import subjectsReducer, { setAllSubjects } from './features/subjects/subjectsSlice';
+import teachersReducer, { setAllTeachers } from './features/teachers/teachersSlice';
+import studentsReducer, { setAllStudents } from './features/students/studentsSlice';
+import classroomsReducer, { setAllClassrooms } from './features/classrooms/classroomsSlice';
 import gradesReducer, { setAllGrades } from './features/grades/gradesSlice';
+import lessonRequirementsReducer, { setAllRequirements } from './features/lessonRequirements/lessonRequirementsSlice';
 import teacherConstraintsReducer, { setAllTeacherConstraints } from './features/teacherConstraintsSlice';
 import subjectRequirementsReducer, { setAllSubjectRequirements } from './features/subjectRequirementsSlice';
 import teacherAssignmentsReducer, { setAllTeacherAssignments } from './features/teacherAssignmentsSlice';
-import schoolConfigReducer, { setSchoolConfig } from './features/schoolConfigSlice';
-import attendanceReducer from './features/attendance/attendanceSlice';
-import { entityApi } from './api/entityApi/index';
+import scheduleReducer, { setInitialSchedule } from './features/schedule/scheduleSlice';
 import scheduleDraftReducer from './features/scheduleDraftSlice';
-import wizardReducer from './features/wizardSlice';
-import { setInitialData } from './features/wizardSlice';
+import attendanceReducer from './features/attendance/attendanceSlice';
+
 
 const rootReducer = combineReducers({
-  [authApi.reducerPath]: authApi.reducer,
-  [entityApi.reducerPath]: entityApi.reducer,
-  [draftApi.reducerPath]: draftApi.reducer,
   auth: authReducer,
+  session: sessionReducer,
+  reports: reportReducer,
+  notifications: notificationReducer,
+  wizard: wizardReducer,
+  schoolConfig: schoolConfigReducer,
   classes: classesReducer,
   subjects: subjectsReducer,
   teachers: teachersReducer,
-  students: studentsReducer, // Ajouter le nouveau reducer
+  students: studentsReducer,
   classrooms: classroomsReducer,
-  schedule: scheduleReducer,
-  session: sessionReducer,
-  notifications: notificationReducer,
-  reports: reportReducer,
-  lessonRequirements: lessonRequirementsReducer,
   grades: gradesReducer,
+  lessonRequirements: lessonRequirementsReducer,
   teacherConstraints: teacherConstraintsReducer,
   subjectRequirements: subjectRequirementsReducer,
   teacherAssignments: teacherAssignmentsReducer,
-  schoolConfig: schoolConfigReducer,
-  attendance: attendanceReducer,
+  schedule: scheduleReducer,
   scheduleDraft: scheduleDraftReducer,
-  wizard: wizardReducer,
+  attendance: attendanceReducer,
+  [authApi.reducerPath]: authApi.reducer,
+  [entityApi.reducerPath]: entityApi.reducer,
+  [draftApi.reducerPath]: draftApi.reducer,
 });
 
-// Middleware to handle the setInitialData action
+// Middleware to handle the setInitialData action for wizard hydration
 const hydrationMiddleware = (store: any) => (next: any) => (action: any) => {
   if (action.type === setInitialData.type) {
     const data = action.payload;
@@ -58,7 +63,7 @@ const hydrationMiddleware = (store: any) => (next: any) => (action: any) => {
     store.dispatch(setAllClasses(data.classes));
     store.dispatch(setAllSubjects(data.subjects));
     store.dispatch(setAllTeachers(data.teachers));
-    store.dispatch(setAllStudents(data.students)); // Ajouter l'hydratation pour les étudiants
+    store.dispatch(setAllStudents(data.students));
     store.dispatch(setAllClassrooms(data.rooms));
     store.dispatch(setAllGrades(data.grades));
     store.dispatch(setAllRequirements(data.lessonRequirements));
@@ -70,17 +75,24 @@ const hydrationMiddleware = (store: any) => (next: any) => (action: any) => {
   return next(action);
 };
 
-
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
+      serializableCheck: false, // Disabling for performance and to allow non-serializable data if needed
       immutableCheck: false,
-      serializableCheck: false,
-    }).concat([authApi.middleware, entityApi.middleware, draftApi.middleware, hydrationMiddleware]),
+    }).concat(
+      authApi.middleware,
+      entityApi.middleware,
+      draftApi.middleware,
+      hydrationMiddleware
+    ),
+  devTools: process.env.NODE_ENV !== 'production',
 });
 
-export type RootState = ReturnType<typeof rootReducer>;
+setupListeners(store.dispatch);
+
+export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 export type AppStore = typeof store;
