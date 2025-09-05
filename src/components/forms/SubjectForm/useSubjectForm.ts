@@ -25,11 +25,13 @@ const useSubjectForm = ({
       // Normalize null values from DB to undefined for the form
       weeklyHours: data.weeklyHours ?? undefined,
       coefficient: data.coefficient ?? undefined,
+      isOptional: data.isOptional ?? undefined,
       teachers: data.teachers?.map(teacher => String(teacher.id)) || [],
     } : {
       weeklyHours: 2,
       coefficient: 1,
       teachers: [],
+      isOptional: false,
     },
   });
 
