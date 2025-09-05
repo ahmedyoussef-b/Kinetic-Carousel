@@ -1,8 +1,8 @@
 // src/services/session-service.ts
-import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage, SessionType } from '@/lib/redux/slices/session/types';
 import prisma from '@/lib/prisma';
+import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage, SessionType } from '@/lib/redux/slices/session/types';
 import { Role } from '@/types';
-import { SessionParticipant as PrismaSessionParticipant, User, RaisedHand } from '@prisma/client';
+import { SessionParticipant as PrismaSessionParticipant, User, RaisedHand, Prisma } from '@prisma/client';
 
 
 type PrismaSessionParticipantWithUser = PrismaSessionParticipant & { user: User | null };
@@ -147,7 +147,7 @@ class SessionServiceController {
               isInSession: true,
               points: 0,
               badges: [],
-              isMuted: false, // Provide a default value for isMuted
+              isMuted: false,
               hasRaisedHand: raisedHandsUserIds.includes(p.userId),
               raisedHandAt: (dbSession.raisedHands || []).find((rh: RaisedHand) => rh.userId === p.userId)?.raisedAt.toISOString(),
           };
@@ -156,7 +156,7 @@ class SessionServiceController {
 
 
     const messages: ClientMessage[] = (dbSession.messages || [])
-    .map((msg: any) => {
+    .map((msg: Prisma.ChatroomMessageGetPayload<{ include: { author: true } }>) => {
       if (!msg.author) {
         // Handle cases where the author might have been deleted or is otherwise missing
         return {
