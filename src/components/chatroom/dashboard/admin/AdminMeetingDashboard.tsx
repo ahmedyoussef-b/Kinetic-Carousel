@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Video, Users, Loader2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import { startMeeting, setMeetingCandidates, updateStudentPresence } from '@/lib/redux/slices/sessionSlice';
+import { startMeeting, setMeetingCandidates } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
 import TeacherSelector from '@/components/chatroom/dashboard/admin/TeacherSelector';
 import { Role, type SafeUser } from '@/types';
@@ -24,7 +24,7 @@ export default function AdminMeetingDashboard({ teachers }: AdminMeetingDashboar
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser) as SafeUser;
-  const { socket } = useSocket();
+  const { pusher } = useSocket();
   
   const { selectedTeachers, activeSession, loading } = useAppSelector(state => state.session);
   const [meetingTitle, setMeetingTitle] = useState("Réunion d'équipe");
@@ -44,26 +44,6 @@ export default function AdminMeetingDashboard({ teachers }: AdminMeetingDashboar
     }
   }, [user, activeSession, router, dispatch]);
 
-  // Effect for presence updates via Socket.IO
-  useEffect(() => {
-    if (!socket || user?.role !== Role.ADMIN) return;
-
-    console.log("👑 [AdminMeeting] Setting up Socket.IO presence listener.");
-
-    const handlePresenceUpdate = (onlineUserIds: string[]) => {
-      console.log(`📡 [AdminMeeting] Received presence data via Socket. Online users: ${onlineUserIds.length}`, onlineUserIds);
-      dispatch(updateStudentPresence({ onlineUserIds }));
-    };
-
-    socket.on('presence:update', handlePresenceUpdate);
-    socket.emit('presence:get'); // Initial fetch
-
-    return () => {
-      console.log("🛑 [AdminMeeting] Clearing Socket.IO presence listener.");
-      socket.off('presence:update', handlePresenceUpdate);
-    };
-  }, [socket, dispatch, user]);
-
   const handleStartMeeting = async () => {
     if (selectedTeachers.length === 0 || !meetingTitle.trim()) {
       return;
@@ -77,11 +57,6 @@ export default function AdminMeetingDashboard({ teachers }: AdminMeetingDashboar
 
       if (startMeeting.fulfilled.match(resultAction)) {
         const newSession = resultAction.payload;
-        
-        // Notify participants via Socket.IO through the server
-        if (socket) {
-            socket.emit('session:start', { ...newSession, participants: newSession.participants.filter(p => p.role === Role.TEACHER) });
-        }
         
         dispatch(addNotification({
           type: 'session_started',

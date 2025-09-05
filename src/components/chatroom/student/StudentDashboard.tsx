@@ -26,7 +26,7 @@ export default function StudentDashboard() {
   const { notifications } = useAppSelector(state => state.notifications);
   const prevInvitationsCount = useRef(0);
   const { toast } = useToast();
-  const { socket } = useSocket();
+  const { pusher } = useSocket();
   const [presenceSignaled, setPresenceSignaled] = useState(false);
 
 
@@ -42,7 +42,7 @@ export default function StudentDashboard() {
 
   // Effect for receiving notifications from the server via Socket.IO
   useEffect(() => {
-      if (!socket || !user) return;
+      if (!pusher || !user) return;
       
       console.log('🎧 [StudentDashboard] Setting up Socket.IO notification listener.');
 
@@ -51,13 +51,13 @@ export default function StudentDashboard() {
         dispatch(addNotification(notification));
       };
       
-      socket.on('session:invite', handleNotification);
+      pusher.bind('session:invite', handleNotification);
       
       return () => {
           console.log('🛑 [StudentDashboard] Clearing Socket.IO notification listener.');
-          socket.off('session:invite', handleNotification);
+          pusher.unbind('session:invite', handleNotification);
       };
-  }, [socket, dispatch, user]);
+  }, [pusher, dispatch, user]);
 
   // Effect for audio notification
   useEffect(() => {
@@ -110,8 +110,21 @@ export default function StudentDashboard() {
   };
 
   const handleSignalPresence = () => {
-    if (socket && user) {
-      socket.emit('student:present', user.id);
+    if (pusher && user) {
+      // This needs to be adapted to how you trigger events with Pusher
+      // For example, using a fetch call to an API route
+      fetch('/api/pusher-trigger', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          channel: 'presence-global', 
+          event: 'student:signaled_presence', 
+          data: { studentId: user.id } 
+        }),
+      });
+
       setPresenceSignaled(true);
       toast({
         title: "Présence signalée !",

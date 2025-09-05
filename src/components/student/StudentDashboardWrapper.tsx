@@ -11,7 +11,7 @@ import { useSocket } from '@/hooks/useSocket';
 export default function StudentDashboardWrapper({ children }: { children: React.ReactNode }) {
   const user = useAppSelector(selectCurrentUser);
   const router = useRouter();
-  const { socket } = useSocket(); // useSocket hook handles connection logic
+  const { pusher } = useSocket(); // useSocket hook handles connection logic
 
   useEffect(() => {
     // Redirect if not an authenticated student
@@ -20,7 +20,7 @@ export default function StudentDashboardWrapper({ children }: { children: React.
     }
     // The useSocket hook already handles the connection/disconnection logic
     // based on the user's auth state. No need for additional logic here.
-  }, [user, router, socket]);
+  }, [user, router, pusher]);
 
   // If the user is a student, render the actual dashboard content.
   if (user?.role === Role.STUDENT) {

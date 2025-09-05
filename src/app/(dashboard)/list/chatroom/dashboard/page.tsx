@@ -1,3 +1,4 @@
+
 // src/app/(dashboard)/list/chatroom/dashboard/page.tsx
 'use client';
 
@@ -16,14 +17,14 @@ import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Video } from 'lucide-react';
-import { usePusher } from '@/hooks/useSocket';
+import { useSocket } from '@/hooks/useSocket';
 
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
   const { toast } = useToast();
-  const { pusher } = usePusher();
+  const { pusher } = useSocket();
 
   const { classes = [], selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session) || {};
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
