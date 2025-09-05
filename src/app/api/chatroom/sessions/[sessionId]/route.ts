@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getServerSession } from '@/lib/auth-utils';
 import { SessionService } from '@/services/session-service';
+import { SessionParticipant } from '@/lib/redux/slices/session/types';
 
 export async function GET(request: NextRequest, { params }: { params: { sessionId: string } }) {
   const sessionInfo = await getServerSession();
@@ -12,7 +13,8 @@ export async function GET(request: NextRequest, { params }: { params: { sessionI
   const { sessionId } = params;
 
   try {
-    let session = SessionService.getSession(sessionId);
+    // FIX: Await the async getSession call
+    let session = await SessionService.getSession(sessionId);
 
     // If session is not in memory, try to recreate it from DB
     if (!session) {
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: { sessionI
     }
 
     // Security check: Ensure the requesting user is a participant
-    const isParticipant = session.participants.some(p => p.id === sessionInfo.user.id);
+    const isParticipant = session.participants.some((p: SessionParticipant) => p.id === sessionInfo.user.id);
     if (!isParticipant) {
         return NextResponse.json({ message: 'Accès interdit à cette session' }, { status: 403 });
     }
