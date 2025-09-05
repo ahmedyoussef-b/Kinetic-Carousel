@@ -32,18 +32,19 @@ export async function POST(request: NextRequest) {
 
     // Create a safe user object without the password
     const safeUser: SafeUser = {
-        id: user.id,
-        name: user.name,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        img: user.img,
-        active: user.active,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        twoFactorEnabled: user.twoFactorEnabled,
+      id: user.id,
+      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      img: user.img,
+      active: user.active,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      twoFactorEnabled: user.twoFactorEnabled,
+      lastSeen: null
     };
 
     const response = NextResponse.json({ user: safeUser });

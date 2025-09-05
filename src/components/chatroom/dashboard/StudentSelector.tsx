@@ -86,7 +86,11 @@ export default function StudentSelector({ classroom }: StudentSelectorProps) {
                     <div>
                       <p className="font-medium text-foreground flex items-center gap-2">
                         {student.name}
-                        {hasSignaled && <Hand className="w-4 h-4 text-yellow-500 animate-bounce" title="Présence signalée !" />}
+                        {hasSignaled && (
+                          <span title="Présence signalée !">
+                            <Hand className="w-4 h-4 text-yellow-500 animate-bounce" />
+                          </span>
+                        )}
                       </p>
                       <p className="text-sm text-muted-foreground">{student.email}</p>
                     </div>
