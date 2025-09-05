@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppSelector } from '@/hooks/redux-hooks';
-import { selectCurrentUser, selectIsAuthLoading } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser, selectIsAuthLoading } from '@/lib/redux/slices/authSlice';
 import { Role } from '@/types';
 import { Spinner } from '@/components/ui/spinner';
 import AdminHeader from '@/components/dashboard/admin/AdminHeader';
