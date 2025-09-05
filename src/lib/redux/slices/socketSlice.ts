@@ -1,4 +1,4 @@
-// src/lib/redux/slices/socketSlice.ts
+// src/lib/redux/slices/sessionSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Role } from '@/types';
 
@@ -26,8 +26,8 @@ const initialState: SocketState = {
   currentSession: null,
 };
 
-const socketSlice = createSlice({
-  name: 'socket',
+const sessionSlice = createSlice({
+  name: 'session',
   initialState,
   reducers: {
     setConnected: (state, action: PayloadAction<boolean>) => {
@@ -64,6 +64,6 @@ export const {
   removeInvitation,
   setCurrentSession,
   clearSession,
-} = socketSlice.actions;
+} = sessionSlice.actions;
 
-export default socketSlice.reducer;
+export default sessionSlice.reducer;

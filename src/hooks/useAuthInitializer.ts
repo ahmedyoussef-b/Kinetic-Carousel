@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { useGetSessionQuery } from '@/lib/redux/api/authApi';
 import { useAppDispatch } from './redux-hooks';
-import { setAuthLoading } from '@/lib/redux/features/auth/authSlice';
+import { setLoading } from '@/lib/redux/slices/authSlice'; // Corrected import
 
 /**
  * Custom hook to initialize the user's auth state.
@@ -23,6 +23,6 @@ export const useAuthInitializer = () => {
     // We only need to manually dispatch the loading state.
     useEffect(() => {
         console.log(`⚛️ [useAuthInitializer] Auth loading state changed. isLoading: ${isLoading}, isUninitialized: ${isUninitialized}`);
-        dispatch(setAuthLoading(isLoading || isUninitialized));
+        dispatch(setLoading(isLoading || isUninitialized));
     }, [isLoading, isUninitialized, dispatch]);
 };

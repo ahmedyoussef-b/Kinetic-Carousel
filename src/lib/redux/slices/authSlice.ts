@@ -1,4 +1,4 @@
-// src/lib/redux/features/auth/authSlice.ts
+// src/lib/redux/slices/authSlice.ts
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { SafeUser } from '@/types';
 
@@ -34,10 +34,10 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.error = null;
     },
-    setAuthLoading: (state, action: PayloadAction<boolean>) => {
+    setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    setAuthError: (state, action: PayloadAction<string>) => {
+    setError: (state, action: PayloadAction<string>) => {
         state.error = action.payload;
         state.isLoading = false;
     }
@@ -49,7 +49,7 @@ const authSlice = createSlice({
   }
 });
 
-export const { setUser, logout, setAuthLoading, setAuthError } = authSlice.actions;
+export const { setUser, logout, setLoading, setError } = authSlice.actions;
 
 export const { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } = authSlice.selectors;
 
