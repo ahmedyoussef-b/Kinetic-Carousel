@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
-import { setSelectedClass, fetchChatroomClasses, startSession, updateStudentPresence, fetchSessionState } from "@/lib/redux/slices/sessionSlice";
+import { setSelectedClass, fetchChatroomClasses, startSession, updateStudentPresence, fetchSessionState, studentSignaledPresence } from "@/lib/redux/slices/sessionSlice";
 import type { ClassRoom } from '@/lib/redux/slices/session/types';
 import ClassCard from '@/components/chatroom/dashboard/ClassCard';
 import StudentSelector from '@/components/chatroom/dashboard/StudentSelector';
 import TemplateSelector from '@/components/chatroom/dashboard/TemplateSelector';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { Role } from '@/types';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const { socket } = useSocket();
 
-  const { classes, selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session);
+  const { classes = [], selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session) || {};
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,23 +45,30 @@ export default function DashboardPage() {
     }
   }, [dispatch, classes.length, loading, user]);
   
-  // Effect for presence updates via Socket.IO
+  // Effect for presence and signal updates via Socket.IO
   useEffect(() => {
     if (!socket || user?.role !== Role.TEACHER) return;
 
-    console.log("🧑‍🏫 [TeacherView] Setting up Socket.IO presence listener.");
+    console.log("🧑‍🏫 [TeacherView] Setting up Socket.IO listeners.");
 
     const handlePresenceUpdate = (onlineUserIds: string[]) => {
-      console.log(`📡 [TeacherView] Received presence data via Socket. Online users: ${onlineUserIds.length}`, onlineUserIds);
+      console.log(`📡 [TeacherView] Received presence data. Online users: ${onlineUserIds.length}`, onlineUserIds);
       dispatch(updateStudentPresence({ onlineUserIds }));
     };
 
+    const handlePresenceSignal = (studentId: string) => {
+      console.log(`✋ [TeacherView] Received presence signal from student: ${studentId}`);
+      dispatch(studentSignaledPresence(studentId));
+    };
+
     socket.on('presence:update', handlePresenceUpdate);
+    socket.on('student:signaled_presence', handlePresenceSignal);
     socket.emit('presence:get'); // Initial fetch
 
     return () => {
-      console.log("🛑 [TeacherView] Clearing Socket.IO presence listener.");
+      console.log("🛑 [TeacherView] Clearing Socket.IO listeners.");
       socket.off('presence:update', handlePresenceUpdate);
+      socket.off('student:signaled_presence', handlePresenceSignal);
     };
   }, [socket, dispatch, user]);
 

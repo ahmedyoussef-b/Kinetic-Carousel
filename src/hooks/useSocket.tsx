@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from './redux-hooks';
 import { io, Socket } from 'socket.io-client';
-import { setConnected, setOnlineUsers, addInvitation, removeInvitation } from '@/lib/redux/slices/sessionSlice';
+import { updateStudentPresence, studentSignaledPresence } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
 import { RootState } from '../lib/redux/store';
 import { toast } from 'sonner';
@@ -23,71 +23,70 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!user) {
         if (socketRef.current) {
-            console.log("🔌 [SocketProvider] Utilisateur déconnecté, fermeture de la connexion socket.");
+            console.log("🔌 [SocketProvider] User logged out, disconnecting socket.");
             socketRef.current.disconnect();
             socketRef.current = null;
-            dispatch(setConnected(false));
         }
         return;
     }
 
-    if (socketRef.current) {
-        return; // Socket already initialized
+    if (socketRef.current?.connected) {
+        return; // Socket already initialized and connected
     }
 
-    // Use a relative URL by default so it works in any environment (local, staging, prod)
-    // The server is configured to listen for socket connections on the same port.
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-    console.log(`🔌 [SocketProvider] Initialisation de la connexion socket à ${socketUrl || 'l\'URL actuelle'} pour l'utilisateur ${user.id}`);
+    console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl || 'the current URL'} for user ${user.id}`);
 
+    // The auth object is the primary way to pass data on initial connection
     socketRef.current = io(socketUrl, {
       path: '/api/socket',
       transports: ['websocket', 'polling'],
       auth: {
-        userId: user.id, // Utiliser l'ID utilisateur pour l'authentification
+        userId: user.id,
       },
     });
 
     const socket = socketRef.current;
 
     socket.on('connect', () => {
-      console.log('✅ [Socket.IO] Connecté avec succès au serveur.');
-      dispatch(setConnected(true));
-      socket.emit('user:online', {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-      });
+      console.log('✅ [Socket.IO] Successfully connected to the server.');
     });
 
-    socket.on('disconnect', () => {
-      console.log('🔌 [Socket.IO] Déconnecté du serveur.');
-      dispatch(setConnected(false));
+    socket.on('disconnect', (reason) => {
+      console.log(`🔌 [Socket.IO] Disconnected from the server: ${reason}`);
+    });
+    
+    socket.on('connect_error', (err) => {
+      console.error(`❌ [Socket.IO] Connection error: ${err.message}`);
     });
 
-    socket.on('presence:update', (users: any[]) => {
-      dispatch(setOnlineUsers(users));
+    // --- CENTRALIZED EVENT LISTENERS ---
+    
+    socket.on('presence:update', (onlineUserIds: string[]) => {
+      console.log(`📡 [SocketProvider] Received presence update. Online users: ${onlineUserIds.length}`);
+      dispatch(updateStudentPresence({ onlineUserIds }));
     });
 
-    socket.on('session:invite', (invitation) => {
-      console.log(`📬 [Socket.IO] Invitation reçue pour la session: ${invitation.title}`);
+    socket.on('student:signaled_presence', (studentId: string) => {
+        console.log(`✋ [SocketProvider] Student ${studentId} signaled presence.`);
+        dispatch(studentSignaledPresence(studentId));
+    });
+
+    socket.on('session:invite', (sessionData) => {
+      console.log(`📬 [SocketProvider] Received invite for session: ${sessionData.title}`);
       dispatch(addNotification({
         type: 'session_invite',
-        title: `Invitation: ${invitation.title}`,
-        message: `De: ${invitation.host.name}`,
-        actionUrl: `/list/chatroom/session?sessionId=${invitation.id}`
+        title: `Invitation: ${sessionData.title}`,
+        message: `De: ${sessionData.host.name || 'Admin'}`,
+        actionUrl: `/list/chatroom/session?sessionId=${sessionData.id}`
       }));
-      toast.info(`Nouvelle invitation de ${invitation.host.name}`);
+      toast.info(`Nouvelle invitation de ${sessionData.host.name || 'Admin'}`);
     });
 
-    socket.on('invitation:declined', ({ studentName, sessionTitle }) => {
-      toast.warning(`${studentName} a décliné l'invitation pour la session "${sessionTitle}".`);
-    });
 
     return () => {
       if (socket) {
-        console.log("🔌 [SocketProvider] Nettoyage : déconnexion du socket.");
+        console.log("🔌 [SocketProvider] Cleanup: disconnecting socket.");
         socket.disconnect();
         socketRef.current = null;
       }

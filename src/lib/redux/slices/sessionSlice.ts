@@ -52,18 +52,23 @@ const sessionSlice = createSlice({
         state.signaledPresence.push(studentId);
       }
     },
-     setConnected: (state, action: PayloadAction<boolean>) => {
-      // state.isConnected = action.payload; // This property doesn't exist on SessionState
+    // The following reducers seem to belong to a different slice or are obsolete
+    // as they operate on state properties not present in SessionState.
+    // They are kept here but commented out to avoid confusion and potential errors.
+    /*
+    setConnected: (state, action: PayloadAction<boolean>) => {
+      // state.isConnected = action.payload;
     },
     setOnlineUsers: (state, action: PayloadAction<any[]>) => {
-       // state.onlineUsers = action.payload; // This property doesn't exist on SessionState
+       // state.onlineUsers = action.payload;
     },
     addInvitation: (state, action: PayloadAction<any>) => {
-      // state.invitations.push(action.payload); // This property doesn't exist on SessionState
+      // state.invitations.push(action.payload);
     },
     removeInvitation: (state, action: PayloadAction<string>) => {
-      // state.invitations = state.invitations.filter(inv => inv.id !== action.payload); // This property doesn't exist on SessionState
+      // state.invitations = state.invitations.filter(inv => inv.id !== action.payload);
     },
+    */
   },
   extraReducers: (builder) => {
     builder
@@ -135,7 +140,6 @@ export const {
   breakoutTimerTick,
   sendGeneralMessage,
   clearChatMessages,
-  // raiseHand and lowerHand are now async thunks, not regular actions
   clearAllRaisedHands,
   setMeetingCandidates,
   setSelectedClass,
@@ -163,10 +167,6 @@ export const {
   resetTimer,
   stopTimer,
   studentSignaledPresence,
-  setConnected,
-  setOnlineUsers,
-  addInvitation,
-  removeInvitation,
 } = sessionSlice.actions;
 
 // Re-export thunks for easy access from components
@@ -178,8 +178,8 @@ export {
   startMeeting,
   fetchSessionState,
   endSession,
-  raiseHand, // Re-exporting the thunk
-  lowerHand  // Re-exporting the thunk
+  raiseHand,
+  lowerHand
 };
 
 export default sessionSlice.reducer;
