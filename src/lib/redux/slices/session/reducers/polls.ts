@@ -34,7 +34,7 @@ export const pollReducers = {
     const option = poll.options.find(o => o.id === action.payload.optionId);
     if (option) option.votes.push(action.payload.studentId);
     
-    if (!hasVoted && state.activeSession.sessionType === 'class') {
+    if (!hasVoted && state.activeSession.sessionType === 'CLASS') {
       const student = state.activeSession.participants.find(p => p.id === action.payload.studentId);
       if (student) {
         student.points = (student.points || 0) + 2;
