@@ -77,7 +77,7 @@ app.prepare().then(() => {
         console.log(`🚀 [Session] Starting session "${sessionData.title}"`);
         if (!sessionData.participants || sessionData.participants.length === 0) return;
 
-        sessionData.participants.forEach((participant: { id: any; userId: string; role: Role }) => {
+        sessionData.participants.forEach((participant) => {
             if (participant.role === Role.STUDENT || participant.role === Role.TEACHER) {
                 const targetSocketId = onlineUsers.get(participant.userId);
                 if (targetSocketId) {
