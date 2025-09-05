@@ -1,0 +1,187 @@
+
+'use client';
+export const dynamic = 'force-dynamic';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, BarChart3, Clock, Users, TrendingUp, Loader2 } from 'lucide-react';
+import { useAppSelector } from '@/lib/redux/store';
+import SessionReportCard from '@/components/chatroom/reports/SessionReportCard';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
+import { Role } from '@/types';
+import type { SessionReport } from '@/lib/redux/slices/reportSlice';
+
+export default function AdminReportsPage() {
+  const router = useRouter();
+  const user = useAppSelector(selectCurrentUser);
+  const [reports, setReports] = useState<SessionReport[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user && user.role !== Role.ADMIN) {
+      router.replace('/');
+      return;
+    }
+
+    async function fetchReports() {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/chatroom/reports');
+        if (response.ok) {
+          const data = await response.json();
+          setReports(data);
+        } else {
+          console.error("Échec de la récupération des rapports : la réponse n'est pas OK.", response.status);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des rapports:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    if (user) {
+        fetchReports();
+    }
+
+  }, [user, router]);
+
+  if (!user || user.role !== Role.ADMIN) {
+    return <div>Accès non autorisé</div>;
+  }
+
+  const totalSessions = reports.length;  
+  const activeSessions = reports.filter(s => s.status.toLowerCase() === 'active').length;
+  const completedSessions = reports.filter(s => s.status.toLowerCase() === 'ended').length;
+  const totalParticipants = reports.reduce((sum, s) => sum + s.participants.length, 0);
+  const averageSessionDuration = totalSessions > 0
+    ? reports.reduce((sum, s) => sum + s.duration, 0) / totalSessions
+    : 0;
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/admin')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Retour au tableau de bord
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-3 mb-2">
+            <BarChart3 className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Rapports de Session (Admin)</h1>
+          </div>
+          <p className="text-gray-600">Vue d'ensemble de toutes les sessions de chatroom organisées par les professeurs.</p>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Sessions totales</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalSessions}</div>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="secondary">{activeSessions} actives</Badge>
+                <Badge variant="outline">{completedSessions} terminées</Badge>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Participants totaux</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalParticipants}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Moyenne: {totalSessions > 0 ? Math.round(totalParticipants / totalSessions) : 0} par session
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Durée moyenne</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatDuration(Math.round(averageSessionDuration))}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Par session
+              </p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Engagement</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {totalSessions > 0 ? Math.round((totalParticipants / (totalSessions * 4)) * 100) : 0}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Taux de participation moyen
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sessions List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Historique des Sessions</CardTitle>
+            <CardDescription>
+              Liste détaillée de toutes les sessions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : reports.length === 0 ? (
+              <div className="text-center py-8">
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Aucun rapport de session disponible
+                </h3>
+                <p className="text-gray-500">
+                  Les rapports des sessions créées par les professeurs apparaîtront ici.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-6">
+                {reports.map((session) => (
+                  <SessionReportCard key={session.id} session={session} />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
