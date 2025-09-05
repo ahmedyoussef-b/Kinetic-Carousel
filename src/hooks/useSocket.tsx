@@ -34,8 +34,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         return; // Socket already initialized and connected
     }
     
-    // Correction : Utilisation de l'URL absolue pour forcer la connexion correcte dans l'environnement de production/développement.
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://9000-firebase-kinetic-carousel1-1756635081356.cluster-cbeiita7rbe7iuwhvjs5zww2i4.cloudworkstations.dev';
+    // Correction: Use a relative path for the socket URL to work in both dev and prod.
+    // The server will handle the path /api/socket.
+    const socketUrl = '/'; 
     console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl} for user ${user.id}`);
 
 
@@ -44,7 +45,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       path: '/api/socket',
       transports: ['websocket', 'polling'],
       auth: {
-        userId: user.id,
+        userId: user.id, // Use the correct user ID from the session
       },
     });
 
