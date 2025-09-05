@@ -1,7 +1,7 @@
 // src/components/BigCalender.tsx
 "use client";
 
-import { Calendar, momentLocalizer, View, Views, type NavigateAction, type Messages, type ToolbarProps } from "react-big-calendar";
+import { Calendar, momentLocalizer, View, Views, type NavigateAction, type Messages, type ToolbarProps, type DateLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "moment/locale/fr"; 
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -102,12 +102,12 @@ const BigCalendar = ({
       }}
       messages={messages}
       formats={{
-        dayFormat: (date, culture, localizer) =>
-          localizer!.format(date, 'dddd', culture), 
-        weekdayFormat: (date, culture, localizer) =>
-          localizer!.format(date, 'ddd', culture),
-        dayHeaderFormat: (date, culture, localizer) =>
-          localizer!.format(date, 'dddd, D MMM', culture), // Format français
+        dayFormat: (date, culture, localizer: DateLocalizer) =>
+          localizer.format(date, 'dddd', culture), 
+        weekdayFormat: (date, culture, localizer: DateLocalizer) =>
+          localizer.format(date, 'ddd', culture),
+        dayHeaderFormat: (date, culture, localizer: DateLocalizer) =>
+          localizer.format(date, 'dddd, D MMM', culture), // Format français
       }}
     />
   );
