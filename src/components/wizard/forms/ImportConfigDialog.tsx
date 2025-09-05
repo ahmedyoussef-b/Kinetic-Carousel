@@ -82,6 +82,10 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
         skipEmptyLines: true,
         complete: (results: ParseResult<any>) => {
           try {
+            if (results.errors.length > 0) {
+              throw new Error(results.errors.map(e => e.message).join(', '));
+            }
+
             if (type === 'subjects') {
               const parsedData = z.array(subjectSchema).parse(results.data);
               const subjects: Subject[] = parsedData.map((item, index) => ({
@@ -197,10 +201,6 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
             setLoading(null);
           }
         },
-        error: (err: ParseError) => {
-          setError(err.message);
-          setLoading(null);
-        }
     });
   };
   
