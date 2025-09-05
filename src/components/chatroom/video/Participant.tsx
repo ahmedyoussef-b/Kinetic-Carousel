@@ -26,8 +26,11 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
     };
 
     const trackUnsubscribed = (track: Track) => {
-      track.detach().forEach(element => element.remove());
+      track.detach().forEach((element: HTMLElement) => element.remove());
     };
+
+    participant.on('trackSubscribed', trackSubscribed);
+    participant.on('trackUnsubscribed', trackUnsubscribed);
 
     // Attach already subscribed tracks
     participant.tracks.forEach(publication => {
@@ -35,10 +38,6 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
         trackSubscribed(publication.track);
       }
     });
-
-    // Add event listeners for new tracks
-    participant.on('trackSubscribed', trackSubscribed);
-    participant.on('trackUnsubscribed', trackUnsubscribed);
 
     return () => {
       participant.off('trackSubscribed', trackSubscribed);
