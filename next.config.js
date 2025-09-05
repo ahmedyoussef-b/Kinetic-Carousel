@@ -4,9 +4,6 @@ const nextConfig = {
   swcMinify: true,
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client'],
-    // This option is required for the Firebase Studio development environment.
-    // It tells Next.js how to correctly route WebSocket requests through the proxy.
-    websocketProxyPath: "/api/socket",
   },
   typescript: {
     ignoreBuildErrors: true,
