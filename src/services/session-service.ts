@@ -2,6 +2,10 @@
 import type { ActiveSession, SessionParticipant as ClientParticipant, ChatroomMessage as ClientMessage, SessionType } from '@/lib/redux/slices/session/types';
 import prisma from '@/lib/prisma';
 import { Role } from '@/types';
+import { SessionParticipant as PrismaSessionParticipant, User } from '@prisma/client';
+
+
+type PrismaSessionParticipantWithUser = PrismaSessionParticipant & { user: User | null };
 
 class SessionServiceController {
   constructor() {
@@ -127,7 +131,7 @@ class SessionServiceController {
     const raisedHandsUserIds = dbSession.raisedHands?.map((rh: any) => rh.userId) || [];
 
     const participants: ClientParticipant[] = (dbSession.participants || [])
-    .map((p: any) => {
+    .map((p: PrismaSessionParticipantWithUser) => {
         if (!p.user) {
             console.warn(`[SessionService] Participant avec userId ${p.userId} n'a pas d'objet 'user' associé. Il sera ignoré.`);
             return null;
