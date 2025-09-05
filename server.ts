@@ -122,4 +122,17 @@ app.prepare().then(() => {
   httpServer.listen(port, hostname, () => {
     console.log(`✅ Server is ready and listening on http://${hostname}:${port}`);
   });
+  
+  // Graceful shutdown logic
+  const cleanup = async () => {
+    console.log('🔌 [Server] Closing server and disconnecting Prisma...');
+    await prisma.$disconnect();
+    httpServer.close(() => {
+        console.log('✅ [Server] Server closed.');
+        process.exit(0);
+    });
+  };
+
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
 });
