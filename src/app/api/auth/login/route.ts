@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
+import { SafeUser } from '@/types';
 
 export async function POST(request: NextRequest) {
   console.log("--- 🚀 API: Tentative de connexion via le backend ---");
@@ -35,8 +36,10 @@ export async function POST(request: NextRequest) {
     const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
     console.log(`✅ [API/login] Cookie de session créé.`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = user;
+    // Create a safe user object without the password
+    const { password, ...safeUserData } = user;
+    const safeUser: SafeUser = safeUserData;
+
     const response = NextResponse.json({ user: safeUser });
 
     console.log(`[API/login] Définition du cookie de session dans la réponse...`);
