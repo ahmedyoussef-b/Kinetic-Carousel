@@ -1,33 +1,57 @@
-// src/hooks/useSocket.ts
-import { useEffect, useRef } from 'react';
+// src/hooks/useSocket.tsx
+import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from './redux-hooks';
 import { io, Socket } from 'socket.io-client';
-import { setConnected, setOnlineUsers, addInvitation } from '../lib/redux/slices/socketSlice';
+import { setConnected, setOnlineUsers, addInvitation, removeInvitation } from '@/lib/redux/slices/sessionSlice';
+import { addNotification } from '@/lib/redux/slices/notificationSlice';
 import { RootState } from '../lib/redux/store';
+import { toast } from 'sonner';
 
-export const useSocket = () => {
+interface SocketContextType {
+  socket: Socket | null;
+}
+
+const SocketContext = createContext<SocketContextType>({ socket: null });
+
+export const useSocket = () => useContext(SocketContext);
+
+export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state: RootState) => state.auth);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+        if (socketRef.current) {
+            console.log("🔌 [SocketProvider] Utilisateur déconnecté, fermeture de la connexion socket.");
+            socketRef.current.disconnect();
+            socketRef.current = null;
+            dispatch(setConnected(false));
+        }
+        return;
+    }
 
-    // Use NEXT_PUBLIC_SOCKET_URL for both environments, relying on .env files
+    if (socketRef.current) {
+        return; // Socket already initialized
+    }
+
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000';
+    console.log(`🔌 [SocketProvider] Initialisation de la connexion socket à ${socketUrl} pour l'utilisateur ${user.id}`);
 
     socketRef.current = io(socketUrl, {
-      path: '/api/socket', // Important: specify the path
+      path: '/api/socket',
       transports: ['websocket', 'polling'],
       auth: {
-        userId: user.id,
-        role: user.role,
+        userId: user.id, // Utiliser l'ID utilisateur pour l'authentification
       },
     });
 
-    socketRef.current.on('connect', () => {
+    const socket = socketRef.current;
+
+    socket.on('connect', () => {
+      console.log('✅ [Socket.IO] Connecté avec succès au serveur.');
       dispatch(setConnected(true));
-      socketRef.current?.emit('user-online', {
+      socket.emit('user:online', {
         id: user.id,
         email: user.email,
         role: user.role,
@@ -35,42 +59,42 @@ export const useSocket = () => {
       });
     });
 
-    socketRef.current.on('disconnect', () => {
+    socket.on('disconnect', () => {
+      console.log('🔌 [Socket.IO] Déconnecté du serveur.');
       dispatch(setConnected(false));
     });
 
-    socketRef.current.on('users-online', (users: any[]) => {
+    socket.on('presence:update', (users: any[]) => {
       dispatch(setOnlineUsers(users));
     });
 
-    socketRef.current.on('receive-invitation', (invitation: any) => {
-      dispatch(addInvitation(invitation));
+    socket.on('session:invite', (invitation) => {
+      console.log(`📬 [Socket.IO] Invitation reçue pour la session: ${invitation.title}`);
+      dispatch(addNotification({
+        type: 'session_invite',
+        title: `Invitation: ${invitation.title}`,
+        message: `De: ${invitation.host.name}`,
+        actionUrl: `/list/chatroom/session?sessionId=${invitation.id}`
+      }));
+      toast.info(`Nouvelle invitation de ${invitation.host.name}`);
+    });
+
+    socket.on('invitation:declined', ({ studentName, sessionTitle }) => {
+      toast.warning(`${studentName} a décliné l'invitation pour la session "${sessionTitle}".`);
     });
 
     return () => {
-      socketRef.current?.disconnect();
+      if (socket) {
+        console.log("🔌 [SocketProvider] Nettoyage : déconnexion du socket.");
+        socket.disconnect();
+        socketRef.current = null;
+      }
     };
   }, [user, dispatch]);
 
-  const sendInvitation = (studentSocketId: string, sessionData: any) => {
-    socketRef.current?.emit('send-invitation', {
-      studentSocketId,
-      teacher: user,
-      sessionData,
-    });
-  };
-
-  const respondToInvitation = (invitation: any, accepted: boolean) => {
-    socketRef.current?.emit('invitation-response', {
-      invitation,
-      accepted,
-      student: user,
-    });
-  };
-
-  return {
-    socket: socketRef.current,
-    sendInvitation,
-    respondToInvitation,
-  };
+  return (
+    <SocketContext.Provider value={{ socket: socketRef.current }}>
+      {children}
+    </SocketContext.Provider>
+  );
 };

@@ -1,53 +1,57 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 import prisma from '@/lib/prisma';
+import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
+import { SESSION_COOKIE_NAME } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
+  console.log("--- 🚀 API: Tentative de connexion via le backend ---");
   try {
-    const { email, password } = await request.json();
+    const { idToken } = await request.json();
 
-    // Firebase authentication
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const firebaseUser = userCredential.user;
+    if (!idToken) {
+      return NextResponse.json({ message: "Le token ID est manquant." }, { status: 400 });
+    }
 
-    // Find user in database
+    const admin = await initializeFirebaseAdmin();
+    const auth = admin.auth();
+    
+    console.log("🔍 [API/login] Vérification du token ID Firebase...");
+    const decodedToken = await auth.verifyIdToken(idToken);
+    console.log(`✅ [API/login] Token ID vérifié pour UID: ${decodedToken.uid}`);
+
     const user = await prisma.user.findUnique({
-      where: { id: firebaseUser.uid },
+      where: { id: decodedToken.uid },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { message: 'User not found in database' },
-        { status: 404 }
-      );
+      console.error(`❌ [API/login] Utilisateur non trouvé dans la base de données pour UID: ${decodedToken.uid}`);
+      return NextResponse.json({ message: "Utilisateur non trouvé." }, { status: 404 });
     }
 
-    // Create session token
-    const token = await firebaseUser.getIdToken();
+    console.log(`[API/login] Création du cookie de session...`);
+    // Durée de validité du cookie de session (ex: 7 jours)
+    const expiresIn = 60 * 60 * 24 * 7 * 1000;
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+    console.log(`✅ [API/login] Cookie de session créé.`);
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = user;
+    const { password, ...safeUser } = user;
+    const response = NextResponse.json({ user: safeUser });
 
-    const response = NextResponse.json({
-      user: safeUser,
-    });
-
-    // Set cookie
-    response.cookies.set('session-token', token, {
+    console.log(`[API/login] Définition du cookie de session dans la réponse...`);
+    response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      maxAge: expiresIn,
       path: '/',
     });
 
     return response;
+
   } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json(
-      { message: 'Authentication failed' },
-      { status: 401 }
-    );
+    console.error('❌ [API/login] Erreur de connexion:', error);
+    return NextResponse.json({ message: "L'authentification a échoué." }, { status: 401 });
   }
 }

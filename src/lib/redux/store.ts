@@ -10,7 +10,7 @@ import { draftApi } from './api/draftApi';
 
 // Slices
 import authReducer from './features/auth/authSlice';
-import sessionReducer from './slices/sessionSlice';
+import socketReducer from './slices/socketSlice'; // Corrected Path
 import notificationReducer from './slices/notificationSlice';
 import reportReducer from './slices/reportSlice';
 import wizardReducer, { setInitialData } from './features/wizardSlice';
@@ -28,10 +28,12 @@ import teacherAssignmentsReducer, { setAllTeacherAssignments } from './features/
 import scheduleReducer, { setInitialSchedule } from './features/schedule/scheduleSlice';
 import scheduleDraftReducer from './features/scheduleDraftSlice';
 import attendanceReducer from './features/attendance/attendanceSlice';
+import sessionReducer from './slices/sessionSlice';
 
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  socket: socketReducer,
   session: sessionReducer,
   reports: reportReducer,
   notifications: notificationReducer,
