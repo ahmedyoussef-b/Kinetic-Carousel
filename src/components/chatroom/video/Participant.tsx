@@ -5,7 +5,8 @@ import {
   LocalParticipant,
   RemoteParticipant,
   Track,
-  TrackPublication,
+  RemoteTrack,
+  LocalTrack,
 } from 'twilio-video';
 
 interface ParticipantProps {
@@ -17,7 +18,7 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
   const audioRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const trackSubscribed = (track: Track) => {
+    const trackSubscribed = (track: RemoteTrack | LocalTrack) => {
       if (track.kind === 'video' && videoRef.current) {
         videoRef.current.appendChild(track.attach());
       } else if (track.kind === 'audio' && audioRef.current) {
@@ -25,10 +26,8 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
       }
     };
 
-    const trackUnsubscribed = (track: Track) => {
-      if (track.kind === 'video' || track.kind === 'audio') {
-        track.detach().forEach((element: HTMLElement) => element.remove());
-      }
+    const trackUnsubscribed = (track: RemoteTrack | LocalTrack) => {
+      track.detach().forEach((element: HTMLElement) => element.remove());
     };
 
     participant.on('trackSubscribed', trackSubscribed);
