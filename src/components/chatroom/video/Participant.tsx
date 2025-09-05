@@ -27,7 +27,9 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
     };
 
     const trackUnsubscribed = (track: RemoteTrack | LocalTrack) => {
-      track.detach().forEach((element: HTMLElement) => element.remove());
+      if (track.kind === 'video' || track.kind === 'audio') {
+        track.detach().forEach((element: HTMLElement) => element.remove());
+      }
     };
 
     participant.on('trackSubscribed', trackSubscribed);
