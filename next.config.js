@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Cette option est requise pour l'environnement de développement de Firebase Studio.
-  allowedDevOrigins: ["*.cloudworkstations.dev"],
+  // Ajout de la configuration expérimentale pour le proxy WebSocket
+  experimental: {
+    // Cette option est requise pour l'environnement de développement de Firebase Studio.
+    // Elle indique à Next.js comment router correctement les requêtes WebSocket via le proxy.
+    websocketProxyPath: "/_next/webpack-hmr",
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
