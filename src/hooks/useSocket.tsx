@@ -14,7 +14,7 @@ interface PusherContextType {
 
 const PusherContext = createContext<PusherContextType>({ pusher: null });
 
-export const usePusher = () => useContext(PusherContext);
+export const useSocket = () => useContext(PusherContext);
 
 export const PusherProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch();
@@ -118,4 +118,3 @@ export const PusherProvider = ({ children }: { children: ReactNode }) => {
     </PusherContext.Provider>
   );
 };
-
