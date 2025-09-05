@@ -1,6 +1,6 @@
 // src/lib/redux/api/authApi.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { setUser, logout as logoutAction } from '../features/auth/authSlice';
+import { setUser, logout as logoutAction } from '../slices/authSlice';
 import type { SafeUser, Role } from '@/types/index';
 
 // --- Response Types ---
