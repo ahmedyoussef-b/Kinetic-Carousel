@@ -46,6 +46,7 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
     }
 
     const interval = setInterval(() => {
+      // Dispatch the tickTimer action directly from sessionActions
       dispatch(sessionActions.tickTimer());
     }, 1000);
 
