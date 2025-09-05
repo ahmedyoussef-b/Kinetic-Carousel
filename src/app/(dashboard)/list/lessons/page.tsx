@@ -45,7 +45,7 @@ const LessonListPage = async ({
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-muted/50 transition-colors"
     >
       <td className="flex items-center gap-4 p-4">{item.subject.name}</td>
-      <td>{item.class?.name}</td>
+      <td>{item.class?.name || 'N/A'}</td>
       <td className="hidden md:table-cell">
         {item.teacher.name + " " + item.teacher.surname}
       </td>
