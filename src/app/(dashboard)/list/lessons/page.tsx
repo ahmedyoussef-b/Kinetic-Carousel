@@ -1,3 +1,4 @@
+
 // src/app/(dashboard)/list/lessons/page.tsx
 import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 
 type LessonListItem = Omit<Lesson, 'startTime' | 'endTime' | 'createdAt' | 'updatedAt'> & {
   subject: Pick<Subject, 'name'>;
-  class: Pick<Class, 'name'> | null;
+  class: Pick<Class, 'name'> | null; // Allow class to be null
   teacher: Pick<Teacher, 'name' | 'surname'>;
   startTime: string;
   endTime: string;
