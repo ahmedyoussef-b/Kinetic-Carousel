@@ -1,7 +1,7 @@
 // src/components/wizard/ScenarioManager.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -14,7 +14,7 @@ import {
 import { setInitialData } from '@/lib/redux/features/wizardSlice';
 import useWizardData from '@/hooks/useWizardData';
 import { selectActiveDraft, setActiveDraft as setActiveDraftAction } from '@/lib/redux/features/scheduleDraftSlice';
-
+import { parseDraftToWizardData, serializeWizardDataForUpdate } from '@/lib/draft-utils'; // Import new utils
 
 // UI Components
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -63,16 +63,17 @@ export default function ScenarioManager() {
     }
 
     try {
-        const payload = {
+        const payload = serializeWizardDataForUpdate({
+            ...wizardData,
             name: newScenarioName,
             description: newScenarioDesc,
-            ...wizardData, // Send the entire wizard data object
-        };
+        });
         
         const newDraftData = await createDraft(payload as any).unwrap();
         
+        const wizardFormatData = await parseDraftToWizardData(newDraftData);
         dispatch(setActiveDraftAction(newDraftData));
-        dispatch(setInitialData(newDraftData));
+        dispatch(setInitialData(wizardFormatData));
 
         toast({ title: 'Nouveau scénario créé et activé' });
         setNewScenarioName('');
@@ -85,9 +86,14 @@ export default function ScenarioManager() {
 
   const handleLoad = async (draftId: string) => {
     try {
-        const activatedDraft = await activateDraft(draftId).unwrap();
-        dispatch(setActiveDraftAction(activatedDraft));
-        dispatch(setInitialData(activatedDraft));
+        const draftToLoad = drafts.find(d => d.id === draftId);
+        if (!draftToLoad) throw new Error("Scénario non trouvé.");
+
+        await activateDraft(draftId).unwrap();
+
+        const wizardFormatData = await parseDraftToWizardData(draftToLoad);
+        dispatch(setActiveDraftAction(draftToLoad));
+        dispatch(setInitialData(wizardFormatData));
         toast({ title: 'Scénario activé', description: "Les données du scénario ont été chargées." });
         setIsDialogOpen(false);
     } catch (error: any) {
@@ -108,12 +114,12 @@ export default function ScenarioManager() {
     if (!activeDraft) return;
 
     try {
-        const payload = {
-            id: activeDraft.id,
+        const payload = serializeWizardDataForUpdate({
+            ...wizardData,
+            id: activeDraft.id, // Ensure ID is passed for update
             name: activeDraft.name,
             description: activeDraft.description,
-            ...wizardData,
-        };
+        });
 
         const updatedDraftData = await updateDraft(payload).unwrap();
         

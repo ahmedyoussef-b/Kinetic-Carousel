@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "@/lib/redux/features/auth/authSlice";
+import { selectCurrentUser } from "@/lib/redux/slices/authSlice";
 import type { SafeUser, Role } from "@/types";
 import { menuItems } from "@/lib/constants"; 
 import { cn } from "@/lib/utils";
