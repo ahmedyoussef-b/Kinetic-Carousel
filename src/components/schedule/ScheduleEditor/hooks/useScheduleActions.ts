@@ -177,9 +177,12 @@ export const useScheduleActions = (
 
   const handleUpdateLessonSlot = useCallback(async (lessonId: number, newDay: Day, newTime: string) => {
     const lessonToUpdate = fullSchedule.find(l => l.id === lessonId);
-    if (!lessonToUpdate || lessonToUpdate.classId === null) return; // Do not update if classId is null
+    if (!lessonToUpdate || lessonToUpdate.classId === null) return;
     
-    const durationMs = new Date(lessonToUpdate.endTime).getTime() - new Date(lessonToUpdate.startTime).getTime();
+    // Explicitly cast to ensure classId is a number after the check
+    const validLessonToUpdate = lessonToUpdate as Lesson & { classId: number };
+
+    const durationMs = new Date(validLessonToUpdate.endTime).getTime() - new Date(validLessonToUpdate.startTime).getTime();
     const newStartTime = new Date(Date.UTC(2000, 0, 1, ...newTime.split(':').map(Number) as [number, number]));
     const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
@@ -188,11 +191,10 @@ export const useScheduleActions = (
       day: newDay,
       startTime: formatTimeSimple(newStartTime),
       endTime: formatTimeSimple(newEndTime),
-      // TODO: Replace with actual data from lessonToUpdate or context
-      name: lessonToUpdate.name,
-      subjectId: lessonToUpdate.subjectId,
-      classId: lessonToUpdate.classId,
-      teacherId: lessonToUpdate.teacherId,
+      name: validLessonToUpdate.name,
+      subjectId: validLessonToUpdate.subjectId,
+      classId: validLessonToUpdate.classId, // This is now guaranteed to be a number
+      teacherId: validLessonToUpdate.teacherId,
     };
 
     try {
