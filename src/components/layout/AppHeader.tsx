@@ -6,7 +6,7 @@ import { LogOut, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { selectCurrentUser, selectIsAuthLoading } from "@/lib/redux/features/auth/authSlice";
+import { selectCurrentUser, selectIsAuthLoading } from "@/lib/redux/slices/authSlice";
 import { useLogoutMutation } from "@/lib/redux/api/authApi";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
