@@ -177,7 +177,7 @@ export const useScheduleActions = (
 
   const handleUpdateLessonSlot = useCallback(async (lessonId: number, newDay: Day, newTime: string) => {
     const lessonToUpdate = fullSchedule.find(l => l.id === lessonId);
-    if (!lessonToUpdate) return;
+    if (!lessonToUpdate || lessonToUpdate.classId === null) return; // Do not update if classId is null
     
     const durationMs = new Date(lessonToUpdate.endTime).getTime() - new Date(lessonToUpdate.startTime).getTime();
     const newStartTime = new Date(Date.UTC(2000, 0, 1, ...newTime.split(':').map(Number) as [number, number]));
