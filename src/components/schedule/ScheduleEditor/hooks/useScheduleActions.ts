@@ -129,17 +129,20 @@ export const useScheduleActions = (
     
     const availableRoom = potentialRooms[0] || null;
 
-    // This assertion guarantees classId is a number for the payload
-    const finalClassId = classInfo.id; 
+    if (typeof classInfo.id !== 'number') {
+        toast({ variant: "destructive", title: "ID de classe invalide", description: "L'ID de la classe sélectionnée n'est pas valide." });
+        return;
+    }
+    const finalClassId = classInfo.id;
 
     // Explicitly type the payload to match what createLesson expects
-    const newLessonPayload: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'> = {
+    const newLessonPayload: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'> & { classId: number } = {
       name: `${subjectInfo.name} - ${classInfo.name}`,
       day: day,
       startTime: lessonStartTimeDate.toISOString(),
       endTime: lessonEndTimeDate.toISOString(),
       subjectId: subjectInfo.id,
-      classId: finalClassId, // This is now guaranteed to be a number
+      classId: finalClassId,
       teacherId: teacherInfo.id,
       classroomId: availableRoom ? availableRoom.id : null,
       scheduleDraftId: wizardData.scheduleDraftId || null,
@@ -149,7 +152,7 @@ export const useScheduleActions = (
     try {
       // Optimistically add to state with a temporary ID
       const tempId = -Date.now();
-      dispatch(addLesson({ ...newLessonPayload, id: tempId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }));
+      dispatch(addLesson({ ...(newLessonPayload as Lesson), id: tempId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }));
 
       const createdLesson = await createLesson(newLessonPayload).unwrap();
       // Replace temporary lesson with the real one from the server
