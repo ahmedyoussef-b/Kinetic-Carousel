@@ -64,7 +64,7 @@ export interface Badge {
 }
 
 export interface SessionParticipant {
-  id: string;
+  id: string; // This should be the unique ID of the participant (user ID)
   userId: string; // Ensure userId is always present
   name: string;
   email: string;

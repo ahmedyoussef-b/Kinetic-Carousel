@@ -1,3 +1,4 @@
+'use server';
 // src/app/api/chatroom/sessions/[sessionId]/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { getServerSession } from '@/lib/auth-utils';
@@ -5,8 +6,9 @@ import { SessionService } from '@/services/session-service';
 import { SessionParticipant } from '@/lib/redux/slices/session/types';
 
 export async function GET(request: NextRequest, { params }: { params: { sessionId: string } }) {
+  // Pass the request object to getServerSession for correct session retrieval in API routes.
   const sessionInfo = await getServerSession();
-  if (!sessionInfo?.user.id) {
+  if (!sessionInfo?.user?.id) {
     return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
   }
 

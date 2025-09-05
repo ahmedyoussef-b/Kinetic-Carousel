@@ -52,12 +52,10 @@ const ViewModeTabs: React.FC<ViewModeTabsProps> = ({
               <SelectValue placeholder="Sélectionner une classe..." />
             </SelectTrigger>
             <SelectContent>
-              {classes.map(classItem => (
-                classItem && classItem.id ? (
-                  <SelectItem key={classItem.id} value={classItem.id.toString()}>
-                    {classItem.name}
-                  </SelectItem>
-                ) : null
+              {classes.filter(classItem => classItem && classItem.id).map(classItem => (
+                <SelectItem key={classItem.id} value={classItem.id.toString()}>
+                  {classItem.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -70,12 +68,10 @@ const ViewModeTabs: React.FC<ViewModeTabsProps> = ({
               <SelectValue placeholder="Sélectionner un professeur..." />
             </SelectTrigger>
             <SelectContent>
-              {teachers.map(teacher => (
-                teacher && teacher.id ? (
-                  <SelectItem key={teacher.id} value={teacher.id}>
-                    {teacher.name} {teacher.surname}
-                  </SelectItem>
-                ) : null
+              {teachers.filter(teacher => teacher && teacher.id).map(teacher => (
+                <SelectItem key={teacher.id} value={teacher.id}>
+                  {teacher.name} {teacher.surname}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

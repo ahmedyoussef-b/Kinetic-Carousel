@@ -1,7 +1,6 @@
 // src/components/chatroom/video/VideoChat.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
-// import { Video } from 'twilio-video'; // Assuming twilio-video is installed
 import Room from './Room';
 import { SafeUser } from '@/types';
 import { Loader2 } from 'lucide-react';
@@ -14,9 +13,14 @@ interface VideoChatProps {
 
 const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
     const [token, setToken] = useState<string | null>(null);
-    const [connecting, setConnecting] = useState(false);
 
     useEffect(() => {
+        // Ensure user and user.id are available before fetching the token
+        if (!user?.id || !roomName) {
+            console.warn("VideoChat: Tentative de récupération du jeton sans ID utilisateur ou nom de salle.");
+            return;
+        }
+
         const getToken = async () => {
             try {
                 const response = await fetch('/api/video/token', {
@@ -24,12 +28,13 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        identity: user.name || user.email, // Use user's name or email as identity
-                        room: roomName,
-                    }),
-                    credentials: 'include', // FIX: Add credentials to the request
+                    body: JSON.stringify({ roomName, identity: user.id }), // Pass identity and roomName in the body
                 });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch token: ${response.statusText}`);
+                }
+
                 const data = await response.json();
                 setToken(data.token);
             } catch (error) {
@@ -38,7 +43,7 @@ const VideoChat: React.FC<VideoChatProps> = ({ roomName, user }) => {
         };
 
         getToken();
-    }, [roomName, user.name, user.email]);
+    }, [roomName, user.id]); // Depend on user.id to ensure user is loaded
 
     if (!token) {
         return (

@@ -5,13 +5,9 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client'],
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  output: 'export',
   images: {
+    unoptimized: true,
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {
@@ -52,6 +48,55 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT" },
+          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
+        ]
+      }
+    ]
+  },
+  allowedDevOrigins: ["*.cloudworkstations.dev"],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  webpack: (config, { isServer, dev }) => {
+    config.experiments = { ...config.experiments, asyncWebAssembly: true, topLevelAwait: true };
+
+    if (dev && !isServer) {
+      config.watchOptions.poll = 300;
+    }
+
+    config.module.rules.push({
+      test: /\.mjs$/,
+      include: /node_modules/,
+      type: 'javascript/auto',
+    });
+
+    config.module.rules.push({
+        test: /\.svg$/,
+        use: [{
+            loader: '@svgr/webpack',
+            options: {},
+        }],
+    });
+
+    config.resolve.alias = {
+        ...config.resolve.alias,
+        'handlebars/runtime': 'handlebars/dist/cjs/handlebars.runtime',
+        'handlebars': 'handlebars/dist/cjs/handlebars',
+    };
+
+    return config;
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

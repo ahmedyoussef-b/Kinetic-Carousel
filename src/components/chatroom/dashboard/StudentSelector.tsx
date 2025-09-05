@@ -25,8 +25,8 @@ export default function StudentSelector({ classroom }: StudentSelectorProps) {
   const students = classroom.students || [];
 
   const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (student.email && student.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (student.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleStudentToggle = (studentId: string) => {
@@ -53,14 +53,14 @@ export default function StudentSelector({ classroom }: StudentSelectorProps) {
       <ScrollArea className="h-96">
         <div className="space-y-3 pr-4">
           {filteredStudents.map((student: SessionParticipant) => {
-            const isSelected = selectedStudents.includes(student.id);
+            const isSelected = selectedStudents.includes(student.id!);
             const isDisabled = !student.isOnline;
             const hasSignaled = signaledPresence.includes(student.userId!);
             
             return (
               <div
                 key={student.id}
-                onClick={() => !isDisabled && handleStudentToggle(student.id)}
+                onClick={() => !isDisabled && handleStudentToggle(student.id!)}
                 className={cn(
                   "flex items-center space-x-4 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer",
                   isDisabled 
@@ -72,15 +72,15 @@ export default function StudentSelector({ classroom }: StudentSelectorProps) {
                 <Checkbox
                   id={`student-${student.id}`}
                   checked={isSelected}
-                  onCheckedChange={() => handleStudentToggle(student.id)}
+                  onCheckedChange={() => handleStudentToggle(student.id!)}
                   disabled={isDisabled}
                 />
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
                     <img
-                      src={student.img || `https://api.dicebear.com/8.x/bottts/svg?seed=${student.name}`}
-                      alt={student.name}
+                      src={student.img || `https://api.dicebear.com/8.x/bottts/svg?seed=${student.name || 'avatar'}`}
+                      alt={student.name || 'Avatar'}
                       className="w-10 h-10 rounded-full"
                     />
                     <div>

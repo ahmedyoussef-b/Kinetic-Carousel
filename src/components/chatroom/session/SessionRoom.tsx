@@ -10,6 +10,8 @@ import TimerDisplay from './TimerDisplay';
 import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
 
 // Import session components
 import OverviewTab from './tabs/OverviewTab';
@@ -167,10 +169,26 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
                         Terminer pour tous
                     </Button>
                 ) : (
-                   <Button size="sm" variant="outline" onClick={() => router.push('/list/chatroom')}>
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Quitter la session
-                    </Button>
+                   <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                         <Button size="sm" variant="outline">
+                           <ArrowLeft className="w-4 h-4 mr-2" />
+                           Quitter la session
+                         </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Êtes-vous sûr de vouloir quitter ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Vous pourrez rejoindre la session tant qu'elle est active depuis votre tableau de bord.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Rester</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => router.push('/student')}>Quitter</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                   </AlertDialog>
                 )}
              </div>
              <ScrollArea className="flex-1">
