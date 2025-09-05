@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { useGetSessionQuery } from '@/lib/redux/api/authApi';
 import { useAppDispatch } from './redux-hooks';
-import { setLoading } from '@/lib/redux/slices/authSlice'; // Corrected import
+import { setLoading } from '@/lib/redux/slices/authSlice';
 
 /**
  * Custom hook to initialize the user's auth state.
