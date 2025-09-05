@@ -16,14 +16,14 @@ import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Video } from 'lucide-react';
-import { useSocket } from '@/hooks/useSocket';
+import { usePusher } from '@/hooks/useSocket';
 
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
   const { toast } = useToast();
-  const { socket } = useSocket();
+  const { pusher } = usePusher();
 
   const { classes = [], selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session) || {};
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -45,29 +45,6 @@ export default function DashboardPage() {
     }
   }, [dispatch, classes.length, loading, user]);
   
-  // Effect for presence and signal updates via Socket.IO
-  useEffect(() => {
-    if (!socket || user?.role !== Role.TEACHER) return;
-
-
-    const handlePresenceUpdate = (onlineUserIds: string[]) => {
-      dispatch(updateStudentPresence({ onlineUserIds }));
-    };
-
-    const handlePresenceSignal = (studentId: string) => {
-      dispatch(studentSignaledPresence(studentId));
-    };
-
-    socket.on('presence:update', handlePresenceUpdate);
-    socket.on('student:signaled_presence', handlePresenceSignal);
-    socket.emit('presence:get'); // Initial fetch
-
-    return () => {
-      socket.off('presence:update', handlePresenceUpdate);
-      socket.off('student:signaled_presence', handlePresenceSignal);
-    };
-  }, [socket, dispatch, user]);
-
   const handleClassSelect = (classroom: ClassRoom) => {
     if (selectedClass?.id === classroom.id) {
         dispatch(setSelectedClass(null));
@@ -90,11 +67,6 @@ export default function DashboardPage() {
       if (startSession.fulfilled.match(resultAction)) {
         const newSession = resultAction.payload;
         
-        // Notify participants via Socket.IO through the server
-        if (socket) {
-            socket.emit('session:start', { ...newSession, participants: newSession.participants.filter(p => p.role === Role.STUDENT) });
-        }
-
         toast({ title: 'Session Démarrée', description: `La session pour ${selectedClass.name} a commencé.`});
         router.push(`/list/chatroom/session?sessionId=${newSession.id}`);
       } else {
