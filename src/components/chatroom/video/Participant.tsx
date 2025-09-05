@@ -18,15 +18,19 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
 
   useEffect(() => {
     const trackSubscribed = (track: Track) => {
-      if (track.kind === 'video') {
-        videoRef.current?.appendChild(track.attach());
-      } else if (track.kind === 'audio') {
-        audioRef.current?.appendChild(track.attach());
+      // Check the track's kind to ensure the attach method is available
+      if (track.kind === 'video' && videoRef.current) {
+        videoRef.current.appendChild(track.attach());
+      } else if (track.kind === 'audio' && audioRef.current) {
+        audioRef.current.appendChild(track.attach());
       }
     };
 
     const trackUnsubscribed = (track: Track) => {
-      track.detach().forEach((element: HTMLElement) => element.remove());
+      // Check the track's kind to ensure the detach method is available
+      if (track.kind === 'video' || track.kind === 'audio') {
+        track.detach().forEach((element: HTMLElement) => element.remove());
+      }
     };
 
     participant.on('trackSubscribed', trackSubscribed);
