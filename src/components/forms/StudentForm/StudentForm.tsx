@@ -25,8 +25,8 @@ const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => 
   // to match Zod's optional field expectations and prevent type errors.
   const studentDataForFields = data ? {
     ...data,
-    username: data.user?.username ?? '',
-    email: data.user?.email ?? '',
+    username: (data as any).user?.username ?? '',
+    email: (data as any).user?.email ?? '',
     classId: data.classId ?? undefined,
     gradeId: data.gradeId ?? undefined,
     parentId: data.parentId ?? undefined,
