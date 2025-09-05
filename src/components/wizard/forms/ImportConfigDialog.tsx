@@ -158,6 +158,7 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
                         name: `${teacherData.name} ${teacherData.surname}`,
                         email: teacherData.email, username: teacherData.email, role: Role.TEACHER, active: true,
                         img: null, createdAt: new Date(), updatedAt: new Date(),
+                        lastSeen: new Date(),
                         twoFactorEnabled: false, firstName: teacherData.name, lastName: teacherData.surname, 
                       },
                       subjects: teacherSubjects,
