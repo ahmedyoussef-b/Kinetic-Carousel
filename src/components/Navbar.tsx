@@ -7,7 +7,7 @@ import { ThemeToggleButton } from "./layout/ThemeToggleButton";
 import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import NotificationDropdown from './NotificationDropdown';
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "@/lib/redux/features/auth/authSlice";
+import { selectCurrentUser } from "@/lib/redux/slices/authSlice";
 import { selectUnreadCount } from '@/lib/redux/slices/notificationSlice';
 import type { SafeUser, Role } from "@/types";
 import { useEffect, useState } from "react";

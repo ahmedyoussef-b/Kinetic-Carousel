@@ -9,7 +9,7 @@ import { endSession, fetchSessionState } from '@/lib/redux/slices/sessionSlice';
 import { addSessionReportFromActiveSession } from '@/lib/redux/slices/reportSlice';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
-import { selectCurrentUser, selectIsAuthLoading } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser, selectIsAuthLoading } from '@/lib/redux/slices/authSlice';
 import { Spinner } from '@/components/ui/spinner';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';

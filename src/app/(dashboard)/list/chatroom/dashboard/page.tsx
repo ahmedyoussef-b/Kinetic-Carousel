@@ -10,7 +10,7 @@ import type { ClassRoom } from '@/lib/redux/slices/session/types';
 import ClassCard from '@/components/chatroom/dashboard/ClassCard';
 import StudentSelector from '@/components/chatroom/dashboard/StudentSelector';
 import TemplateSelector from '@/components/chatroom/dashboard/TemplateSelector';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { Role } from '@/types';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
