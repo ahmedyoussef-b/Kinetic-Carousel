@@ -26,9 +26,7 @@ const Participant: React.FC<ParticipantProps> = ({ participant }) => {
     };
 
     const trackUnsubscribed = (track: Track) => {
-      if (track.kind === 'video' || track.kind === 'audio') {
-        track.detach().forEach((element) => element.remove());
-      }
+        track.detach().forEach((element: HTMLElement) => element.remove());
     };
 
     participant.on('trackSubscribed', trackSubscribed);
