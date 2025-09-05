@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
@@ -25,6 +26,7 @@ const useLessonForm = ({
     resolver: zodResolver(lessonSchema),
     defaultValues: data ? {
       ...data,
+      classId: data.classId ?? undefined, // Ensure null is converted to undefined
       startTime: formatTime(data.startTime),
       endTime: formatTime(data.endTime),
       classroomId: data.classroomId ?? undefined,

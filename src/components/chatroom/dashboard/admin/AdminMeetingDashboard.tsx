@@ -11,10 +11,10 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { startMeeting, setMeetingCandidates, updateStudentPresence } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
 import TeacherSelector from '@/components/chatroom/dashboard/admin/TeacherSelector';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { Role, type SafeUser } from '@/types';
 import type { SessionParticipant } from '@/lib/redux/slices/session/types';
 import { useSocket } from '@/hooks/useSocket';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 
 interface AdminMeetingDashboardProps {
     teachers: SessionParticipant[];
