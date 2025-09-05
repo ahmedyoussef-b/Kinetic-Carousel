@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Video, LogOut, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
-import { breakoutTimerTick, fetchSessionState, tickTimer, sessionSlice } from '@/lib/redux/slices/sessionSlice';
+import * as sessionActions from '@/lib/redux/slices/sessionSlice';
 import TimerDisplay from './TimerDisplay';
 import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +46,7 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
     }
 
     const interval = setInterval(() => {
-      dispatch(tickTimer());
+      dispatch(sessionActions.tickTimer());
     }, 1000);
 
     return () => clearInterval(interval);
@@ -58,7 +58,7 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
           return;
       }
       const interval = setInterval(() => {
-          dispatch(breakoutTimerTick());
+          dispatch(sessionActions.breakoutTimerTick());
       }, 1000);
 
       return () => clearInterval(interval);
@@ -69,7 +69,7 @@ export default function SessionRoom({ onEndSession }: SessionRoomProps) {
     if (!activeSession?.id) return;
 
     const pollSessionState = () => {
-        dispatch(fetchSessionState(activeSession.id));
+        dispatch(sessionActions.fetchSessionState(activeSession.id));
     };
 
     const intervalId = setInterval(pollSessionState, 3000); // Poll every 3 seconds
