@@ -5,7 +5,7 @@ import React from 'react';
 import FormFields from "./FormFields";
 import useStudentForm from "./useStudentForm";
 import type { StudentFormProps } from "@/types";
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 const StudentForm = ({ type, data, setOpen, relatedData }: StudentFormProps) => {
 
