@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { Server } from 'socket.io';
-import prisma from './src/lib/prisma.js';
+import prisma from './src/lib/prisma';
 import { Role } from './src/types/index.js';
 
 const dev = process.env.NODE_ENV !== 'production';
