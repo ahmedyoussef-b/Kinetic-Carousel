@@ -22,6 +22,9 @@ const useSubjectForm = ({
     resolver: zodResolver(subjectSchema),
     defaultValues: data ? {
       ...data,
+      // Normalize null values from DB to undefined for the form
+      weeklyHours: data.weeklyHours ?? undefined,
+      coefficient: data.coefficient ?? undefined,
       teachers: data.teachers?.map(teacher => String(teacher.id)) || [],
     } : {
       weeklyHours: 2,
