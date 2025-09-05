@@ -1,9 +1,8 @@
 // src/lib/redux/features/auth/authSlice.ts
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { SafeUser } from '@/types';
-import type { RootState } from '../../store'; // Import RootState type
 
-export interface AuthState {
+interface AuthState {
   user: SafeUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -13,7 +12,7 @@ export interface AuthState {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true, // Start with loading true until the first session check is done
+  isLoading: true, // Start true until first session check
   error: null,
 };
 
@@ -22,28 +21,24 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action: PayloadAction<SafeUser>) => {
-      console.log('🎬 [AuthSlice] Action setUser:', action.payload);
       state.user = action.payload;
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;
     },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
+      state.isLoading = false;
+    },
     logout: (state) => {
-      console.log('🎬 [AuthSlice] Action logout: Réinitialisation de l\'état d\'authentification.');
       state.user = null;
       state.isAuthenticated = false;
       state.isLoading = false;
       state.error = null;
     },
-    setAuthLoading: (state, action: PayloadAction<boolean>) => {
-      console.log('🎬 [AuthSlice] Action setAuthLoading:', action.payload);
-      state.isLoading = action.payload;
-    },
-    setAuthError: (state, action: PayloadAction<string>) => {
-        console.log('🎬 [AuthSlice] Action setAuthError:', action.payload);
-        state.error = action.payload;
-        state.isLoading = false;
-    }
   },
   selectors: {
     selectCurrentUser: (state) => state.user,
@@ -52,7 +47,7 @@ const authSlice = createSlice({
   }
 });
 
-export const { setUser, logout, setAuthLoading, setAuthError } = authSlice.actions;
+export const { setUser, setLoading, setError, logout } = authSlice.actions;
 
 export const { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } = authSlice.selectors;
 

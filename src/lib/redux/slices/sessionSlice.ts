@@ -1,198 +1,69 @@
-// src/lib/redux/slices/sessionSlice.ts
+// src/lib/redux/slices/socketSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { initialState, type ActiveSession, type SessionState, SessionParticipant, ClassRoom } from './session/types';
-import type { RootState } from '../store'; // Import RootState
-
-// Thunks
-import { 
-  fetchChatroomClasses, 
-  fetchMeetingParticipants, 
-  startSession, 
-  startMeeting, 
-  fetchSessionState, 
-  endSession,
-  sendMessage,
-  raiseHand,
-  lowerHand,
-} from './session/thunks';
-
-// Reducers
-import { participantReducers } from './session/reducers/participants';
-import { handRaiseReducers } from './session/reducers/handRaise';
-import { reactionReducers } from './session/reducers/reactions';
-import { pollReducers } from './session/reducers/polls';
-import { quizReducers } from './session/reducers/quizzes';
-import { rewardReducers } from './session/reducers/rewards';
-import { timerReducers } from './session/reducers/timer';
-import { audioReducers } from './session/reducers/audio';
-import { spotlightReducers } from './session/reducers/spotlight';
-import { breakoutRoomReducers } from './session/reducers/breakoutRooms';
-import { chatReducers } from './session/reducers/chat';
 import { Role } from '@/types';
 
-const ensureSessionArrays = (session: ActiveSession): ActiveSession => ({
-  ...session,
-  participants: session.participants || [],
-  raisedHands: session.raisedHands || [],
-  reactions: session.reactions || [],
-  polls: session.polls || [],
-  quizzes: session.quizzes || [],
-  rewardActions: session.rewardActions || [],
-  messages: session.messages || [],
-});
+// Assuming OnlineUser and other related types will be defined in a central types file
+// For now, let's define them here based on your provided slice
+interface OnlineUser {
+  id: string;
+  email: string;
+  role: Role;
+  socketId: string;
+  name: string;
+}
 
+interface SocketState {
+  isConnected: boolean;
+  onlineUsers: OnlineUser[];
+  invitations: any[];
+  currentSession: any;
+}
 
-const sessionSlice = createSlice({
-  name: 'session',
+const initialState: SocketState = {
+  isConnected: false,
+  onlineUsers: [],
+  invitations: [],
+  currentSession: null,
+};
+
+const socketSlice = createSlice({
+  name: 'socket',
   initialState,
   reducers: {
-    ...participantReducers,
-    ...handRaiseReducers,
-    ...reactionReducers,
-    ...pollReducers,
-    ...quizReducers,
-    ...rewardReducers,
-    ...timerReducers,
-    ...audioReducers,
-    ...spotlightReducers,
-    ...breakoutRoomReducers,
-    ...chatReducers,
-    // Nouveau reducer pour gérer le signal de présence
-    studentSignaledPresence: (state, action: PayloadAction<string>) => {
-      const studentId = action.payload;
-      if (!state.signaledPresence.includes(studentId)) {
-        state.signaledPresence.push(studentId);
-      }
-      // Optionnel : retirer le signal après un certain temps
-      // setTimeout(() => {
-      //   state.signaledPresence = state.signaledPresence.filter(id => id !== studentId);
-      // }, 10000); // Le signal disparaît après 10 secondes
+    setConnected: (state, action: PayloadAction<boolean>) => {
+      state.isConnected = action.payload;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      // Fetch Chatroom Classes
-      .addCase(fetchChatroomClasses.pending, (state) => { state.loading = true; })
-      .addCase(fetchChatroomClasses.fulfilled, (state, action) => {
-        state.classes = action.payload.map(c => ({
-            ...c,
-            students: c.students.map(s => ({...s, userId: s.id}))
-        }));
-        state.loading = false;
-      })
-      .addCase(fetchChatroomClasses.rejected, (state) => { state.loading = false; })
-      
-      // Fetch Meeting Participants
-      .addCase(fetchMeetingParticipants.pending, (state) => { state.loading = true; })
-      .addCase(fetchMeetingParticipants.fulfilled, (state, action: PayloadAction<SessionParticipant[]>) => {
-        state.meetingCandidates = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchMeetingParticipants.rejected, (state) => { state.loading = false; })
-      
-      // Start Session / Meeting
-      .addCase(startSession.pending, (state) => { state.loading = true; })
-      .addCase(startSession.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = ensureSessionArrays(action.payload);
-        state.loading = false;
-      })
-      .addCase(startSession.rejected, (state) => { state.loading = false; })
-      .addCase(startMeeting.pending, (state) => { state.loading = true; })
-      .addCase(startMeeting.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = ensureSessionArrays(action.payload);
-        state.loading = false;
-      })
-      .addCase(startMeeting.rejected, (state) => { state.loading = false; })
-      
-      // Fetch Session State
-      .addCase(fetchSessionState.pending, (state) => { state.loading = false; }) // Don't show full screen loader for polls
-      .addCase(fetchSessionState.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
-        state.activeSession = ensureSessionArrays(action.payload);
-        state.loading = false;
-      })      
-      // Reestructuration de la gestion des erreurs pour fetchSessionState
-      .addCase(fetchSessionState.rejected, (state, action) => {
-        // Vérifie si l'action.payload est une chaîne et gère spécifiquement les erreurs de session terminée ou non trouvée
-        if (typeof action.payload === 'string' && 
-            (action.payload === 'SESSION_ENDED' || action.payload.includes('Session non trouvée'))) {
-          state.activeSession = null;
-        } else {
-          // Gère les autres types d'erreurs si nécessaire, ou ne fait rien pour les erreurs non critiques
-        }
-        state.loading = false;
-      })
-      
-      // End Session
-      .addCase(endSession.fulfilled, (state) => {
-        state.activeSession = null;
-        state.selectedClass = null;
-        state.selectedStudents = [];
-        state.selectedTeachers = [];
-      })
-      
-      // Send Message (in-session)
-      .addCase(sendMessage.fulfilled, (state, action) => {
-        if (state.activeSession) {
-            state.activeSession.messages.push(action.payload);
-        }
-      })
-      
-      // Raise/Lower Hand
-      .addCase(raiseHand.fulfilled, (state, action: PayloadAction<ActiveSession | undefined>) => {
-        if (action.payload) {
-          state.activeSession = ensureSessionArrays(action.payload);
-        }
-      })
-      .addCase(lowerHand.fulfilled, (state, action: PayloadAction<ActiveSession | undefined>) => {
-        if (action.payload) {
-          state.activeSession = ensureSessionArrays(action.payload);
-        }
-      });
+    setOnlineUsers: (state, action: PayloadAction<OnlineUser[]>) => {
+      state.onlineUsers = action.payload;
+    },
+    addInvitation: (state, action: PayloadAction<any>) => {
+      // Avoid duplicate invitations
+      if (!state.invitations.some(inv => inv.sessionId === action.payload.sessionId)) {
+        state.invitations.push(action.payload);
+      }
+    },
+    removeInvitation: (state, action: PayloadAction<string>) => {
+      state.invitations = state.invitations.filter(
+        inv => inv.sessionId !== action.payload
+      );
+    },
+    setCurrentSession: (state, action: PayloadAction<any>) => {
+      state.currentSession = action.payload;
+    },
+    clearSession: (state) => {
+      state.currentSession = null;
+      state.invitations = [];
+    }
   },
 });
 
 export const {
-  setMeetingCandidates,
-  setSelectedClass,
-  toggleStudentSelection,
-  toggleTeacherSelection,
-  moveParticipant,
-  removeStudentFromSession,
-  addStudentToSession,
-  updateStudentPresence,
-  clearAllRaisedHands,
-  sendReaction,
-  clearReactions,
-  createPoll,
-  votePoll,
-  endPoll,
-  createQuiz,
-  answerQuiz,
-  nextQuizQuestion,
-  updateQuizTimer,
-  endQuiz,
-  awardReward,
-  awardParticipationPoints,
-  setTimer,
-  toggleTimer,
-  resetTimer,
-  stopTimer,
-  tickTimer,
-  toggleMute,
-  muteAllStudents,
-  unmuteAllStudents,
-  toggleSpotlight,
-  createBreakoutRooms,
-  endBreakoutRooms,
-  breakoutTimerTick,
-  sendGeneralMessage,
-  clearChatMessages,
-  studentSignaledPresence, // Exporter la nouvelle action
-} = sessionSlice.actions;
+  setConnected,
+  setOnlineUsers,
+  addInvitation,
+  removeInvitation,
+  setCurrentSession,
+  clearSession,
+} = socketSlice.actions;
 
-// New selector for the entire session state slice
-export const selectSessionState = (state: RootState): SessionState => state.session;
-
-
-export default sessionSlice.reducer;
-export * from './session/thunks';
+export default socketSlice.reducer;
