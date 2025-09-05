@@ -225,6 +225,7 @@ export const fetchSessionState = createAsyncThunk(
   async (sessionId: string, { rejectWithValue }) => {
     try {
       const response = await fetch(`/api/chatroom/sessions/${sessionId}`);
+      console.log('fetchSessionState💢💢💌💌', response)
       if (!response.ok) {
         const errorData = await response.json();
         if (response.status === 404) {

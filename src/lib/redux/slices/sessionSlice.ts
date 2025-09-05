@@ -94,10 +94,15 @@ const sessionSlice = createSlice({
       .addCase(fetchSessionState.fulfilled, (state, action: PayloadAction<ActiveSession>) => {
         state.activeSession = ensureSessionArrays(action.payload);
         state.loading = false;
-      })
-      .addCase(fetchSessionState.rejected, (state, action) => { 
-        if (action.payload === 'SESSION_ENDED' || action.payload?.includes('Session non trouvée')) {
-            state.activeSession = null;
+      })      
+      // Reestructuration de la gestion des erreurs pour fetchSessionState
+      .addCase(fetchSessionState.rejected, (state, action) => {
+        // Vérifie si l'action.payload est une chaîne et gère spécifiquement les erreurs de session terminée ou non trouvée
+        if (typeof action.payload === 'string' && 
+            (action.payload === 'SESSION_ENDED' || action.payload.includes('Session non trouvée'))) {
+          state.activeSession = null;
+        } else {
+          // Gère les autres types d'erreurs si nécessaire, ou ne fait rien pour les erreurs non critiques
         }
         state.loading = false;
       })
