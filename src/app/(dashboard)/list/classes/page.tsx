@@ -22,6 +22,7 @@ export type ClassWithDetails = Omit<Class, 'supervisorId'> & {
   _count: { students: number };
   grade: Grade;
   supervisor: { name: string | null; surname: string | null } | null;
+  students?: Student[]; // Added optional students property
 };
 
 // --- SERVER COMPONENT (Default Export) ---
