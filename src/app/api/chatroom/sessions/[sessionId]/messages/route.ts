@@ -19,7 +19,7 @@ export async function POST(request: NextRequest, { params }: { params: { session
   }
 
   try {
-    const session = SessionService.getSession(sessionId);
+    const session = await SessionService.getSession(sessionId);
     if (!session) {
       return NextResponse.json({ message: 'Session non trouvée ou terminée' }, { status: 404 });
     }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: { session
     };
     
     // Add the message to the in-memory session state
-    SessionService.addMessage(sessionId, newMessage);
+    await SessionService.addMessage(sessionId, newMessage);
 
     return NextResponse.json(newMessage, { status: 201 });
   } catch (error) {
