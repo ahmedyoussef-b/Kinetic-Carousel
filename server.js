@@ -17,6 +17,8 @@ const onlineUsers = new Map();
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
     try {
+      // Be sure to pass `true` as the second argument to `url.parse`.
+      // This tells it to parse the query portion of the URL.
       const parsedUrl = parse(req.url, true);
       handle(req, res, parsedUrl);
     } catch (err) {
@@ -112,7 +114,7 @@ app.prepare().then(() => {
 
 
   httpServer.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
+    if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
       console.error(`❌ Error: Port ${port} is already in use. Please choose another one.`);
     } else {
       console.error(err);
