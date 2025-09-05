@@ -1,4 +1,3 @@
-
 // src/app/(dashboard)/list/lessons/page.tsx
 import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
