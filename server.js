@@ -113,7 +113,7 @@ app.prepare().then(() => {
 
 
   httpServer.on('error', (err) => {
-    if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
+    if (err.code === 'EADDRINUSE') {
       console.error(`❌ Error: Port ${port} is already in use. Please choose another one.`);
     } else {
       console.error(err);
