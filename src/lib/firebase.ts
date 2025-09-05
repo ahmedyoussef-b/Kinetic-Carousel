@@ -34,3 +34,14 @@ export function initializeFirebaseApp() {
 const app = initializeFirebaseApp();
 export const auth = getAuth(app);
 
+// Forcer la désactivation de l'émulateur s'il est configuré via l'environnement
+// en passant des paramètres vides à connectAuthEmulator.
+if (process.env.NODE_ENV === 'development' && process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+  try {
+    const authInstance = getAuth(app);
+    (authInstance as any).emulatorConfig = null;
+    console.log("🔥 [Firebase Init] Connexion à l'émulateur d'authentification explicitement désactivée.");
+  } catch (e) {
+    console.error("🔥 [Firebase Init] ❌ Erreur lors de la tentative de désactivation de l'émulateur d'authentification :", e);
+  }
+}
