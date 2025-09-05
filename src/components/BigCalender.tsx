@@ -102,12 +102,12 @@ const BigCalendar = ({
       }}
       messages={messages}
       formats={{
-        dayFormat: (date: Date, culture: string | undefined, localizer: DateLocalizer) =>
-          localizer.format(date, 'dddd', culture), 
-        weekdayFormat: (date: Date, culture: string | undefined, localizer: DateLocalizer) =>
-          localizer.format(date, 'ddd', culture),
-        dayHeaderFormat: (date: Date, culture: string | undefined, localizer: DateLocalizer) =>
-          localizer.format(date, 'dddd, D MMM', culture), // Format français
+        dayFormat: (date: Date, culture: string | undefined, localizer?: DateLocalizer) =>
+          localizer ? localizer.format(date, 'dddd', culture) : date.toLocaleDateString(), 
+        weekdayFormat: (date: Date, culture: string | undefined, localizer?: DateLocalizer) =>
+          localizer ? localizer.format(date, 'ddd', culture) : date.toLocaleDateString(),
+        dayHeaderFormat: (date: Date, culture: string | undefined, localizer?: DateLocalizer) =>
+          localizer ? localizer.format(date, 'dddd, D MMM', culture) : date.toLocaleDateString(), // Format français
       }}
     />
   );
