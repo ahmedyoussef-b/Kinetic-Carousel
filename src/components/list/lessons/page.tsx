@@ -11,12 +11,14 @@ import { Prisma, Role } from "@prisma/client";
 import { Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
-type LessonListItem = Lesson & {
+type LessonListItem = Omit<Lesson, 'startTime' | 'endTime' | 'createdAt' | 'updatedAt'> & {
   subject: Pick<Subject, 'name'>;
-  class: Pick<Class, 'name'>;
+  class: Pick<Class, 'name'> | null; // Allow class to be null
   teacher: Pick<Teacher, 'name' | 'surname'>;
-  
+  startTime: string;
+  endTime: string;
 };
+
 
 const LessonListPage = async ({
   searchParams,
@@ -42,7 +44,7 @@ const LessonListPage = async ({
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-muted/50 transition-colors"
     >
       <td className="flex items-center gap-4 p-4">{item.subject.name}</td>
-      <td>{item.class.name}</td>
+      <td>{item.class?.name || 'N/A'}</td>
       <td className="hidden md:table-cell">
         {item.teacher.name + " " + item.teacher.surname}
       </td>
@@ -99,9 +101,7 @@ const LessonListPage = async ({
   const serializableData: LessonListItem[] = data.map((lesson) => ({
     ...lesson,
     startTime: lesson.startTime.toISOString(),
-    endTime: lesson.endTime.toISOString(), // Keep existing properties
-    createdAt: "2023-01-01T00:00:00.000Z", // Add dummy value for createdAt
-    updatedAt: "2023-01-01T00:00:00.000Z", // Add dummy value for updatedAt
+    endTime: lesson.endTime.toISOString(),
   }));
 
   return (
