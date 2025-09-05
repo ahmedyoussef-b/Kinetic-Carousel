@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
                     classes: JSON.stringify(wizardData.classes),
                     subjects: JSON.stringify(wizardData.subjects),
                     teachers: JSON.stringify(wizardData.teachers),
-                    classrooms: JSON.stringify(wizardData.rooms),
+                    rooms: JSON.stringify(wizardData.rooms),
                     grades: JSON.stringify(wizardData.grades),
                 },
             });
