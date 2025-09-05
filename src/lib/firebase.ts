@@ -34,15 +34,3 @@ export function initializeFirebaseApp() {
 const app = initializeFirebaseApp();
 export const auth = getAuth(app);
 
-// Connect to emulators in development
-if (process.env.NODE_ENV === 'development') {
-  try {
-    // Use 127.0.0.1 for cloud development environments like Firebase Studio
-    connectAuthEmulator(auth, 'http://127.0.0.1:9099');
-    console.log('🔥 Connected to Firebase Auth Emulator');
-  } catch (error) {
-    console.log('⚠️ Firebase Auth Emulator not available');
-  }
-}
-
-export default app;
