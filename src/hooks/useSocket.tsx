@@ -3,8 +3,9 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useAppSelector } from './redux-hooks';
+import { useAppSelector, useAppDispatch } from './redux-hooks';
 import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { studentSignaledPresence } from '@/lib/redux/slices/sessionSlice';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -20,6 +21,7 @@ export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const user = useAppSelector(selectCurrentUser);
+  const dispatch = useAppDispatch();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -40,15 +42,22 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         console.log('🔌 [SocketProvider] Disconnected from Socket.IO server.');
         setIsConnected(false);
       });
+
+      // Écouteur pour le signal de présence
+      newSocket.on('student:signaled_presence', (studentId: string) => {
+        console.log(`[SocketProvider] Received presence signal for student: ${studentId}`);
+        dispatch(studentSignaledPresence(studentId));
+      });
       
       setSocket(newSocket);
 
       return () => {
         console.log('🛑 [SocketProvider] Disconnecting socket...');
+        newSocket.off('student:signaled_presence');
         newSocket.disconnect();
       };
     }
-  }, [user]);
+  }, [user, dispatch]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

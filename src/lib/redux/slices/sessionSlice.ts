@@ -57,13 +57,27 @@ const sessionSlice = createSlice({
     ...spotlightReducers,
     ...breakoutRoomReducers,
     ...chatReducers,
+    // Nouveau reducer pour gérer le signal de présence
+    studentSignaledPresence: (state, action: PayloadAction<string>) => {
+      const studentId = action.payload;
+      if (!state.signaledPresence.includes(studentId)) {
+        state.signaledPresence.push(studentId);
+      }
+      // Optionnel : retirer le signal après un certain temps
+      // setTimeout(() => {
+      //   state.signaledPresence = state.signaledPresence.filter(id => id !== studentId);
+      // }, 10000); // Le signal disparaît après 10 secondes
+    },
   },
   extraReducers: (builder) => {
     builder
       // Fetch Chatroom Classes
       .addCase(fetchChatroomClasses.pending, (state) => { state.loading = true; })
       .addCase(fetchChatroomClasses.fulfilled, (state, action) => {
-        state.classes = action.payload;
+        state.classes = action.payload.map(c => ({
+            ...c,
+            students: c.students.map(s => ({...s, userId: s.id}))
+        }));
         state.loading = false;
       })
       .addCase(fetchChatroomClasses.rejected, (state) => { state.loading = false; })
@@ -172,7 +186,8 @@ export const {
   endBreakoutRooms,
   breakoutTimerTick,
   sendGeneralMessage,
-  clearChatMessages
+  clearChatMessages,
+  studentSignaledPresence, // Exporter la nouvelle action
 } = sessionSlice.actions;
 
 // New selector for the entire session state slice

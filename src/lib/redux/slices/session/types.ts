@@ -196,6 +196,7 @@ export interface SessionState {
   activeSession: ActiveSession | null;
   loading: boolean;
   chatMessages: ChatMessage[];
+  signaledPresence: string[]; // Nouveau champ pour suivre les signaux de présence
 }
 
 export const initialState: SessionState = {
@@ -207,6 +208,7 @@ export const initialState: SessionState = {
   activeSession: null,
   loading: false,
   chatMessages: [],
+  signaledPresence: [], // Initialisation
 };
 
 // --- CONSTANTS MOVED HERE ---

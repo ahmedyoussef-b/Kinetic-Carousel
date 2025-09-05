@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Hand } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { toggleStudentSelection } from '@/lib/redux/slices/sessionSlice';
 import type { ClassRoom, SessionParticipant } from '@/lib/redux/slices/session/types';
@@ -19,14 +19,14 @@ interface StudentSelectorProps {
 export default function StudentSelector({ classroom }: StudentSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const dispatch = useAppDispatch();
-  const { selectedStudents } = useAppSelector(state => state.session);
+  const { selectedStudents, signaledPresence } = useAppSelector(state => state.session);
 
   // Ensure classroom.students is treated as an array, even if it's undefined.
   const students = classroom.students || [];
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (student.email && student.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleStudentToggle = (studentId: string) => {
@@ -55,6 +55,7 @@ export default function StudentSelector({ classroom }: StudentSelectorProps) {
           {filteredStudents.map((student: SessionParticipant) => {
             const isSelected = selectedStudents.includes(student.id);
             const isDisabled = !student.isOnline;
+            const hasSignaled = signaledPresence.includes(student.userId!);
             
             return (
               <div
@@ -83,7 +84,10 @@ export default function StudentSelector({ classroom }: StudentSelectorProps) {
                       className="w-10 h-10 rounded-full"
                     />
                     <div>
-                      <p className="font-medium text-foreground">{student.name}</p>
+                      <p className="font-medium text-foreground flex items-center gap-2">
+                        {student.name}
+                        {hasSignaled && <Hand className="w-4 h-4 text-yellow-500 animate-bounce" title="Présence signalée !" />}
+                      </p>
                       <p className="text-sm text-muted-foreground">{student.email}</p>
                     </div>
                   </div>

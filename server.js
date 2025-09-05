@@ -69,6 +69,13 @@ app.prepare().then(() => {
         });
     });
 
+    // Nouvel écouteur pour le signal de présence de l'élève
+    socket.on('student:present', (studentId) => {
+        console.log(`✋ L'élève ${studentId} a signalé sa présence.`);
+        // Diffuser à tous les clients (y compris les professeurs) que l'élève est présent
+        io.emit('student:signaled_presence', studentId);
+    });
+
     socket.on('disconnect', () => {
       console.log(`🔌 Client déconnecté: ${socket.id}`);
       if (onlineUsers.has(socket.id)) {

@@ -1,7 +1,7 @@
 //src/components/chatroom/student/StudentDashboard.tsx
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { useLogoutMutation } from '@/lib/redux/api/authApi';
@@ -13,8 +13,9 @@ import { InvitationList } from './InvitationList';
 import { NoInvitations } from './NoInvitations';
 import { NotificationList } from './NotificationList';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Hand } from 'lucide-react';
 import { useSocket } from '@/hooks/useSocket';
+import { Button } from '@/components/ui/button';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function StudentDashboard() {
   const prevInvitationsCount = useRef(0);
   const { toast } = useToast();
   const { socket } = useSocket();
+  const [presenceSignaled, setPresenceSignaled] = useState(false);
 
 
   const pendingInvitations: (AppNotification & { actionUrl: string })[] = notifications.filter(
@@ -106,6 +108,18 @@ export default function StudentDashboard() {
   const handleDeclineInvitation = (invitationId: string) => {
     dispatch(removeNotification(invitationId));
   };
+
+  const handleSignalPresence = () => {
+    if (socket && user) {
+      socket.emit('student:present', user.id);
+      setPresenceSignaled(true);
+      toast({
+        title: "Présence signalée !",
+        description: "Votre professeur a été notifié.",
+      });
+      setTimeout(() => setPresenceSignaled(false), 5000); // Reset button after 5s
+    }
+  };
   
   if (!user) {
     return (
@@ -128,6 +142,13 @@ export default function StudentDashboard() {
             <p className="text-lg text-gray-600">
               Vous recevrez des notifications lorsque vos professeurs lanceront des sessions.
             </p>
+          </div>
+
+          <div className="text-center">
+            <Button size="lg" onClick={handleSignalPresence} disabled={presenceSignaled}>
+              <Hand className="mr-2 h-5 w-5" />
+              {presenceSignaled ? "Signalé !" : "Signaler ma présence"}
+            </Button>
           </div>
 
           {pendingInvitations.length > 0 ? (
