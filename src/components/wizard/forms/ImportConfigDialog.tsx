@@ -76,7 +76,7 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
     setError(null);
     
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = (event) => 
         const csvString = event.target?.result as string;
         if (!csvString) {
             setError("Impossible de lire le fichier.");

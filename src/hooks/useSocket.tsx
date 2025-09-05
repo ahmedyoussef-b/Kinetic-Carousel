@@ -33,9 +33,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     if (socketRef.current?.connected) {
         return; // Socket already initialized and connected
     }
+    
+    // Correction : Utilisation de l'URL absolue pour forcer la connexion correcte dans l'environnement de production/développement.
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://9000-firebase-kinetic-carousel1-1756635081356.cluster-cbeiita7rbe7iuwhvjs5zww2i4.cloudworkstations.dev';
+    console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl} for user ${user.id}`);
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
-    console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl || 'the current URL'} for user ${user.id}`);
 
     // The auth object is the primary way to pass data on initial connection
     socketRef.current = io(socketUrl, {

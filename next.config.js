@@ -52,14 +52,6 @@ const nextConfig = {
       },
     ],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/socket',
-        destination: `http://localhost:${process.env.PORT || 3000}/api/socket`,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
