@@ -1,3 +1,4 @@
+
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SessionState, Quiz, QuizQuestion } from '../types';
 
@@ -36,7 +37,7 @@ export const quizReducers = {
       answeredAt: new Date().toISOString() 
     });
     
-    if (state.activeSession.sessionType === 'class') {
+    if (state.activeSession.sessionType === 'CLASS') {
       const student = state.activeSession.participants.find(p => p.id === action.payload.studentId);
       if (student) {
         const points = isCorrect ? 10 : 1;
