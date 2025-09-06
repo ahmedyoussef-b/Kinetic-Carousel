@@ -1,7 +1,7 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
+import admin from '@/lib/firebase-admin'; // Import the initialized admin instance
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import { SafeUser } from '@/types';
 
@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Le token ID est manquant." }, { status: 400 });
     }
 
-    const admin = await initializeFirebaseAdmin();
     const auth = admin.auth();
     
     const decodedToken = await auth.verifyIdToken(idToken);
@@ -60,6 +59,7 @@ export async function POST(request: NextRequest) {
     return response;
 
   } catch (error) {
+    console.error("Authentication failed:", error); // Log the actual error
     return NextResponse.json({ message: "L'authentification a échoué." }, { status: 401 });
   }
 }
