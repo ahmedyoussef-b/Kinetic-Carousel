@@ -3,7 +3,7 @@ import { Role } from "@/types/index";
 import { 
   Home, Calendar, BarChart, BookUser, GraduationCap, Users, Book, School, 
   BookCopy, PencilLine, ClipboardList, BookCheck, ClipboardCheck, MessageSquare, 
-  Megaphone, UserCircle, Settings 
+  Megaphone, UserCircle, Settings, CreditCard
 } from 'lucide-react';
 import type { SessionTemplate } from '@/lib/redux/slices/session/types';
 
@@ -58,6 +58,7 @@ export const menuItems: Array<{
       { icon: ClipboardList, label: "Devoirs", href: "/list/assignments", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
       { icon: BookCheck, label: "Résultats", href: "/list/results", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
       { icon: ClipboardCheck, label: "Présence", href: "/list/attendance", visible: [Role.ADMIN, Role.TEACHER], },
+      { icon: CreditCard, label: "Finance", href: "/list/finance", visible: [Role.ADMIN, Role.PARENT] },
       { icon: Calendar, label: "Événements", href: "/list/events", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
       { icon: MessageSquare, label: "Chatroom", href: "/list/chatroom/dashboard", visible: [Role.TEACHER] },
       { icon: MessageSquare, label: "Chatroom", href: "/list/chatroom/student", visible: [Role.STUDENT] },
