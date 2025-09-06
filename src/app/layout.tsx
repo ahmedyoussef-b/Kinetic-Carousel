@@ -2,7 +2,10 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Providers } from './Providers'; // Import Providers
+import { StoreProvider } from '@/lib/redux/StoreProvider';
+import { ThemeProvider } from '@/components/layout/ThemeProvider';
+import { Toaster } from '@/components/ui/sonner';
+import { PusherProvider } from '@/hooks/useSocket';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -22,11 +25,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <head>
+       <head>
         <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
       </head>
       <body className="font-sans antialiased">
-        <Providers>{children}</Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <StoreProvider>
+            <PusherProvider>
+              {children}
+              <Toaster />
+            </PusherProvider>
+          </StoreProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
