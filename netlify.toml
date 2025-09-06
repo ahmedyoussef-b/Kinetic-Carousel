@@ -1,17 +1,23 @@
 [build]
   command = "npm run build"
-  publish = ".next/standalone/.next"
+  publish = ".next/standalone"
 
 [functions]
-  directory = "netlify/functions"
+  directory = ".next/standalone/.next/server/pages"
+  included_files = [".next/standalone/.next/server/**"]
 
 [[redirects]]
   from = "/_next/static/*"
-  to = "/static/*"
+  to = "/.next/static/*"
   status = 200
 
 [[redirects]]
   from = "/*"
-  to = "/server.js"
+  to = "/index.html"
   status = 200
-  force = true
+  conditions = { "path" = "!^/api/.*" }
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
