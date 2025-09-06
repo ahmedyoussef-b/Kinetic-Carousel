@@ -1,7 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  srcDir: 'src',
   output: 'standalone',
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOW-FROM *',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
