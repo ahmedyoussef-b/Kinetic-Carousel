@@ -1,3 +1,22 @@
+# Example netlify.toml
 [build]
   command = "npm run build"
-  publish = ".next"
+  publish = ".next/standalone/.next/server/chunks"
+
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/.next/static/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
+
+[functions]
+  included_files = [".next/standalone/**"]
+  [functions."next-server"]
+    name = "Next.js server"
+    handler = ".netlify/functions/server.js"
+    included_files = [".next/standalone/**"]
+    node_bundler = "esbuild"
